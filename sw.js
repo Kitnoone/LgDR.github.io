@@ -1,12 +1,13 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v2-auth';
+const V = 'legendy-v3-firestore';
 const ASSETS = [
   './',
   './index.html',
   './app.css',
   './app.js',
   './auth.js',
+  './character-store.js',
   './firebase-config.js',
   './manifest.webmanifest',
   './icon-192.png',

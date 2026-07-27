@@ -53,15 +53,21 @@
 <div id="chooser" class="chooser" hidden>
   <div class="chooser-inner">
     <span class="eyebrow">Легенды подземелий</span>
-    <h1>Кем ты играешь?</h1>
-    <p class="lead">Выбери своего персонажа. Приложение запомнит его на этом телефоне.</p>
+    <h1>Создай персонажа</h1>
+    <p class="lead">Назови героя и выбери архетип. Имя, здоровье, заряды и снаряжение будут храниться в Firebase.</p>
+    <label class="chooser-name"><span>Имя персонажа</span>
+      <input id="character-name-input" type="text" maxlength="40" autocomplete="off" placeholder="Например, Женя">
+    </label>
+    <p id="chooser-message" class="chooser-message"></p>
     <div class="chooser-grid" id="chooser-grid"></div>
   </div>
 </div>
 
 <!-- ═══════════════ верхняя панель ═══════════════ -->
 <header class="topbar" id="topbar" hidden>
-  <button class="tb-name" data-act="menu"><span id="tb-title">—</span><i>▾</i></button>
+  <button class="tb-name" data-act="menu">
+    <span class="tb-person"><strong id="tb-character-name">—</strong><small id="tb-title">—</small></span><i>▾</i>
+  </button>
 </header>
 
 <!-- ═══════════════ меню ═══════════════ -->
@@ -70,10 +76,11 @@
     <h2>Меню</h2>
     <button class="menu-item" data-act="new-battle"><b>Новый бой</b><span>Вернуть заряды «за бой» и снять выбор боя</span></button>
     <button class="menu-item" data-act="new-day"><b>Новый день</b><span>Вернуть все заряды и восстановить здоровье</span></button>
+    <button class="menu-item" data-act="edit-profile"><b>Имя и снаряжение</b><span>Оружие, броня, урон и список предметов</span></button>
     <button class="menu-item" data-act="switch"><b>Сменить персонажа</b><span>Вернуться к выбору</span></button>
     <button class="menu-item" data-act="print"><b>Печать всех карточек</b><span>Восемь листов A4, как раньше</span></button>
     <button class="menu-item menu-item--warn" data-act="reset"><b>Сбросить всё</b><span>Здоровье, заряды, порча и монеты обнулятся</span></button>
-    <div class="auth-account"><span>Аккаунт</span><b id="auth-user-email">—</b></div>
+    <div class="auth-account"><span>Аккаунт</span><b id="auth-user-email">—</b><small id="cloud-status">Облако: —</small></div>
     <button class="menu-item menu-item--warn" type="button" data-auth-action="logout"><b>Выйти из аккаунта</b><span>Локальное состояние этого пользователя останется на устройстве</span></button>
     <button class="menu-close" data-act="close-menu">Закрыть</button>
   </div>
@@ -98,10 +105,26 @@
   </div>
 </div>
 
+<!-- ═══════════════ имя и снаряжение ═══════════════ -->
+<div class="sheetmenu" id="profiledlg" hidden>
+  <div class="sheetmenu-panel">
+    <h2>Персонаж и снаряжение</h2>
+    <div class="profile-form">
+      <label><span>Имя персонажа</span><input id="profile-name" type="text" maxlength="40"></label>
+      <label><span>Броня</span><input id="profile-armor" type="text" maxlength="80"></label>
+      <label><span>Оружие</span><input id="profile-weapon" type="text" maxlength="80" placeholder="Например, цепной меч"></label>
+      <label><span>Урон оружия</span><input id="profile-damage" type="text" maxlength="40" placeholder="Например, 2D6 + 3"></label>
+      <label><span>Предметы, каждый с новой строки</span><textarea id="profile-items" rows="6" placeholder="Стимм&#10;Граната&#10;Датапланшет"></textarea></label>
+    </div>
+    <button class="auth-primary profile-save" data-act="save-profile">Сохранить</button>
+    <button class="menu-close" data-act="close-profile">Закрыть</button>
+  </div>
+</div>
+
 <main id="app" hidden>
 
 <section class="card" id="card-guardsman" data-char="guardsman"
-         data-hp-max="20" data-ult-cost="2" data-choice-reset="battle">
+         data-hp-max="20" data-ult-cost="2" data-default-armor="Флак на старте" data-choice-reset="battle">
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка I из VIII</span></div>
 
   <div class="head">
@@ -133,9 +156,10 @@
         <div><span class="lab">Харизма</span><span class="val" data-base="0">+0</span></div>
     </div>
     <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt">Флак на старте</span></div>
-      <div><span class="lab">Урон оружия</span><span class="txt empty"></span></div>
+      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>Флак на старте</span></div>
+      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
     </div>
+    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">
@@ -221,7 +245,7 @@
 </section>
 
 <section class="card" id="card-heretic" data-char="heretic"
-         data-hp-max="40" data-ult-cost="3" data-taint-boost="1" data-choice-reset="day">
+         data-hp-max="40" data-ult-cost="3" data-default-armor="Робы" data-taint-boost="1" data-choice-reset="day">
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка II из VIII</span></div>
 
   <div class="head">
@@ -253,9 +277,10 @@
         <div><span class="lab">Харизма</span><span class="val" data-base="2">+2</span></div>
     </div>
     <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt">Робы</span></div>
-      <div><span class="lab">Урон оружия</span><span class="txt empty"></span></div>
+      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>Робы</span></div>
+      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
     </div>
+    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">
@@ -339,7 +364,7 @@
 </section>
 
 <section class="card" id="card-cultist" data-char="cultist"
-         data-hp-max="20" data-ult-cost="4" >
+         data-hp-max="20" data-ult-cost="4" data-default-armor="Синтекостюм" >
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка III из VIII</span></div>
 
   <div class="head">
@@ -371,9 +396,10 @@
         <div><span class="lab">Харизма</span><span class="val neg" data-base="-3">&minus;3</span></div>
     </div>
     <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt">Синтекостюм</span></div>
-      <div><span class="lab">Урон оружия</span><span class="txt empty"></span></div>
+      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>Синтекостюм</span></div>
+      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
     </div>
+    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">
@@ -462,7 +488,7 @@
 </section>
 
 <section class="card" id="card-techpriest" data-char="techpriest"
-         data-hp-max="30" data-ult-cost="5" data-choice-reset="day">
+         data-hp-max="30" data-ult-cost="5" data-default-armor="Серво броня" data-choice-reset="day">
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка IV из VIII</span></div>
 
   <div class="head">
@@ -494,9 +520,10 @@
         <div><span class="lab">Харизма</span><span class="val neg" data-base="-2">&minus;2</span></div>
     </div>
     <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt">Серво броня</span></div>
-      <div><span class="lab">Урон оружия</span><span class="txt empty"></span></div>
+      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>Серво броня</span></div>
+      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
     </div>
+    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">
@@ -588,7 +615,7 @@
 </section>
 
 <section class="card" id="card-priest" data-char="priest"
-         data-hp-max="25" data-ult-cost="2" >
+         data-hp-max="25" data-ult-cost="2" data-default-armor="Панцирный доспех" >
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка V из VIII</span></div>
 
   <div class="head">
@@ -620,9 +647,10 @@
         <div><span class="lab">Харизма</span><span class="val" data-base="3">+3</span></div>
     </div>
     <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt">Панцирный доспех</span></div>
-      <div><span class="lab">Урон оружия</span><span class="txt empty"></span></div>
+      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>Панцирный доспех</span></div>
+      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
     </div>
+    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">
@@ -703,7 +731,7 @@
 </section>
 
 <section class="card" id="card-neophyte" data-char="neophyte"
-         data-hp-max="35" data-ult-cost="5" >
+         data-hp-max="35" data-ult-cost="5" data-default-armor="Панцирный доспех" >
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка VI из VIII</span></div>
 
   <div class="head">
@@ -735,9 +763,10 @@
         <div><span class="lab">Харизма</span><span class="val neg" data-base="-2">&minus;2</span></div>
     </div>
     <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt">Панцирный доспех</span></div>
-      <div><span class="lab">Урон оружия</span><span class="txt empty"></span></div>
+      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>Панцирный доспех</span></div>
+      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
     </div>
+    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">
@@ -811,7 +840,7 @@
 </section>
 
 <section class="card" id="card-psyker" data-char="psyker"
-         data-hp-max="20" data-ult-cost="3" >
+         data-hp-max="20" data-ult-cost="3" data-default-armor="Робы" >
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка VII из VIII</span></div>
 
   <div class="head">
@@ -843,9 +872,10 @@
         <div><span class="lab">Харизма</span><span class="val" data-base="1">+1</span></div>
     </div>
     <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt">Робы</span></div>
-      <div><span class="lab">Урон оружия</span><span class="txt empty"></span></div>
+      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>Робы</span></div>
+      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
     </div>
+    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">
@@ -929,7 +959,7 @@
 </section>
 
 <section class="card" id="card-sister" data-char="sister"
-         data-hp-max="20" data-ult-cost="1" data-dmg-to-coins="5" data-choice-reset="battle">
+         data-hp-max="20" data-ult-cost="1" data-default-armor="Броня сестры битвы" data-dmg-to-coins="5" data-choice-reset="battle">
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка VIII из VIII</span></div>
 
   <div class="head">
@@ -961,9 +991,10 @@
         <div><span class="lab">Харизма</span><span class="val" data-base="2">+2</span></div>
     </div>
     <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt">Броня сестры битвы</span></div>
-      <div><span class="lab">Урон оружия</span><span class="txt empty"></span></div>
+      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>Броня сестры битвы</span></div>
+      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
     </div>
+    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">

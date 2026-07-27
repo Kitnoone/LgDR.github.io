@@ -9,9 +9,13 @@
 'use strict';
 
 let KEY = 'legendy.v1';
+let cloudSaver = null;
+let suppressCloudSave = false;
 
 const BLANK = () => ({
   char: null,
+  characterName: '',
+  inventory: { armor: '', weapon: '', damage: '', items: [] },
   hp: {},        // charId -> текущее здоровье
   spent: {},     // "charId:abilId" -> сколько зарядов потрачено
   choice: {},    // "charId:group" -> id выбранного пункта
@@ -20,6 +24,24 @@ const BLANK = () => ({
 });
 
 let S = BLANK();
+
+function normalizeState(raw) {
+  const base = BLANK();
+  const next = Object.assign(base, raw || {});
+  next.hp = Object.assign({}, raw?.hp || {});
+  next.spent = Object.assign({}, raw?.spent || {});
+  next.choice = Object.assign({}, raw?.choice || {});
+  next.dmgAcc = Object.assign({}, raw?.dmgAcc || {});
+  next.team = Object.assign({ taint: 0, coins: 0 }, raw?.team || {});
+  next.inventory = Object.assign({ armor: '', weapon: '', damage: '', items: [] }, raw?.inventory || {});
+  if (!Array.isArray(next.inventory.items)) next.inventory.items = [];
+  next.characterName = String(next.characterName || '').trim();
+  return next;
+}
+
+function cloneState() {
+  return JSON.parse(JSON.stringify(S));
+}
 
 /* ─────────────────────────── хранилище ─────────────────────────── */
 
@@ -38,19 +60,24 @@ function load(userId) {
       }
       localStorage.setItem('legendy.auth.migrated', '1');
     }
-    if (raw) S = Object.assign(BLANK(), JSON.parse(raw));
-    if (!S.team) S.team = { taint: 0, coins: 0 };
+    if (raw) S = normalizeState(JSON.parse(raw));
+    else S = normalizeState(S);
   } catch (e) {
     console.warn('Не удалось прочитать сохранение:', e);
   }
 }
 
-function save() {
+function saveLocal() {
   try {
     localStorage.setItem(KEY, JSON.stringify(S));
   } catch (e) {
     console.warn('Не удалось сохранить:', e);
   }
+}
+
+function save() {
+  saveLocal();
+  if (!suppressCloudSave && cloudSaver) cloudSaver(cloneState());
 }
 
 /* ───────────── командные ресурсы: единственная точка входа ─────────────
@@ -96,6 +123,10 @@ function hpCur(card) {
 
 function buildChooser() {
   const grid = $('#chooser-grid');
+  const nameInput = $('#character-name-input');
+  if (nameInput) nameInput.value = S.characterName || '';
+  const chooserMessage = $('#chooser-message');
+  if (chooserMessage) chooserMessage.textContent = ''; 
   grid.innerHTML = '';
   $$('.card').forEach(card => {
     const b = document.createElement('button');
@@ -110,13 +141,27 @@ function buildChooser() {
 }
 
 function pickChar(id) {
+  const input = $('#character-name-input');
+  const name = input ? input.value.trim() : S.characterName;
+  if (!name) {
+    const msg = $('#chooser-message');
+    if (msg) msg.textContent = 'Сначала назови персонажа.';
+    input?.focus();
+    return;
+  }
+
+  S.characterName = name.slice(0, 40);
   S.char = id;
-  if (S.hp[id] === undefined) S.hp[id] = hpMax($(`.card[data-char="${id}"]`));
+  const card = $(`.card[data-char="${id}"]`);
+  if (S.hp[id] === undefined) S.hp[id] = hpMax(card);
+  if (!S.inventory.armor) S.inventory.armor = card?.dataset.defaultArmor || '';
   save();
   showApp();
 }
 
 function showChooser() {
+  const input = $('#character-name-input');
+  if (input) input.value = S.characterName || '';
   $('#chooser').hidden = false;
   $('#topbar').hidden = true;
   $('#teambar').hidden = true;
@@ -144,6 +189,16 @@ function render() {
   const coins = Team.coins;
 
   $('#tb-title').textContent = $('.head .eyebrow', card).textContent;
+  $('#tb-character-name').textContent = S.characterName || 'Без имени';
+
+  const defaultArmor = card.dataset.defaultArmor || '';
+  const armor = S.inventory.armor || defaultArmor;
+  const weapon = S.inventory.weapon || 'Не указано';
+  const damage = S.inventory.damage ? ` · ${S.inventory.damage}` : '';
+  const items = S.inventory.items.length ? S.inventory.items.join(', ') : 'Не указаны';
+  $('[data-gear-armor]', card).textContent = armor;
+  $('[data-gear-weapon]', card).textContent = weapon + damage;
+  $('[data-gear-items]', card).textContent = items;
 
   /* здоровье */
   const cur = hpCur(card), max = hpMax(card);
@@ -282,6 +337,40 @@ function applyHeal(n) {
   $('#hpdlg-num').textContent = hpCur(card);
 }
 
+/* ─────────────────────── имя и снаряжение ─────────────────────── */
+
+function openProfile() {
+  const card = activeCard();
+  if (!card) return;
+  $('#profile-name').value = S.characterName || '';
+  $('#profile-armor').value = S.inventory.armor || card.dataset.defaultArmor || '';
+  $('#profile-weapon').value = S.inventory.weapon || '';
+  $('#profile-damage').value = S.inventory.damage || '';
+  $('#profile-items').value = S.inventory.items.join('\n');
+  $('#profiledlg').hidden = false;
+}
+
+function saveProfile() {
+  const name = $('#profile-name').value.trim();
+  if (!name) {
+    toast('Имя персонажа не может быть пустым');
+    return;
+  }
+  S.characterName = name.slice(0, 40);
+  S.inventory.armor = $('#profile-armor').value.trim().slice(0, 80);
+  S.inventory.weapon = $('#profile-weapon').value.trim().slice(0, 80);
+  S.inventory.damage = $('#profile-damage').value.trim().slice(0, 40);
+  S.inventory.items = $('#profile-items').value
+    .split(/\n|,/)
+    .map(item => item.trim())
+    .filter(Boolean)
+    .slice(0, 30);
+  save();
+  render();
+  $('#profiledlg').hidden = true;
+  toast('Персонаж и снаряжение сохранены');
+}
+
 /* ─────────────────────── сбросы ─────────────────────── */
 
 function resetCharges(scope) {
@@ -320,9 +409,15 @@ function newDay() {
 
 function resetAll() {
   if (!confirm('Сбросить здоровье, заряды, выборы, порчу и монеты?')) return;
-  const keep = S.char;
+  const keep = {
+    char: S.char,
+    characterName: S.characterName,
+    inventory: JSON.parse(JSON.stringify(S.inventory)),
+  };
   S = BLANK();
-  S.char = keep;
+  S.char = keep.char;
+  S.characterName = keep.characterName;
+  S.inventory = keep.inventory;
   save(); render();
   toast('Всё сброшено');
 }
@@ -363,6 +458,9 @@ function onClick(e) {
     case 'close-menu':  $('#menu').hidden = true; break;
     case 'new-battle':  $('#menu').hidden = true; newBattle(); break;
     case 'new-day':     $('#menu').hidden = true; newDay(); break;
+    case 'edit-profile': $('#menu').hidden = true; openProfile(); break;
+    case 'save-profile': saveProfile(); break;
+    case 'close-profile': $('#profiledlg').hidden = true; break;
     case 'switch':      $('#menu').hidden = true; showChooser(); break;
     case 'reset':       $('#menu').hidden = true; resetAll(); break;
     case 'print':       $('#menu').hidden = true; setTimeout(() => window.print(), 60); break;
@@ -431,7 +529,6 @@ function bindEventsOnce() {
     $$('.hpdlg-quick button').forEach(b => b.classList.remove('is-on')));
   setAmount(1);
 
-  /* клик по затемнению закрывает шторку */
   $$('.sheetmenu').forEach(sm => sm.addEventListener('click', e => {
     if (e.target === sm) sm.hidden = true;
   }));
@@ -442,29 +539,70 @@ function bindEventsOnce() {
   }
 }
 
-function startForUser(userId) {
-  if (!userId) return;
+function prepareForUser(userId) {
+  if (!userId) return BLANK();
   bindEventsOnce();
   activeUserId = userId;
   load(userId);
   buildChooser();
+  return cloneState();
+}
 
-  if (S.char && $(`.card[data-char="${S.char}"]`)) showApp();
+function presentForUser() {
+  if (S.char && S.characterName && $(`.card[data-char="${S.char}"]`)) showApp();
   else showChooser();
+}
+
+function applyCloudState(nextState) {
+  if (!nextState) return;
+  suppressCloudSave = true;
+  S = normalizeState(nextState);
+  saveLocal();
+  suppressCloudSave = false;
+  buildChooser();
+  if (S.char && S.characterName) showApp();
+  else showChooser();
+}
+
+function setCloudSaver(fn) {
+  cloudSaver = typeof fn === 'function' ? fn : null;
+}
+
+function setCloudStatus(status, error) {
+  const el = $('#cloud-status');
+  if (!el) return;
+  const labels = {
+    loading: 'Облако: загрузка…',
+    waiting: 'Облако: ждёт сохранения',
+    saving: 'Облако: сохраняем…',
+    synced: 'Облако: синхронизировано',
+    offline: 'Облако: нет сети, есть локальная копия',
+    error: 'Облако: ошибка доступа',
+  };
+  el.textContent = labels[status] || 'Облако: —';
+  el.dataset.state = status || '';
+  if (error) el.title = error.code || error.message || String(error);
 }
 
 function stopForLogout() {
   activeUserId = null;
+  cloudSaver = null;
   S = BLANK();
-  ['#chooser', '#topbar', '#teambar', '#app', '#menu', '#hpdlg'].forEach(sel => {
+  ['#chooser', '#topbar', '#teambar', '#app', '#menu', '#hpdlg', '#profiledlg'].forEach(sel => {
     const el = $(sel);
     if (el) el.hidden = true;
   });
 }
 
 window.LegendyApp = {
-  start: startForUser,
+  prepare: prepareForUser,
+  present: presentForUser,
   stop: stopForLogout,
+  applyCloudState,
+  setCloudSaver,
+  setCloudStatus,
+  notify: toast,
+  exportState: cloneState,
   get userId() { return activeUserId; },
 };
 

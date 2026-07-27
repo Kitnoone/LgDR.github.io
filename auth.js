@@ -4,6 +4,7 @@
    ================================================================== */
 
 import { auth } from './firebase-config.js';
+import { connectCharacterStore, queueCharacterSave, stopCharacterStore } from './character-store.js';
 import {
   browserLocalPersistence,
   createUserWithEmailAndPassword,
@@ -150,6 +151,8 @@ async function logout() {
 }
 
 function showSignedOut() {
+  stopCharacterStore();
+  window.LegendyApp?.setCloudSaver(null);
   window.LegendyApp?.stop();
   ui.screen.hidden = false;
   ui.accountEmail.textContent = '—';
@@ -158,10 +161,31 @@ function showSignedOut() {
   setTimeout(() => ui.email.focus(), 0);
 }
 
-function showSignedIn(user) {
-  ui.screen.hidden = true;
+async function showSignedIn(user) {
   ui.accountEmail.textContent = user.email || 'Пользователь Firebase';
-  window.LegendyApp?.start(user.uid);
+  ui.screen.hidden = false;
+  setMessage('Загружаем персонажа из хроники…');
+
+  const localState = window.LegendyApp?.prepare(user.uid);
+  try {
+    const initialState = await connectCharacterStore(
+      user.uid,
+      localState,
+      (remoteState) => window.LegendyApp?.applyCloudState(remoteState),
+      (status, error) => window.LegendyApp?.setCloudStatus(status, error),
+    );
+    window.LegendyApp?.applyCloudState(initialState);
+    window.LegendyApp?.setCloudSaver(queueCharacterSave);
+    window.LegendyApp?.present();
+    ui.screen.hidden = true;
+  } catch (error) {
+    console.error('Firestore connect:', error);
+    window.LegendyApp?.setCloudStatus('error', error);
+    window.LegendyApp?.setCloudSaver(null);
+    window.LegendyApp?.present();
+    ui.screen.hidden = true;
+    window.LegendyApp?.notify('Облако недоступно. Состояние пока сохраняется только на этом устройстве.');
+  }
 }
 
 ui.tabs.forEach((tab) => {
@@ -179,7 +203,7 @@ setMessage('Проверяем вход…');
 try {
   await setPersistence(auth, browserLocalPersistence);
   onAuthStateChanged(auth, (user) => {
-    if (user) showSignedIn(user);
+    if (user) void showSignedIn(user);
     else showSignedOut();
   }, (error) => {
     console.error('Auth state:', error);

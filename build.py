@@ -576,7 +576,7 @@ def render_card(ch):
 
     return f'''
 <section class="card" id="card-{ch['id']}" data-char="{ch['id']}"
-         data-hp-max="{ch['hp']}" data-ult-cost="{ch['ult']['cost']}" {" ".join(flags)}>
+         data-hp-max="{ch['hp']}" data-ult-cost="{ch['ult']['cost']}" data-default-armor="{html.escape(ch['armor'])}" {" ".join(flags)}>
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка {ch['num']} из VIII</span></div>
 
   <div class="head">
@@ -603,9 +603,10 @@ def render_card(ch):
         {stats}
     </div>
     <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt">{ch['armor']}</span></div>
-      <div><span class="lab">Урон оружия</span><span class="txt empty"></span></div>
+      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>{ch['armor']}</span></div>
+      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
     </div>
+    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">
@@ -696,15 +697,21 @@ HEAD = '''<!DOCTYPE html>
 <div id="chooser" class="chooser" hidden>
   <div class="chooser-inner">
     <span class="eyebrow">Легенды подземелий</span>
-    <h1>Кем ты играешь?</h1>
-    <p class="lead">Выбери своего персонажа. Приложение запомнит его на этом телефоне.</p>
+    <h1>Создай персонажа</h1>
+    <p class="lead">Назови героя и выбери архетип. Имя, здоровье, заряды и снаряжение будут храниться в Firebase.</p>
+    <label class="chooser-name"><span>Имя персонажа</span>
+      <input id="character-name-input" type="text" maxlength="40" autocomplete="off" placeholder="Например, Женя">
+    </label>
+    <p id="chooser-message" class="chooser-message"></p>
     <div class="chooser-grid" id="chooser-grid"></div>
   </div>
 </div>
 
 <!-- ═══════════════ верхняя панель ═══════════════ -->
 <header class="topbar" id="topbar" hidden>
-  <button class="tb-name" data-act="menu"><span id="tb-title">—</span><i>▾</i></button>
+  <button class="tb-name" data-act="menu">
+    <span class="tb-person"><strong id="tb-character-name">—</strong><small id="tb-title">—</small></span><i>▾</i>
+  </button>
 </header>
 
 <!-- ═══════════════ меню ═══════════════ -->
@@ -713,10 +720,11 @@ HEAD = '''<!DOCTYPE html>
     <h2>Меню</h2>
     <button class="menu-item" data-act="new-battle"><b>Новый бой</b><span>Вернуть заряды «за бой» и снять выбор боя</span></button>
     <button class="menu-item" data-act="new-day"><b>Новый день</b><span>Вернуть все заряды и восстановить здоровье</span></button>
+    <button class="menu-item" data-act="edit-profile"><b>Имя и снаряжение</b><span>Оружие, броня, урон и список предметов</span></button>
     <button class="menu-item" data-act="switch"><b>Сменить персонажа</b><span>Вернуться к выбору</span></button>
     <button class="menu-item" data-act="print"><b>Печать всех карточек</b><span>Восемь листов A4, как раньше</span></button>
     <button class="menu-item menu-item--warn" data-act="reset"><b>Сбросить всё</b><span>Здоровье, заряды, порча и монеты обнулятся</span></button>
-    <div class="auth-account"><span>Аккаунт</span><b id="auth-user-email">—</b></div>
+    <div class="auth-account"><span>Аккаунт</span><b id="auth-user-email">—</b><small id="cloud-status">Облако: —</small></div>
     <button class="menu-item menu-item--warn" type="button" data-auth-action="logout"><b>Выйти из аккаунта</b><span>Локальное состояние этого пользователя останется на устройстве</span></button>
     <button class="menu-close" data-act="close-menu">Закрыть</button>
   </div>
@@ -738,6 +746,22 @@ HEAD = '''<!DOCTYPE html>
     </div>
     <p class="hpdlg-note" id="hpdlg-note"></p>
     <button class="menu-close" data-act="close-hp">Закрыть</button>
+  </div>
+</div>
+
+<!-- ═══════════════ имя и снаряжение ═══════════════ -->
+<div class="sheetmenu" id="profiledlg" hidden>
+  <div class="sheetmenu-panel">
+    <h2>Персонаж и снаряжение</h2>
+    <div class="profile-form">
+      <label><span>Имя персонажа</span><input id="profile-name" type="text" maxlength="40"></label>
+      <label><span>Броня</span><input id="profile-armor" type="text" maxlength="80"></label>
+      <label><span>Оружие</span><input id="profile-weapon" type="text" maxlength="80" placeholder="Например, цепной меч"></label>
+      <label><span>Урон оружия</span><input id="profile-damage" type="text" maxlength="40" placeholder="Например, 2D6 + 3"></label>
+      <label><span>Предметы, каждый с новой строки</span><textarea id="profile-items" rows="6" placeholder="Стимм&#10;Граната&#10;Датапланшет"></textarea></label>
+    </div>
+    <button class="auth-primary profile-save" data-act="save-profile">Сохранить</button>
+    <button class="menu-close" data-act="close-profile">Закрыть</button>
   </div>
 </div>
 

@@ -4,6 +4,9 @@ import { initializeApp } from
 import { getAuth } from
   "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
+import { getFirestore } from
+  "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyDTv1nN-LnEDm3G8WUj4ekgWp8GrPMApww",
   authDomain: "legendsdungeon-1ac12.firebaseapp.com",
@@ -16,3 +19,4 @@ const firebaseConfig = {
 
 export const firebaseApp = initializeApp(firebaseConfig);
 export const auth = getAuth(firebaseApp);
+export const db = getFirestore(firebaseApp);
