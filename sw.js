@@ -1,6 +1,6 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v4-lobby';
+const V = 'legendy-v5-pact-fix';
 const ASSETS = [
   './',
   './index.html',

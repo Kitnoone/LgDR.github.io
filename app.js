@@ -257,14 +257,29 @@ function render() {
   card.classList.toggle('is-down', cur <= 0);
   $('[data-hp-mirror]').textContent = `${cur}/${max}`;
 
-  /* характеристики: у еретика растут от порчи */
+  /* Характеристики.
+     Еретик получает бонусы одновременно от порчи и выбранного пакта:
+     — Пакт гордыни: +1 ко всем характеристикам;
+     — Пакт силы: базовая Сила удваивается, затем получает +2,
+       а командная порча добавляется как обычно. */
   const boost = card.dataset.taintBoost ? taint : 0;
+  const hereticPact = id === 'heretic' ? S.choice['heretic:pact'] : null;
+
   $$('.nums .val', card).forEach(el => {
     const base = parseInt(el.dataset.base, 10);
-    const v = base + boost;
+    const statName = el.closest('div')?.querySelector('.lab')?.textContent.trim() || '';
+    let v = base + boost;
+
+    if (id === 'heretic') {
+      if (hereticPact === 'pride') v += 1;
+      if (hereticPact === 'strength' && statName === 'Сила') {
+        v = base * 2 + 2 + boost;
+      }
+    }
+
     el.textContent = v >= 0 ? `+${v}` : `\u2212${Math.abs(v)}`;
     el.classList.toggle('neg', v < 0);
-    el.classList.toggle('is-boosted', boost > 0);
+    el.classList.toggle('is-boosted', v !== base);
   });
 
   /* молитвы, гаснущие от порчи */
