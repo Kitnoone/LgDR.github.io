@@ -1,16 +1,16 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v10-pact-strength-correct';
+const V = 'legendy-v11-fanatic-weapons';
 const ASSETS = [
   './',
   './index.html',
-  './app.css?v=pact-strength-3',
-  './arsenal.js?v=pact-strength-3',
-  './app.js?v=pact-strength-3',
-  './auth.js?v=pact-strength-3',
-  './character-store.js?v=pact-strength-3',
-  './lobby-store.js?v=pact-strength-3',
-  './firebase-config.js?v=pact-strength-3',
+  './app.css?v=fanatic-weapons-1',
+  './arsenal.js?v=fanatic-weapons-1',
+  './app.js?v=fanatic-weapons-1',
+  './auth.js?v=fanatic-weapons-1',
+  './character-store.js?v=fanatic-weapons-1',
+  './lobby-store.js?v=fanatic-weapons-1',
+  './firebase-config.js?v=fanatic-weapons-1',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',

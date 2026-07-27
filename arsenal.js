@@ -63,6 +63,9 @@
     { id:'knife', group:'Обычное', name:'Нож', damage:'d4', modifier:'dexterity', hands:1 },
     { id:'improvised', group:'Обычное', name:'Импровизированное оружие', damage:'d4', hands:1, rule:'Любой подходящий предмет может использоваться как импровизированное оружие.' },
 
+    { id:'fanatic-daggers', group:'Оружие Фанатика смерти', name:'Кинжалы фанатика', damage:'2d4', modifier:'strength', hands:2, allowedArchetypes:['cultist'], restriction:'Доступны только Фанатику смерти.', rule:'Парные ритуальные кинжалы Фанатика смерти. Занимают обе руки.' },
+    { id:'fanatic-crossbow', group:'Оружие Фанатика смерти', name:'Арбалет фанатика', damage:'d4', modifier:'dexterity', hands:1, allowedArchetypes:['cultist'], restriction:'Доступен только Фанатику смерти.', rule:'Ритуальный арбалет Фанатика смерти. Занимает одну руку.' },
+
     { id:'heretic-claws', group:'Врождённое', name:'Когти Еретика', damage:'2d4', modifier:'dexterity', hands:0, builtIn:true, allowedArchetypes:['heretic'], restriction:'Это врождённое оружие доступно только Еретику.', rule:'Когти являются руками Еретика, не занимают слоты рук и не могут быть сняты.' },
   ];
 
@@ -128,8 +131,20 @@
     return list.find(item => normalizeName(item.name) === key) || null;
   }
 
+  const FANATIC_WEAPON_IDS = Object.freeze(['fanatic-daggers', 'fanatic-crossbow']);
+
   function allowed(item, archetype) {
     return !item?.allowedArchetypes || item.allowedArchetypes.includes(archetype);
+  }
+
+  /* Фанатик смерти использует только своё культовое оружие. Эта проверка
+     вынесена отдельно от allowed(), потому что обычное оружие не имеет
+     списка allowedArchetypes и в остальных случаях доступно всем. */
+  function weaponAllowed(item, archetype) {
+    if (!item || item.builtIn) return false;
+    if (!allowed(item, archetype)) return false;
+    if (archetype === 'cultist') return FANATIC_WEAPON_IDS.includes(item.id);
+    return !FANATIC_WEAPON_IDS.includes(item.id);
   }
 
   function fullRule(item) {
@@ -144,6 +159,7 @@
     DEFAULT_ARMOR:Object.freeze(DEFAULT_ARMOR),
     STAT_LABELS:Object.freeze(STAT_LABELS),
     FAMILY_RULES:Object.freeze(FAMILY_RULES),
+    FANATIC_WEAPON_IDS,
     armorById:Object.freeze(armorById),
     weaponById:Object.freeze(weaponById),
     gearById:Object.freeze(gearById),
@@ -151,6 +167,7 @@
     findWeaponByName:value => findByName(WEAPONS, value),
     findGearByName:value => findByName(GEAR, value),
     allowed,
+    weaponAllowed,
     fullRule,
   });
 })();

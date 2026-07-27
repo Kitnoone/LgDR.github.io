@@ -3,7 +3,7 @@
    Один документ Firestore на один Firebase UID: characters/{uid}
    ================================================================== */
 
-import { db } from './firebase-config.js?v=pact-strength-3';
+import { db } from './firebase-config.js?v=fanatic-weapons-1';
 import {
   doc,
   getDoc,

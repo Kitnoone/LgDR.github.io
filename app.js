@@ -70,8 +70,14 @@ function normalizeState(raw) {
   }
 
   next.inventory.weaponIds = next.inventory.weaponIds
-    .filter(id => !!Arsenal.weaponById[id] && !Arsenal.weaponById[id].builtIn)
-    .slice(0, 12);
+    .filter(id => {
+      const weapon = Arsenal.weaponById[id];
+      if (!weapon || weapon.builtIn) return false;
+      return !next.char || Arsenal.weaponAllowed(weapon, next.char);
+    })
+    /* Фанатик смерти выбирает один комплект оружия: либо кинжалы,
+       либо арбалет. Остальным архетипам сохраняем прежний предел. */
+    .slice(0, next.char === 'cultist' ? 1 : 12);
   const seenGear = new Set();
   next.inventory.gearIds = next.inventory.gearIds
     .filter(id => {
@@ -259,6 +265,12 @@ function pickChar(id) {
   if (!currentArmor || !Arsenal.allowed(currentArmor, id)) {
     S.inventory.armorId = card?.dataset.defaultArmorId || Arsenal.DEFAULT_ARMOR[id] || '';
   }
+  /* При смене архетипа сразу удаляем несовместимое оружие. В частности,
+     Фанатик смерти не может сохранить оружие предыдущего персонажа, а
+     его культовые кинжалы и арбалет не переходят к другим архетипам. */
+  S.inventory.weaponIds = S.inventory.weaponIds
+    .filter(itemId => Arsenal.weaponAllowed(Arsenal.weaponById[itemId], id))
+    .slice(0, id === 'cultist' ? 1 : 12);
   S.inventory.gearIds = S.inventory.gearIds.filter(itemId =>
     Arsenal.allowed(Arsenal.gearById[itemId], id));
   save();
@@ -381,7 +393,18 @@ function handsText(count) {
 function restrictionFor(item, kind) {
   const card = activeCard();
   const archetype = card?.dataset.char || S.char || '';
-  if (!Arsenal.allowed(item, archetype)) return item.restriction || 'Недоступно этому архетипу.';
+  if (kind === 'weapon' && !Arsenal.weaponAllowed(item, archetype)) {
+    return archetype === 'cultist'
+      ? 'Фанатик смерти может использовать только Кинжалы фанатика или Арбалет фанатика.'
+      : (item.restriction || 'Это оружие недоступно данному архетипу.');
+  }
+  if (kind !== 'weapon' && !Arsenal.allowed(item, archetype)) {
+    return item.restriction || 'Недоступно этому архетипу.';
+  }
+
+  if (kind === 'weapon' && archetype === 'cultist' && inventory().weaponIds.length > 0) {
+    return 'Фанатик смерти выбирает одно оружие: либо Кинжалы фанатика, либо Арбалет фанатика. Сначала снимите текущее оружие.';
+  }
 
   if (kind === 'armor') {
     const capacity = handCapacity(item);
@@ -514,7 +537,12 @@ function renderArsenalList() {
   $('#arsenal-title').textContent = titles[arsenalMode] || 'Арсенал';
   const list = $('#arsenal-list');
   list.innerHTML = '';
-  const source = arsenalMode === 'armor' ? Arsenal.ARMOR : arsenalMode === 'weapon' ? Arsenal.WEAPONS.filter(x => !x.builtIn) : Arsenal.GEAR;
+  const archetype = activeCard()?.dataset.char || S.char || '';
+  const source = arsenalMode === 'armor'
+    ? Arsenal.ARMOR
+    : arsenalMode === 'weapon'
+      ? Arsenal.WEAPONS.filter(item => Arsenal.weaponAllowed(item, archetype))
+      : Arsenal.GEAR;
   const query = arsenalSearch.toLowerCase().trim();
   const groups = new Map();
 
@@ -1059,7 +1087,7 @@ function bindEventsOnce() {
   }));
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js?v=pact-strength-3', { updateViaCache: 'none' }).catch(err =>
+    navigator.serviceWorker.register('sw.js?v=fanatic-weapons-1', { updateViaCache: 'none' }).catch(err =>
       console.warn('Service worker не зарегистрирован:', err));
   }
 }

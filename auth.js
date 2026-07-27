@@ -3,9 +3,9 @@
    Регистрация, вход, восстановление пароля и выход.
    ================================================================== */
 
-import { auth } from './firebase-config.js?v=pact-strength-3';
-import { connectCharacterStore, queueCharacterSave, stopCharacterStore } from './character-store.js?v=pact-strength-3';
-import { startLobbySession, stopLobbySession } from './lobby-store.js?v=pact-strength-3';
+import { auth } from './firebase-config.js?v=fanatic-weapons-1';
+import { connectCharacterStore, queueCharacterSave, stopCharacterStore } from './character-store.js?v=fanatic-weapons-1';
+import { startLobbySession, stopLobbySession } from './lobby-store.js?v=fanatic-weapons-1';
 import {
   browserLocalPersistence,
   createUserWithEmailAndPassword,
