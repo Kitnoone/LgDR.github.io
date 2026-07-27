@@ -1,15 +1,15 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v5-pact-fix';
+const V = 'legendy-v6-footer-fix';
 const ASSETS = [
   './',
   './index.html',
-  './app.css',
-  './app.js',
-  './auth.js',
-  './character-store.js',
-  './lobby-store.js',
-  './firebase-config.js',
+  './app.css?v=footer-fix-1',
+  './app.js?v=footer-fix-1',
+  './auth.js?v=footer-fix-1',
+  './character-store.js?v=footer-fix-1',
+  './lobby-store.js?v=footer-fix-1',
+  './firebase-config.js?v=footer-fix-1',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
@@ -56,7 +56,24 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  /* Для локальных файлов: кэш сразу, обновление в фоне. */
+  /* Код и стили сначала берём из сети, чтобы разные версии HTML/CSS/JS не смешивались. */
+  const isCoreAsset = ['script', 'style', 'worker', 'manifest'].includes(request.destination)
+    || /\.(?:js|css|webmanifest)$/.test(url.pathname);
+
+  if (isCoreAsset) {
+    event.respondWith(
+      fetch(request).then(response => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(V).then(cache => cache.put(request, copy));
+        }
+        return response;
+      }).catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  /* Изображения и прочие локальные файлы: кэш сразу, обновление в фоне. */
   event.respondWith(
     caches.match(request).then(cached => {
       const fresh = fetch(request).then(response => {

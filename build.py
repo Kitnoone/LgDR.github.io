@@ -653,7 +653,7 @@ HEAD = '''<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=PT+Sans+Narrow:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="app.css?v=footer-fix-1">
 </head>
 <body>
 
@@ -838,8 +838,8 @@ FOOT = '''
 
 <!-- ═══════════════ нижняя панель команды ═══════════════ -->
 <footer class="teambar" id="teambar" hidden>
-  <span id="team-resource-mode" class="team-resource-mode">локально</span>
   <div class="tb-cell">
+    <span id="team-resource-mode" class="team-resource-mode">локально</span>
     <span class="tb-lab">Здоровье</span>
     <button class="tb-val tb-hp" data-act="hp"><b data-hp-mirror>—</b></button>
   </div>
@@ -863,8 +863,8 @@ FOOT = '''
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js"></script>
-<script type="module" src="auth.js"></script>
+<script src="app.js?v=footer-fix-1"></script>
+<script type="module" src="auth.js?v=footer-fix-1"></script>
 </body>
 </html>
 '''

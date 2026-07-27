@@ -7,7 +7,7 @@
    разных игроков не перезаписывают друг друга.
    ================================================================== */
 
-import { db } from './firebase-config.js';
+import { db } from './firebase-config.js?v=footer-fix-1';
 import {
   doc,
   getDoc,

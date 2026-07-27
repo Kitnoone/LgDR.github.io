@@ -113,6 +113,11 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   min-width:26px;text-align:center;line-height:1;
 }
 .teambar.is-taint .tb-step b#taint-val{color:#e8a99f;}
+/* Жёстко фиксируем три ресурсные ячейки в одной строке.
+   Даже при частично устаревшем кэше дополнительная подпись не вытолкнет монеты вниз. */
+.teambar > .tb-cell:nth-of-type(1){grid-column:1;grid-row:1;}
+.teambar > .tb-cell:nth-of-type(2){grid-column:2;grid-row:1;}
+.teambar > .tb-cell:nth-of-type(3){grid-column:3;grid-row:1;}
 
 /* ═══════════════ карточка ═══════════════ */
 main{padding:calc(var(--topbar-h) + env(safe-area-inset-top) + 14px) 14px
@@ -662,7 +667,7 @@ body.has-partybar main{padding-top:calc(var(--topbar-h) + var(--partybar-h) + en
 
 .team-resource-mode{
   position:absolute;left:50%;top:3px;transform:translateX(-50%);z-index:2;
-  font:9px var(--util);text-transform:uppercase;letter-spacing:.1em;color:#83999b;white-space:nowrap;
+  font:9px var(--util);text-transform:uppercase;letter-spacing:.1em;color:#83999b;white-space:nowrap;pointer-events:none;
 }
 .teambar.is-shared .team-resource-mode{color:var(--brass);}
 .teambar.is-forming .tb-cell--team{opacity:.55;}
