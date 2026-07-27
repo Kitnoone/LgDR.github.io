@@ -1,15 +1,16 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v6-footer-fix';
+const V = 'legendy-v8-arsenal';
 const ASSETS = [
   './',
   './index.html',
-  './app.css?v=footer-fix-1',
-  './app.js?v=footer-fix-1',
-  './auth.js?v=footer-fix-1',
-  './character-store.js?v=footer-fix-1',
-  './lobby-store.js?v=footer-fix-1',
-  './firebase-config.js?v=footer-fix-1',
+  './app.css?v=arsenal-1',
+  './arsenal.js?v=arsenal-1',
+  './app.js?v=arsenal-1',
+  './auth.js?v=arsenal-1',
+  './character-store.js?v=arsenal-1',
+  './lobby-store.js?v=arsenal-1',
+  './firebase-config.js?v=arsenal-1',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',

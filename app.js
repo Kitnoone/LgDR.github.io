@@ -13,11 +13,19 @@ let cloudSaver = null;
 let suppressCloudSave = false;
 let teamAdapter = null;
 const stateListeners = new Set();
+const Arsenal = window.LegendyArsenal;
+if (!Arsenal) throw new Error('arsenal.js не загружен');
 
 const BLANK = () => ({
   char: null,
   characterName: '',
-  inventory: { armor: '', weapon: '', damage: '', items: [] },
+  inventory: {
+    armorId: '',
+    weaponIds: [],
+    gearIds: [],
+    /* старые поля оставлены только для однократной миграции */
+    armor: '', weapon: '', damage: '', items: [],
+  },
   hp: {},        // charId -> текущее здоровье
   spent: {},     // "charId:abilId" -> сколько зарядов потрачено
   choice: {},    // "charId:group" -> id выбранного пункта
@@ -39,8 +47,51 @@ function normalizeState(raw) {
   next.flags = Object.assign({ sisterFallReward: false }, raw?.flags || {});
   next.teamCode = String(raw?.teamCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
   next.team = Object.assign({ taint: 0, coins: 0 }, raw?.team || {});
-  next.inventory = Object.assign({ armor: '', weapon: '', damage: '', items: [] }, raw?.inventory || {});
+  next.inventory = Object.assign({
+    armorId: '', weaponIds: [], gearIds: [],
+    armor: '', weapon: '', damage: '', items: [],
+  }, raw?.inventory || {});
+  if (!Array.isArray(next.inventory.weaponIds)) next.inventory.weaponIds = [];
+  if (!Array.isArray(next.inventory.gearIds)) next.inventory.gearIds = [];
   if (!Array.isArray(next.inventory.items)) next.inventory.items = [];
+
+  /* Миграция старой ручной записи снаряжения в новый каталог. */
+  if (!next.inventory.armorId && next.inventory.armor) {
+    next.inventory.armorId = Arsenal.findArmorByName(next.inventory.armor)?.id || '';
+  }
+  if (!next.inventory.weaponIds.length && next.inventory.weapon) {
+    const migratedWeapon = Arsenal.findWeaponByName(next.inventory.weapon);
+    if (migratedWeapon && !migratedWeapon.builtIn) next.inventory.weaponIds = [migratedWeapon.id];
+  }
+  if (!next.inventory.gearIds.length && next.inventory.items.length) {
+    next.inventory.gearIds = next.inventory.items
+      .map(name => Arsenal.findGearByName(name)?.id)
+      .filter(Boolean);
+  }
+
+  next.inventory.weaponIds = next.inventory.weaponIds
+    .filter(id => !!Arsenal.weaponById[id] && !Arsenal.weaponById[id].builtIn)
+    .slice(0, 12);
+  const seenGear = new Set();
+  next.inventory.gearIds = next.inventory.gearIds
+    .filter(id => {
+      const item = Arsenal.gearById[id];
+      if (!item) return false;
+      if (next.char && !Arsenal.allowed(item, next.char)) return false;
+      if (!item.stackable && seenGear.has(id)) return false;
+      seenGear.add(id);
+      return true;
+    })
+    .slice(0, 40);
+  if (!next.inventory.armorId && next.char) {
+    next.inventory.armorId = Arsenal.DEFAULT_ARMOR[next.char] || '';
+  }
+  if (next.inventory.armorId && next.char) {
+    const armor = Arsenal.armorById[next.inventory.armorId];
+    if (!armor || !Arsenal.allowed(armor, next.char)) {
+      next.inventory.armorId = Arsenal.DEFAULT_ARMOR[next.char] || '';
+    }
+  }
   next.characterName = String(next.characterName || '').trim();
   return next;
 }
@@ -204,7 +255,12 @@ function pickChar(id) {
   S.char = id;
   const card = $(`.card[data-char="${id}"]`);
   if (S.hp[id] === undefined) S.hp[id] = hpMax(card);
-  if (!S.inventory.armor) S.inventory.armor = card?.dataset.defaultArmor || '';
+  const currentArmor = Arsenal.armorById[S.inventory.armorId];
+  if (!currentArmor || !Arsenal.allowed(currentArmor, id)) {
+    S.inventory.armorId = card?.dataset.defaultArmorId || Arsenal.DEFAULT_ARMOR[id] || '';
+  }
+  S.inventory.gearIds = S.inventory.gearIds.filter(itemId =>
+    Arsenal.allowed(Arsenal.gearById[itemId], id));
   save();
   showApp();
 }
@@ -227,6 +283,314 @@ function showApp() {
   window.scrollTo(0, 0);
 }
 
+/* ─────────────────────────── арсенал ─────────────────────────── */
+
+let arsenalMode = 'armor';
+let arsenalSearch = '';
+let detailContext = null;
+
+function inventory() {
+  if (!S.inventory) S.inventory = BLANK().inventory;
+  if (!Array.isArray(S.inventory.weaponIds)) S.inventory.weaponIds = [];
+  if (!Array.isArray(S.inventory.gearIds)) S.inventory.gearIds = [];
+  return S.inventory;
+}
+
+function equippedArmor() {
+  return Arsenal.armorById[inventory().armorId] || null;
+}
+
+function handCapacity(armor = equippedArmor()) {
+  return 2 + Number(armor?.extraHands || 0);
+}
+
+function usedHands() {
+  const inv = inventory();
+  return inv.weaponIds.reduce((sum, id) => sum + Number(Arsenal.weaponById[id]?.hands || 0), 0)
+    + inv.gearIds.reduce((sum, id) => sum + Number(Arsenal.gearById[id]?.hands || 0), 0);
+}
+
+function armorClass() {
+  const armor = equippedArmor();
+  const base = Number(armor?.ac || 10);
+  const bonus = inventory().gearIds.reduce((sum, id) => sum + Number(Arsenal.gearById[id]?.armorBonus || 0), 0);
+  return base + bonus;
+}
+
+function effectiveStatValue(card, stat, taint = Team.taint) {
+  const el = $(`.nums .val[data-stat="${stat}"]`, card);
+  if (!el) return 0;
+  const base = parseInt(el.dataset.base, 10) || 0;
+  const id = card.dataset.char;
+  const boost = card.dataset.taintBoost ? taint : 0;
+  const pact = id === 'heretic' ? S.choice['heretic:pact'] : null;
+  if (id === 'heretic' && pact === 'strength' && stat === 'strength') {
+    return (base * 2) + 2 + boost;
+  }
+  return base + boost + (id === 'heretic' && pact === 'pride' ? 1 : 0);
+}
+
+function weaponDamageText(weapon, card = activeCard()) {
+  if (!weapon) return 'Урон не указан';
+  if (!weapon.modifier || !card) return weapon.damage;
+  const label = Arsenal.STAT_LABELS[weapon.modifier] || weapon.modifier;
+  const value = effectiveStatValue(card, weapon.modifier);
+  const multiplier = Number(weapon.modifierMultiplier || 1);
+  if (multiplier === 1) return `${weapon.damage} + ${label} (${value >= 0 ? '+' : ''}${value})`;
+  const total = value * multiplier;
+  return `${weapon.damage} + ${multiplier}×${label} (${total >= 0 ? '+' : ''}${total})`;
+}
+
+function handsText(count) {
+  count = Number(count || 0);
+  if (count === 0) return 'не занимает рук';
+  if (count === 1) return '1 рука';
+  return `${count} руки`;
+}
+
+function restrictionFor(item, kind) {
+  const card = activeCard();
+  const archetype = card?.dataset.char || S.char || '';
+  if (!Arsenal.allowed(item, archetype)) return item.restriction || 'Недоступно этому архетипу.';
+
+  if (kind === 'armor') {
+    const capacity = handCapacity(item);
+    if (usedHands() > capacity) {
+      const deficit = usedHands() - capacity;
+      return `Сначала освободите ${deficit} ${deficit === 1 ? 'руку' : 'руки'}: эта броня оставляет только ${capacity}.`;
+    }
+    return '';
+  }
+
+  if (kind === 'gear' && !item.stackable && inventory().gearIds.includes(item.id)) {
+    return 'Этот предмет уже находится в снаряжении.';
+  }
+
+  const free = handCapacity() - usedHands();
+  if (Number(item.hands || 0) > free) {
+    return `Не хватает свободных рук: нужно ${item.hands}, свободно ${Math.max(0, free)}.`;
+  }
+  return '';
+}
+
+function renderLoadout(card) {
+  const inv = inventory();
+  const armor = equippedArmor();
+  const ac = armorClass();
+  const capacity = handCapacity(armor);
+  const occupied = usedHands();
+
+  const armorButton = $('[data-loadout-armor-button]', card);
+  if (armorButton) {
+    armorButton.dataset.itemId = armor?.id || '';
+    armorButton.dataset.kind = 'armor';
+    armorButton.dataset.arsenalAction = armor ? 'detail' : 'open';
+  }
+  const armorName = $('[data-loadout-armor-name]', card);
+  const armorMeta = $('[data-loadout-armor-meta]', card);
+  const armorRule = $('[data-loadout-armor-rule]', card);
+  if (armorName) armorName.textContent = armor?.name || 'Без брони';
+  if (armorMeta) armorMeta.textContent = `КБ ${ac}${armor?.extraHands ? ' · 3 руки' : ''}`;
+  if (armorRule) {
+    const shieldBonus = ac - Number(armor?.ac || 10);
+    const parts = [armor ? Arsenal.fullRule(armor) : 'Базовый класс брони: 10.'];
+    if (shieldBonus > 0) parts.push(`Снаряжение повышает КБ ещё на ${shieldBonus}.`);
+    armorRule.textContent = parts.filter(Boolean).join(' ');
+  }
+
+  const hands = $('[data-loadout-hands]', card);
+  if (hands) {
+    hands.innerHTML = '';
+    for (let i = 0; i < capacity; i += 1) {
+      const dot = document.createElement('i');
+      dot.className = i < occupied ? 'is-used' : '';
+      hands.appendChild(dot);
+    }
+  }
+  const handsValue = $('[data-loadout-hands-value]', card);
+  if (handsValue) handsValue.textContent = `${occupied} / ${capacity} занято`;
+  const handsRow = $('.loadout-hands-row', card);
+  if (handsRow) handsRow.classList.toggle('is-over', occupied > capacity);
+
+  const weapons = $('[data-loadout-weapons]', card);
+  if (weapons) {
+    weapons.innerHTML = '';
+    if (card.dataset.char === 'heretic') {
+      weapons.appendChild(makeLoadoutChip('weapon', Arsenal.weaponById['heretic-claws'], -1, true, card));
+    }
+    inv.weaponIds.forEach((id, index) => {
+      const item = Arsenal.weaponById[id];
+      if (item) weapons.appendChild(makeLoadoutChip('weapon', item, index, false, card));
+    });
+    if (!weapons.children.length) weapons.innerHTML = '<span class="loadout-empty">Оружие не выбрано</span>';
+  }
+
+  const gear = $('[data-loadout-gear]', card);
+  if (gear) {
+    gear.innerHTML = '';
+    const grouped = [];
+    inv.gearIds.forEach((id, index) => {
+      const previous = grouped.find(entry => entry.id === id);
+      if (previous) previous.count += 1;
+      else grouped.push({ id, index, count:1 });
+    });
+    grouped.forEach(entry => {
+      const item = Arsenal.gearById[entry.id];
+      if (item) gear.appendChild(makeLoadoutChip('gear', item, entry.index, false, card, entry.count));
+    });
+    if (!gear.children.length) gear.innerHTML = '<span class="loadout-empty">Снаряжение не выбрано</span>';
+  }
+}
+
+function makeLoadoutChip(kind, item, index, builtIn, card, count = 1) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = `loadout-chip${builtIn ? ' is-built-in' : ''}`;
+  button.dataset.arsenalAction = 'detail';
+  button.dataset.kind = kind;
+  button.dataset.itemId = item.id;
+  button.dataset.itemIndex = String(index);
+  const subtitle = kind === 'weapon'
+    ? `${weaponDamageText(item, card)} · ${handsText(item.hands)}`
+    : `${handsText(item.hands)}${item.armorBonus ? ` · КБ +${item.armorBonus}` : ''}`;
+  const rule = Arsenal.fullRule(item);
+  button.innerHTML = `<b>${escapeForHtml(item.name)}${count > 1 ? ` ×${count}` : ''}</b>`
+    + `<small>${escapeForHtml(subtitle)}</small>`
+    + (rule ? `<p>${escapeForHtml(rule)}</p>` : '');
+  return button;
+}
+
+function escapeForHtml(value) {
+  return String(value || '')
+    .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+}
+
+function openArsenal(kind) {
+  arsenalMode = kind;
+  arsenalSearch = '';
+  const search = $('#arsenal-search');
+  if (search) search.value = '';
+  renderArsenalList();
+  $('#arsenaldlg').hidden = false;
+}
+
+function closeArsenal() {
+  $('#arsenaldlg').hidden = true;
+}
+
+function renderArsenalList() {
+  const titles = { armor:'Выбор брони', weapon:'Выбор оружия', gear:'Выбор снаряжения' };
+  $('#arsenal-title').textContent = titles[arsenalMode] || 'Арсенал';
+  const list = $('#arsenal-list');
+  list.innerHTML = '';
+  const source = arsenalMode === 'armor' ? Arsenal.ARMOR : arsenalMode === 'weapon' ? Arsenal.WEAPONS.filter(x => !x.builtIn) : Arsenal.GEAR;
+  const query = arsenalSearch.toLowerCase().trim();
+  const groups = new Map();
+
+  source.filter(item => !query || `${item.name} ${item.group || ''} ${Arsenal.fullRule(item)}`.toLowerCase().includes(query))
+    .forEach(item => {
+      const group = item.group || (arsenalMode === 'armor' ? 'Броня' : 'Прочее');
+      if (!groups.has(group)) groups.set(group, []);
+      groups.get(group).push(item);
+    });
+
+  groups.forEach((items, groupName) => {
+    const section = document.createElement('section');
+    section.className = 'arsenal-group';
+    section.innerHTML = `<h3>${escapeForHtml(groupName)}</h3>`;
+    items.forEach(item => {
+      const reason = restrictionFor(item, arsenalMode);
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = `arsenal-row${reason ? ' is-disabled' : ''}`;
+      row.dataset.arsenalAction = reason ? 'blocked' : 'equip';
+      row.dataset.kind = arsenalMode;
+      row.dataset.itemId = item.id;
+      row.dataset.reason = reason;
+      const primary = arsenalMode === 'armor'
+        ? `КБ ${item.ac}${item.extraHands ? ' · 3 руки' : ''}`
+        : arsenalMode === 'weapon'
+          ? `${weaponDamageText(item)} · ${handsText(item.hands)}`
+          : `${handsText(item.hands)}${item.armorBonus ? ` · КБ +${item.armorBonus}` : ''}`;
+      row.innerHTML = `<span><b>${escapeForHtml(item.name)}</b><small>${escapeForHtml(primary)}</small></span>`
+        + `<em>${escapeForHtml(reason || 'Выбрать')}</em>`;
+      section.appendChild(row);
+    });
+    list.appendChild(section);
+  });
+
+  if (!list.children.length) list.innerHTML = '<p class="arsenal-empty">Ничего не найдено.</p>';
+}
+
+function equipArsenal(kind, itemId) {
+  const inv = inventory();
+  const map = kind === 'armor' ? Arsenal.armorById : kind === 'weapon' ? Arsenal.weaponById : Arsenal.gearById;
+  const item = map[itemId];
+  if (!item) return;
+  const reason = restrictionFor(item, kind);
+  if (reason) { toast(reason); return; }
+
+  if (kind === 'armor') inv.armorId = item.id;
+  else if (kind === 'weapon') inv.weaponIds.push(item.id);
+  else inv.gearIds.push(item.id);
+
+  save();
+  render();
+  closeArsenal();
+  toast(`${item.name}: добавлено`);
+}
+
+function openItemDetail(kind, itemId, index = -1) {
+  const map = kind === 'armor' ? Arsenal.armorById : kind === 'weapon' ? Arsenal.weaponById : Arsenal.gearById;
+  const item = map[itemId];
+  if (!item) return;
+  detailContext = { kind, itemId, index:Number(index) };
+  $('#item-detail-kicker').textContent = kind === 'armor' ? 'Броня' : kind === 'weapon' ? 'Оружие' : 'Снаряжение';
+  $('#item-detail-name').textContent = item.name;
+  $('#item-detail-primary').textContent = kind === 'armor'
+    ? `Класс брони: ${item.ac}${item.extraHands ? ' · даёт третью руку' : ''}`
+    : kind === 'weapon'
+      ? `Урон: ${weaponDamageText(item)} · ${handsText(item.hands)}`
+      : `${handsText(item.hands)}${item.armorBonus ? ` · КБ +${item.armorBonus}` : ''}`;
+  $('#item-detail-rule').textContent = Arsenal.fullRule(item) || 'Дополнительных правил нет.';
+  const change = $('.item-change', $('#itemdetaildlg'));
+  if (change) change.textContent = kind === 'armor' ? 'Выбрать другую броню' : 'Открыть арсенал';
+  const remove = $('#item-detail-remove');
+  const builtIn = !!item.builtIn;
+  remove.hidden = builtIn;
+  remove.disabled = false;
+  remove.textContent = kind === 'armor' ? '✕ Снять броню' : kind === 'weapon' ? '✕ Снять оружие' : '✕ Снять предмет';
+  const note = $('#item-detail-note');
+  note.textContent = builtIn ? 'Врождённое оружие Еретика. Его нельзя снять.' : '';
+  if (kind === 'armor' && handCapacity(null) < usedHands()) {
+    remove.disabled = true;
+    const deficit = usedHands() - 2;
+    note.textContent = `Сначала освободите ${deficit} ${deficit === 1 ? 'руку' : 'руки'}: без этой брони останется только две.`;
+  }
+  $('#itemdetaildlg').hidden = false;
+}
+
+function removeDetailedItem() {
+  if (!detailContext) return;
+  const { kind, itemId, index } = detailContext;
+  const inv = inventory();
+  if (kind === 'armor') {
+    if (usedHands() > 2) { toast('Сначала освободите лишнюю руку'); return; }
+    inv.armorId = '';
+  } else if (kind === 'weapon') {
+    if (index < 0) return;
+    inv.weaponIds.splice(index, 1);
+  } else {
+    const actualIndex = index >= 0 && inv.gearIds[index] === itemId ? index : inv.gearIds.indexOf(itemId);
+    if (actualIndex >= 0) inv.gearIds.splice(actualIndex, 1);
+  }
+  save(); render();
+  $('#itemdetaildlg').hidden = true;
+  detailContext = null;
+  toast('Предмет снят');
+}
+
 /* ─────────────────────────── отрисовка ─────────────────────────── */
 
 function render() {
@@ -241,15 +605,6 @@ function render() {
   $('#tb-title').textContent = $('.head .eyebrow', card).textContent;
   $('#tb-character-name').textContent = S.characterName || 'Без имени';
 
-  const defaultArmor = card.dataset.defaultArmor || '';
-  const armor = S.inventory.armor || defaultArmor;
-  const weapon = S.inventory.weapon || 'Не указано';
-  const damage = S.inventory.damage ? ` · ${S.inventory.damage}` : '';
-  const items = S.inventory.items.length ? S.inventory.items.join(', ') : 'Не указаны';
-  $('[data-gear-armor]', card).textContent = armor;
-  $('[data-gear-weapon]', card).textContent = weapon + damage;
-  $('[data-gear-items]', card).textContent = items;
-
   /* здоровье */
   const cur = hpCur(card), max = hpMax(card);
   $('[data-hp-cur]', card).textContent = cur;
@@ -258,29 +613,19 @@ function render() {
   $('[data-hp-mirror]').textContent = `${cur}/${max}`;
 
   /* Характеристики.
-     Еретик получает бонусы одновременно от порчи и выбранного пакта:
-     — Пакт гордыни: +1 ко всем характеристикам;
-     — Пакт силы: базовая Сила удваивается, затем получает +2,
-       а командная порча добавляется как обычно. */
-  const boost = card.dataset.taintBoost ? taint : 0;
-  const hereticPact = id === 'heretic' ? S.choice['heretic:pact'] : null;
-
+     Числовые эффекты пактов считаются по устойчивому data-stat, а не по
+     видимой подписи. Так Пакт силы работает одинаково на телефоне, ПК
+     и после любых правок текста карточки. */
   $$('.nums .val', card).forEach(el => {
     const base = parseInt(el.dataset.base, 10);
-    const statName = el.closest('div')?.querySelector('.lab')?.textContent.trim() || '';
-    let v = base + boost;
-
-    if (id === 'heretic') {
-      if (hereticPact === 'pride') v += 1;
-      if (hereticPact === 'strength' && statName === 'Сила') {
-        v = base * 2 + 2 + boost;
-      }
-    }
-
+    const stat = el.dataset.stat || '';
+    const v = effectiveStatValue(card, stat, taint);
     el.textContent = v >= 0 ? `+${v}` : `\u2212${Math.abs(v)}`;
     el.classList.toggle('neg', v < 0);
     el.classList.toggle('is-boosted', v !== base);
   });
+
+  renderLoadout(card);
 
   /* молитвы, гаснущие от порчи */
   $$('.pick--gated', card).forEach(p => {
@@ -433,13 +778,8 @@ function applyHeal(n) {
 /* ─────────────────────── имя и снаряжение ─────────────────────── */
 
 function openProfile() {
-  const card = activeCard();
-  if (!card) return;
+  if (!activeCard()) return;
   $('#profile-name').value = S.characterName || '';
-  $('#profile-armor').value = S.inventory.armor || card.dataset.defaultArmor || '';
-  $('#profile-weapon').value = S.inventory.weapon || '';
-  $('#profile-damage').value = S.inventory.damage || '';
-  $('#profile-items').value = S.inventory.items.join('\n');
   $('#profiledlg').hidden = false;
 }
 
@@ -450,18 +790,10 @@ function saveProfile() {
     return;
   }
   S.characterName = name.slice(0, 40);
-  S.inventory.armor = $('#profile-armor').value.trim().slice(0, 80);
-  S.inventory.weapon = $('#profile-weapon').value.trim().slice(0, 80);
-  S.inventory.damage = $('#profile-damage').value.trim().slice(0, 40);
-  S.inventory.items = $('#profile-items').value
-    .split(/\n|,/)
-    .map(item => item.trim())
-    .filter(Boolean)
-    .slice(0, 30);
   save();
   render();
   $('#profiledlg').hidden = true;
-  toast('Персонаж и снаряжение сохранены');
+  toast('Имя персонажа сохранено');
 }
 
 /* ─────────────────────── сбросы ─────────────────────── */
@@ -526,6 +858,23 @@ function resetAll() {
 async function onClick(e) {
   const card = activeCard();
 
+  const arsenalButton = e.target.closest('[data-arsenal-action]');
+  if (arsenalButton) {
+    const action = arsenalButton.dataset.arsenalAction;
+    const kind = arsenalButton.dataset.kind || '';
+    const itemId = arsenalButton.dataset.itemId || '';
+    const index = Number(arsenalButton.dataset.itemIndex ?? -1);
+    if (action === 'open') openArsenal(kind);
+    else if (action === 'close') closeArsenal();
+    else if (action === 'equip') equipArsenal(kind, itemId);
+    else if (action === 'blocked') toast(arsenalButton.dataset.reason || 'Этот предмет недоступен');
+    else if (action === 'detail') openItemDetail(kind, itemId, index);
+    else if (action === 'close-detail') { $('#itemdetaildlg').hidden = true; detailContext = null; }
+    else if (action === 'remove') removeDetailedItem();
+    else if (action === 'change') { $('#itemdetaildlg').hidden = true; openArsenal(detailContext?.kind || kind); }
+    return;
+  }
+
   /* заряды */
   const box = e.target.closest('.uses i');
   if (box && card) {
@@ -544,7 +893,12 @@ async function onClick(e) {
     const key = `${card.dataset.char}:${pick.dataset.group}`;
     S.choice[key] = (S.choice[key] === pick.dataset.pick) ? undefined : pick.dataset.pick;
     if (!S.choice[key]) delete S.choice[key];
-    save(); render();
+    save();
+    render();
+    if (card.dataset.char === 'heretic' && pick.dataset.group === 'pact') {
+      if (S.choice[key] === 'strength') toast('Пакт силы: Сила пересчитана автоматически');
+      else if (S.choice[key] === 'pride') toast('Пакт гордыни: +1 ко всем характеристикам');
+    }
     return;
   }
 
@@ -645,6 +999,12 @@ function bindEventsOnce() {
     $$('.hpdlg-quick button').forEach(b => b.classList.remove('is-on')));
   setAmount(1);
 
+  const arsenalSearchInput = $('#arsenal-search');
+  if (arsenalSearchInput) arsenalSearchInput.addEventListener('input', event => {
+    arsenalSearch = event.target.value || '';
+    renderArsenalList();
+  });
+
   $$('.sheetmenu').forEach(sm => sm.addEventListener('click', e => {
     if (e.target === sm) sm.hidden = true;
   }));
@@ -707,7 +1067,7 @@ function stopForLogout() {
   activeUserId = null;
   cloudSaver = null;
   S = BLANK();
-  ['#chooser', '#topbar', '#partybar', '#teambar', '#app', '#menu', '#hpdlg', '#profiledlg', '#lobbydlg', '#memberdlg'].forEach(sel => {
+  ['#chooser', '#topbar', '#partybar', '#teambar', '#app', '#menu', '#hpdlg', '#profiledlg', '#arsenaldlg', '#itemdetaildlg', '#lobbydlg', '#memberdlg'].forEach(sel => {
     const el = $(sel);
     if (el) el.hidden = true;
   });
@@ -742,6 +1102,22 @@ window.LegendyApp = {
   refresh: render,
   notify: toast,
   exportState: cloneState,
+  getLoadoutSummary() {
+    const card = activeCard();
+    const armor = equippedArmor();
+    return {
+      armorId: armor?.id || '',
+      armorName: armor?.name || 'Без брони',
+      armorClass: armorClass(),
+      weaponNames: [
+        ...(card?.dataset.char === 'heretic' ? [Arsenal.weaponById['heretic-claws'].name] : []),
+        ...inventory().weaponIds.map(id => Arsenal.weaponById[id]?.name).filter(Boolean),
+      ],
+      gearNames: inventory().gearIds.map(id => Arsenal.gearById[id]?.name).filter(Boolean),
+      handsUsed: usedHands(),
+      handsMax: handCapacity(),
+    };
+  },
   get userId() { return activeUserId; },
 };
 

@@ -21,6 +21,17 @@ SLOT_LABEL = {
     "pass": "Пассивно",
 }
 
+DEFAULT_ARMOR_ID = {
+    "guardsman": "flak",
+    "heretic": "robes",
+    "cultist": "synthsuit",
+    "techpriest": "servo-armor",
+    "priest": "carapace",
+    "neophyte": "carapace",
+    "psyker": "robes",
+    "sister": "sister-armor",
+}
+
 CHARS = [
 # ─────────────────────────────────────────────────────────── I. ГВАРДЕЕЦ
 dict(
@@ -552,9 +563,17 @@ def render_ability(ch, a):
 
 
 def render_card(ch):
+    stat_ids = {
+        "Сила": "strength",
+        "Ловкость": "dexterity",
+        "Стойкость": "toughness",
+        "Интеллект": "intelligence",
+        "Мудрость": "wisdom",
+        "Харизма": "charisma",
+    }
     stats = "\n        ".join(
         f'<div><span class="lab">{n}</span>'
-        f'<span class="val{" neg" if v < 0 else ""}" data-base="{v}">{sign(v)}</span></div>'
+        f'<span class="val{" neg" if v < 0 else ""}" data-stat="{stat_ids[n]}" data-base="{v}">{sign(v)}</span></div>'
         for n, v in ch["stats"])
 
     picks = "\n\n        ".join(render_pick(ch, p) for p in ch["picks"])
@@ -576,7 +595,8 @@ def render_card(ch):
 
     return f'''
 <section class="card" id="card-{ch['id']}" data-char="{ch['id']}"
-         data-hp-max="{ch['hp']}" data-ult-cost="{ch['ult']['cost']}" data-default-armor="{html.escape(ch['armor'])}" {" ".join(flags)}>
+         data-hp-max="{ch['hp']}" data-ult-cost="{ch['ult']['cost']}"
+         data-default-armor="{html.escape(ch['armor'])}" data-default-armor-id="{DEFAULT_ARMOR_ID.get(ch['id'], '')}" {" ".join(flags)}>
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка {ch['num']} из VIII</span></div>
 
   <div class="head">
@@ -602,11 +622,33 @@ def render_card(ch):
     <div class="nums">
         {stats}
     </div>
-    <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>{ch['armor']}</span></div>
-      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
+    <div class="loadout">
+      <button class="loadout-armor" type="button" data-arsenal-action="detail" data-kind="armor"
+              data-item-id="{DEFAULT_ARMOR_ID.get(ch['id'], '')}" data-loadout-armor-button>
+        <span class="loadout-label">Броня</span>
+        <b data-loadout-armor-name>{ch['armor']}</b>
+        <em data-loadout-armor-meta>КБ —</em>
+        <small data-loadout-armor-rule>Нажмите, чтобы посмотреть или сменить броню.</small>
+      </button>
+
+      <div class="loadout-hands-row">
+        <span class="loadout-label">Руки</span>
+        <span class="loadout-hands" data-loadout-hands></span>
+        <b data-loadout-hands-value>0 / 2 занято</b>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Оружие</span>
+          <button type="button" data-arsenal-action="open" data-kind="weapon">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-weapons><span class="loadout-empty">Оружие не выбрано</span></div>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Снаряжение</span>
+          <button type="button" data-arsenal-action="open" data-kind="gear">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-gear><span class="loadout-empty">Снаряжение не выбрано</span></div>
+      </div>
     </div>
-    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">
@@ -653,7 +695,7 @@ HEAD = '''<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=PT+Sans+Narrow:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.css?v=footer-fix-1">
+<link rel="stylesheet" href="app.css?v=arsenal-1">
 </head>
 <body>
 
@@ -728,7 +770,7 @@ HEAD = '''<!DOCTYPE html>
     <h2>Меню</h2>
     <button class="menu-item" data-act="new-battle"><b>Новый бой</b><span>Вернуть заряды «за бой» и снять выбор боя</span></button>
     <button class="menu-item" data-act="new-day"><b>Новый день</b><span>Вернуть все заряды и восстановить здоровье</span></button>
-    <button class="menu-item" data-act="edit-profile"><b>Имя и снаряжение</b><span>Оружие, броня, урон и список предметов</span></button>
+    <button class="menu-item" data-act="edit-profile"><b>Имя персонажа</b><span>Изменить имя. Арсенал находится прямо на карточке</span></button>
     <button class="menu-item" type="button" data-lobby-act="open"><b>Лобби команды</b><span>Создать отряд, войти по коду и посмотреть сопартийцев</span></button>
     <button class="menu-item" data-act="switch"><b>Сменить персонажа</b><span>Вернуться к выбору</span></button>
     <button class="menu-item" data-act="print"><b>Печать всех карточек</b><span>Восемь листов A4, как раньше</span></button>
@@ -758,19 +800,45 @@ HEAD = '''<!DOCTYPE html>
   </div>
 </div>
 
-<!-- ═══════════════ имя и снаряжение ═══════════════ -->
+<!-- ═══════════════ имя персонажа ═══════════════ -->
 <div class="sheetmenu" id="profiledlg" hidden>
   <div class="sheetmenu-panel">
-    <h2>Персонаж и снаряжение</h2>
+    <h2>Имя персонажа</h2>
     <div class="profile-form">
       <label><span>Имя персонажа</span><input id="profile-name" type="text" maxlength="40"></label>
-      <label><span>Броня</span><input id="profile-armor" type="text" maxlength="80"></label>
-      <label><span>Оружие</span><input id="profile-weapon" type="text" maxlength="80" placeholder="Например, цепной меч"></label>
-      <label><span>Урон оружия</span><input id="profile-damage" type="text" maxlength="40" placeholder="Например, 2D6 + 3"></label>
-      <label><span>Предметы, каждый с новой строки</span><textarea id="profile-items" rows="6" placeholder="Стимм&#10;Граната&#10;Датапланшет"></textarea></label>
     </div>
+    <p class="profile-hint">Броня, оружие и снаряжение теперь выбираются кнопками в разделе «Арсенал» на самой карточке.</p>
     <button class="auth-primary profile-save" data-act="save-profile">Сохранить</button>
     <button class="menu-close" data-act="close-profile">Закрыть</button>
+  </div>
+</div>
+
+<!-- ═══════════════ каталог арсенала ═══════════════ -->
+<div class="sheetmenu" id="arsenaldlg" hidden>
+  <div class="sheetmenu-panel arsenal-panel">
+    <div class="arsenal-title-row">
+      <div><span class="arsenal-kicker">Арсенал</span><h2 id="arsenal-title">Выбор снаряжения</h2></div>
+      <button class="arsenal-x" type="button" data-arsenal-action="close" aria-label="Закрыть">×</button>
+    </div>
+    <input id="arsenal-search" class="arsenal-search" type="search" placeholder="Найти предмет…" autocomplete="off">
+    <div id="arsenal-list" class="arsenal-list"></div>
+    <button class="menu-close" type="button" data-arsenal-action="close">Закрыть</button>
+  </div>
+</div>
+
+<!-- ═══════════════ описание выбранного предмета ═══════════════ -->
+<div class="sheetmenu" id="itemdetaildlg" hidden>
+  <div class="sheetmenu-panel item-detail-panel">
+    <span id="item-detail-kicker" class="arsenal-kicker">Предмет</span>
+    <h2 id="item-detail-name">—</h2>
+    <p id="item-detail-primary" class="item-detail-primary">—</p>
+    <p id="item-detail-rule" class="item-detail-rule">—</p>
+    <p id="item-detail-note" class="item-detail-note"></p>
+    <div class="item-detail-actions">
+      <button class="item-change" type="button" data-arsenal-action="change">Выбрать другой</button>
+      <button id="item-detail-remove" class="item-remove" type="button" data-arsenal-action="remove">✕ Снять</button>
+    </div>
+    <button class="menu-close" type="button" data-arsenal-action="close-detail">Закрыть</button>
   </div>
 </div>
 
@@ -824,6 +892,7 @@ HEAD = '''<!DOCTYPE html>
     <h2 id="member-name">—</h2>
     <div class="member-meta"><b id="member-archetype">—</b><span>Здоровье <strong id="member-hp">—</strong></span></div>
     <p id="member-role" class="member-role"></p>
+    <div id="member-loadout" class="member-loadout" hidden></div>
     <div class="member-tips-head">Подсказки по архетипу</div>
     <div id="member-tips" class="member-tips"></div>
     <button class="menu-close" type="button" data-lobby-act="close-member">Закрыть</button>
@@ -863,8 +932,9 @@ FOOT = '''
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=footer-fix-1"></script>
-<script type="module" src="auth.js?v=footer-fix-1"></script>
+<script src="arsenal.js?v=arsenal-1"></script>
+<script src="app.js?v=arsenal-1"></script>
+<script type="module" src="auth.js?v=arsenal-1"></script>
 </body>
 </html>
 '''

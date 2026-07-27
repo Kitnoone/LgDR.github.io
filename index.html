@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=PT+Sans+Narrow:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.css?v=footer-fix-1">
+<link rel="stylesheet" href="app.css?v=arsenal-1">
 </head>
 <body>
 
@@ -84,7 +84,7 @@
     <h2>Меню</h2>
     <button class="menu-item" data-act="new-battle"><b>Новый бой</b><span>Вернуть заряды «за бой» и снять выбор боя</span></button>
     <button class="menu-item" data-act="new-day"><b>Новый день</b><span>Вернуть все заряды и восстановить здоровье</span></button>
-    <button class="menu-item" data-act="edit-profile"><b>Имя и снаряжение</b><span>Оружие, броня, урон и список предметов</span></button>
+    <button class="menu-item" data-act="edit-profile"><b>Имя персонажа</b><span>Изменить имя. Арсенал находится прямо на карточке</span></button>
     <button class="menu-item" type="button" data-lobby-act="open"><b>Лобби команды</b><span>Создать отряд, войти по коду и посмотреть сопартийцев</span></button>
     <button class="menu-item" data-act="switch"><b>Сменить персонажа</b><span>Вернуться к выбору</span></button>
     <button class="menu-item" data-act="print"><b>Печать всех карточек</b><span>Восемь листов A4, как раньше</span></button>
@@ -114,19 +114,45 @@
   </div>
 </div>
 
-<!-- ═══════════════ имя и снаряжение ═══════════════ -->
+<!-- ═══════════════ имя персонажа ═══════════════ -->
 <div class="sheetmenu" id="profiledlg" hidden>
   <div class="sheetmenu-panel">
-    <h2>Персонаж и снаряжение</h2>
+    <h2>Имя персонажа</h2>
     <div class="profile-form">
       <label><span>Имя персонажа</span><input id="profile-name" type="text" maxlength="40"></label>
-      <label><span>Броня</span><input id="profile-armor" type="text" maxlength="80"></label>
-      <label><span>Оружие</span><input id="profile-weapon" type="text" maxlength="80" placeholder="Например, цепной меч"></label>
-      <label><span>Урон оружия</span><input id="profile-damage" type="text" maxlength="40" placeholder="Например, 2D6 + 3"></label>
-      <label><span>Предметы, каждый с новой строки</span><textarea id="profile-items" rows="6" placeholder="Стимм&#10;Граната&#10;Датапланшет"></textarea></label>
     </div>
+    <p class="profile-hint">Броня, оружие и снаряжение теперь выбираются кнопками в разделе «Арсенал» на самой карточке.</p>
     <button class="auth-primary profile-save" data-act="save-profile">Сохранить</button>
     <button class="menu-close" data-act="close-profile">Закрыть</button>
+  </div>
+</div>
+
+<!-- ═══════════════ каталог арсенала ═══════════════ -->
+<div class="sheetmenu" id="arsenaldlg" hidden>
+  <div class="sheetmenu-panel arsenal-panel">
+    <div class="arsenal-title-row">
+      <div><span class="arsenal-kicker">Арсенал</span><h2 id="arsenal-title">Выбор снаряжения</h2></div>
+      <button class="arsenal-x" type="button" data-arsenal-action="close" aria-label="Закрыть">×</button>
+    </div>
+    <input id="arsenal-search" class="arsenal-search" type="search" placeholder="Найти предмет…" autocomplete="off">
+    <div id="arsenal-list" class="arsenal-list"></div>
+    <button class="menu-close" type="button" data-arsenal-action="close">Закрыть</button>
+  </div>
+</div>
+
+<!-- ═══════════════ описание выбранного предмета ═══════════════ -->
+<div class="sheetmenu" id="itemdetaildlg" hidden>
+  <div class="sheetmenu-panel item-detail-panel">
+    <span id="item-detail-kicker" class="arsenal-kicker">Предмет</span>
+    <h2 id="item-detail-name">—</h2>
+    <p id="item-detail-primary" class="item-detail-primary">—</p>
+    <p id="item-detail-rule" class="item-detail-rule">—</p>
+    <p id="item-detail-note" class="item-detail-note"></p>
+    <div class="item-detail-actions">
+      <button class="item-change" type="button" data-arsenal-action="change">Выбрать другой</button>
+      <button id="item-detail-remove" class="item-remove" type="button" data-arsenal-action="remove">✕ Снять</button>
+    </div>
+    <button class="menu-close" type="button" data-arsenal-action="close-detail">Закрыть</button>
   </div>
 </div>
 
@@ -180,6 +206,7 @@
     <h2 id="member-name">—</h2>
     <div class="member-meta"><b id="member-archetype">—</b><span>Здоровье <strong id="member-hp">—</strong></span></div>
     <p id="member-role" class="member-role"></p>
+    <div id="member-loadout" class="member-loadout" hidden></div>
     <div class="member-tips-head">Подсказки по архетипу</div>
     <div id="member-tips" class="member-tips"></div>
     <button class="menu-close" type="button" data-lobby-act="close-member">Закрыть</button>
@@ -189,7 +216,8 @@
 <main id="app" hidden>
 
 <section class="card" id="card-guardsman" data-char="guardsman"
-         data-hp-max="20" data-ult-cost="2" data-default-armor="Флак на старте" data-choice-reset="battle">
+         data-hp-max="20" data-ult-cost="2"
+         data-default-armor="Флак на старте" data-default-armor-id="flak" data-choice-reset="battle">
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка I из VIII</span></div>
 
   <div class="head">
@@ -213,18 +241,40 @@
       <span><b>Твой ход:</b> действие + бонусное + перемещение</span>
     </div>
     <div class="nums">
-        <div><span class="lab">Сила</span><span class="val" data-base="1">+1</span></div>
-        <div><span class="lab">Ловкость</span><span class="val" data-base="1">+1</span></div>
-        <div><span class="lab">Стойкость</span><span class="val neg" data-base="-1">&minus;1</span></div>
-        <div><span class="lab">Интеллект</span><span class="val" data-base="1">+1</span></div>
-        <div><span class="lab">Мудрость</span><span class="val" data-base="2">+2</span></div>
-        <div><span class="lab">Харизма</span><span class="val" data-base="0">+0</span></div>
+        <div><span class="lab">Сила</span><span class="val" data-stat="strength" data-base="1">+1</span></div>
+        <div><span class="lab">Ловкость</span><span class="val" data-stat="dexterity" data-base="1">+1</span></div>
+        <div><span class="lab">Стойкость</span><span class="val neg" data-stat="toughness" data-base="-1">&minus;1</span></div>
+        <div><span class="lab">Интеллект</span><span class="val" data-stat="intelligence" data-base="1">+1</span></div>
+        <div><span class="lab">Мудрость</span><span class="val" data-stat="wisdom" data-base="2">+2</span></div>
+        <div><span class="lab">Харизма</span><span class="val" data-stat="charisma" data-base="0">+0</span></div>
     </div>
-    <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>Флак на старте</span></div>
-      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
+    <div class="loadout">
+      <button class="loadout-armor" type="button" data-arsenal-action="detail" data-kind="armor"
+              data-item-id="flak" data-loadout-armor-button>
+        <span class="loadout-label">Броня</span>
+        <b data-loadout-armor-name>Флак на старте</b>
+        <em data-loadout-armor-meta>КБ —</em>
+        <small data-loadout-armor-rule>Нажмите, чтобы посмотреть или сменить броню.</small>
+      </button>
+
+      <div class="loadout-hands-row">
+        <span class="loadout-label">Руки</span>
+        <span class="loadout-hands" data-loadout-hands></span>
+        <b data-loadout-hands-value>0 / 2 занято</b>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Оружие</span>
+          <button type="button" data-arsenal-action="open" data-kind="weapon">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-weapons><span class="loadout-empty">Оружие не выбрано</span></div>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Снаряжение</span>
+          <button type="button" data-arsenal-action="open" data-kind="gear">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-gear><span class="loadout-empty">Снаряжение не выбрано</span></div>
+      </div>
     </div>
-    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">
@@ -310,7 +360,8 @@
 </section>
 
 <section class="card" id="card-heretic" data-char="heretic"
-         data-hp-max="40" data-ult-cost="3" data-default-armor="Робы" data-taint-boost="1" data-choice-reset="day">
+         data-hp-max="40" data-ult-cost="3"
+         data-default-armor="Робы" data-default-armor-id="robes" data-taint-boost="1" data-choice-reset="day">
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка II из VIII</span></div>
 
   <div class="head">
@@ -334,18 +385,40 @@
       <span><b>Твой ход:</b> действие + бонусное + перемещение</span>
     </div>
     <div class="nums">
-        <div><span class="lab">Сила</span><span class="val" data-base="0">+0</span></div>
-        <div><span class="lab">Ловкость</span><span class="val" data-base="1">+1</span></div>
-        <div><span class="lab">Стойкость</span><span class="val" data-base="1">+1</span></div>
-        <div><span class="lab">Интеллект</span><span class="val" data-base="0">+0</span></div>
-        <div><span class="lab">Мудрость</span><span class="val" data-base="0">+0</span></div>
-        <div><span class="lab">Харизма</span><span class="val" data-base="2">+2</span></div>
+        <div><span class="lab">Сила</span><span class="val" data-stat="strength" data-base="0">+0</span></div>
+        <div><span class="lab">Ловкость</span><span class="val" data-stat="dexterity" data-base="1">+1</span></div>
+        <div><span class="lab">Стойкость</span><span class="val" data-stat="toughness" data-base="1">+1</span></div>
+        <div><span class="lab">Интеллект</span><span class="val" data-stat="intelligence" data-base="0">+0</span></div>
+        <div><span class="lab">Мудрость</span><span class="val" data-stat="wisdom" data-base="0">+0</span></div>
+        <div><span class="lab">Харизма</span><span class="val" data-stat="charisma" data-base="2">+2</span></div>
     </div>
-    <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>Робы</span></div>
-      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
+    <div class="loadout">
+      <button class="loadout-armor" type="button" data-arsenal-action="detail" data-kind="armor"
+              data-item-id="robes" data-loadout-armor-button>
+        <span class="loadout-label">Броня</span>
+        <b data-loadout-armor-name>Робы</b>
+        <em data-loadout-armor-meta>КБ —</em>
+        <small data-loadout-armor-rule>Нажмите, чтобы посмотреть или сменить броню.</small>
+      </button>
+
+      <div class="loadout-hands-row">
+        <span class="loadout-label">Руки</span>
+        <span class="loadout-hands" data-loadout-hands></span>
+        <b data-loadout-hands-value>0 / 2 занято</b>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Оружие</span>
+          <button type="button" data-arsenal-action="open" data-kind="weapon">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-weapons><span class="loadout-empty">Оружие не выбрано</span></div>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Снаряжение</span>
+          <button type="button" data-arsenal-action="open" data-kind="gear">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-gear><span class="loadout-empty">Снаряжение не выбрано</span></div>
+      </div>
     </div>
-    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">
@@ -429,7 +502,8 @@
 </section>
 
 <section class="card" id="card-cultist" data-char="cultist"
-         data-hp-max="20" data-ult-cost="4" data-default-armor="Синтекостюм" >
+         data-hp-max="20" data-ult-cost="4"
+         data-default-armor="Синтекостюм" data-default-armor-id="synthsuit" >
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка III из VIII</span></div>
 
   <div class="head">
@@ -453,18 +527,40 @@
       <span><b>Твой ход:</b> действие + бонусное + перемещение</span>
     </div>
     <div class="nums">
-        <div><span class="lab">Сила</span><span class="val" data-base="0">+0</span></div>
-        <div><span class="lab">Ловкость</span><span class="val" data-base="4">+4</span></div>
-        <div><span class="lab">Стойкость</span><span class="val" data-base="0">+0</span></div>
-        <div><span class="lab">Интеллект</span><span class="val" data-base="1">+1</span></div>
-        <div><span class="lab">Мудрость</span><span class="val" data-base="2">+2</span></div>
-        <div><span class="lab">Харизма</span><span class="val neg" data-base="-3">&minus;3</span></div>
+        <div><span class="lab">Сила</span><span class="val" data-stat="strength" data-base="0">+0</span></div>
+        <div><span class="lab">Ловкость</span><span class="val" data-stat="dexterity" data-base="4">+4</span></div>
+        <div><span class="lab">Стойкость</span><span class="val" data-stat="toughness" data-base="0">+0</span></div>
+        <div><span class="lab">Интеллект</span><span class="val" data-stat="intelligence" data-base="1">+1</span></div>
+        <div><span class="lab">Мудрость</span><span class="val" data-stat="wisdom" data-base="2">+2</span></div>
+        <div><span class="lab">Харизма</span><span class="val neg" data-stat="charisma" data-base="-3">&minus;3</span></div>
     </div>
-    <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>Синтекостюм</span></div>
-      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
+    <div class="loadout">
+      <button class="loadout-armor" type="button" data-arsenal-action="detail" data-kind="armor"
+              data-item-id="synthsuit" data-loadout-armor-button>
+        <span class="loadout-label">Броня</span>
+        <b data-loadout-armor-name>Синтекостюм</b>
+        <em data-loadout-armor-meta>КБ —</em>
+        <small data-loadout-armor-rule>Нажмите, чтобы посмотреть или сменить броню.</small>
+      </button>
+
+      <div class="loadout-hands-row">
+        <span class="loadout-label">Руки</span>
+        <span class="loadout-hands" data-loadout-hands></span>
+        <b data-loadout-hands-value>0 / 2 занято</b>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Оружие</span>
+          <button type="button" data-arsenal-action="open" data-kind="weapon">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-weapons><span class="loadout-empty">Оружие не выбрано</span></div>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Снаряжение</span>
+          <button type="button" data-arsenal-action="open" data-kind="gear">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-gear><span class="loadout-empty">Снаряжение не выбрано</span></div>
+      </div>
     </div>
-    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">
@@ -553,7 +649,8 @@
 </section>
 
 <section class="card" id="card-techpriest" data-char="techpriest"
-         data-hp-max="30" data-ult-cost="5" data-default-armor="Серво броня" data-choice-reset="day">
+         data-hp-max="30" data-ult-cost="5"
+         data-default-armor="Серво броня" data-default-armor-id="servo-armor" data-choice-reset="day">
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка IV из VIII</span></div>
 
   <div class="head">
@@ -577,18 +674,40 @@
       <span><b>Твой ход:</b> действие + бонусное + перемещение</span>
     </div>
     <div class="nums">
-        <div><span class="lab">Сила</span><span class="val" data-base="1">+1</span></div>
-        <div><span class="lab">Ловкость</span><span class="val neg" data-base="-2">&minus;2</span></div>
-        <div><span class="lab">Стойкость</span><span class="val" data-base="1">+1</span></div>
-        <div><span class="lab">Интеллект</span><span class="val" data-base="4">+4</span></div>
-        <div><span class="lab">Мудрость</span><span class="val" data-base="2">+2</span></div>
-        <div><span class="lab">Харизма</span><span class="val neg" data-base="-2">&minus;2</span></div>
+        <div><span class="lab">Сила</span><span class="val" data-stat="strength" data-base="1">+1</span></div>
+        <div><span class="lab">Ловкость</span><span class="val neg" data-stat="dexterity" data-base="-2">&minus;2</span></div>
+        <div><span class="lab">Стойкость</span><span class="val" data-stat="toughness" data-base="1">+1</span></div>
+        <div><span class="lab">Интеллект</span><span class="val" data-stat="intelligence" data-base="4">+4</span></div>
+        <div><span class="lab">Мудрость</span><span class="val" data-stat="wisdom" data-base="2">+2</span></div>
+        <div><span class="lab">Харизма</span><span class="val neg" data-stat="charisma" data-base="-2">&minus;2</span></div>
     </div>
-    <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>Серво броня</span></div>
-      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
+    <div class="loadout">
+      <button class="loadout-armor" type="button" data-arsenal-action="detail" data-kind="armor"
+              data-item-id="servo-armor" data-loadout-armor-button>
+        <span class="loadout-label">Броня</span>
+        <b data-loadout-armor-name>Серво броня</b>
+        <em data-loadout-armor-meta>КБ —</em>
+        <small data-loadout-armor-rule>Нажмите, чтобы посмотреть или сменить броню.</small>
+      </button>
+
+      <div class="loadout-hands-row">
+        <span class="loadout-label">Руки</span>
+        <span class="loadout-hands" data-loadout-hands></span>
+        <b data-loadout-hands-value>0 / 2 занято</b>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Оружие</span>
+          <button type="button" data-arsenal-action="open" data-kind="weapon">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-weapons><span class="loadout-empty">Оружие не выбрано</span></div>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Снаряжение</span>
+          <button type="button" data-arsenal-action="open" data-kind="gear">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-gear><span class="loadout-empty">Снаряжение не выбрано</span></div>
+      </div>
     </div>
-    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">
@@ -680,7 +799,8 @@
 </section>
 
 <section class="card" id="card-priest" data-char="priest"
-         data-hp-max="25" data-ult-cost="2" data-default-armor="Панцирный доспех" >
+         data-hp-max="25" data-ult-cost="2"
+         data-default-armor="Панцирный доспех" data-default-armor-id="carapace" >
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка V из VIII</span></div>
 
   <div class="head">
@@ -704,18 +824,40 @@
       <span><b>Твой ход:</b> действие + бонусное + перемещение</span>
     </div>
     <div class="nums">
-        <div><span class="lab">Сила</span><span class="val" data-base="2">+2</span></div>
-        <div><span class="lab">Ловкость</span><span class="val" data-base="0">+0</span></div>
-        <div><span class="lab">Стойкость</span><span class="val" data-base="2">+2</span></div>
-        <div><span class="lab">Интеллект</span><span class="val neg" data-base="-2">&minus;2</span></div>
-        <div><span class="lab">Мудрость</span><span class="val neg" data-base="-1">&minus;1</span></div>
-        <div><span class="lab">Харизма</span><span class="val" data-base="3">+3</span></div>
+        <div><span class="lab">Сила</span><span class="val" data-stat="strength" data-base="2">+2</span></div>
+        <div><span class="lab">Ловкость</span><span class="val" data-stat="dexterity" data-base="0">+0</span></div>
+        <div><span class="lab">Стойкость</span><span class="val" data-stat="toughness" data-base="2">+2</span></div>
+        <div><span class="lab">Интеллект</span><span class="val neg" data-stat="intelligence" data-base="-2">&minus;2</span></div>
+        <div><span class="lab">Мудрость</span><span class="val neg" data-stat="wisdom" data-base="-1">&minus;1</span></div>
+        <div><span class="lab">Харизма</span><span class="val" data-stat="charisma" data-base="3">+3</span></div>
     </div>
-    <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>Панцирный доспех</span></div>
-      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
+    <div class="loadout">
+      <button class="loadout-armor" type="button" data-arsenal-action="detail" data-kind="armor"
+              data-item-id="carapace" data-loadout-armor-button>
+        <span class="loadout-label">Броня</span>
+        <b data-loadout-armor-name>Панцирный доспех</b>
+        <em data-loadout-armor-meta>КБ —</em>
+        <small data-loadout-armor-rule>Нажмите, чтобы посмотреть или сменить броню.</small>
+      </button>
+
+      <div class="loadout-hands-row">
+        <span class="loadout-label">Руки</span>
+        <span class="loadout-hands" data-loadout-hands></span>
+        <b data-loadout-hands-value>0 / 2 занято</b>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Оружие</span>
+          <button type="button" data-arsenal-action="open" data-kind="weapon">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-weapons><span class="loadout-empty">Оружие не выбрано</span></div>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Снаряжение</span>
+          <button type="button" data-arsenal-action="open" data-kind="gear">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-gear><span class="loadout-empty">Снаряжение не выбрано</span></div>
+      </div>
     </div>
-    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">
@@ -796,7 +938,8 @@
 </section>
 
 <section class="card" id="card-neophyte" data-char="neophyte"
-         data-hp-max="35" data-ult-cost="5" data-default-armor="Панцирный доспех" >
+         data-hp-max="35" data-ult-cost="5"
+         data-default-armor="Панцирный доспех" data-default-armor-id="carapace" >
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка VI из VIII</span></div>
 
   <div class="head">
@@ -820,18 +963,40 @@
       <span><b>Твой ход:</b> действие + бонусное + перемещение</span>
     </div>
     <div class="nums">
-        <div><span class="lab">Сила</span><span class="val" data-base="3">+3</span></div>
-        <div><span class="lab">Ловкость</span><span class="val" data-base="2">+2</span></div>
-        <div><span class="lab">Стойкость</span><span class="val" data-base="1">+1</span></div>
-        <div><span class="lab">Интеллект</span><span class="val neg" data-base="-1">&minus;1</span></div>
-        <div><span class="lab">Мудрость</span><span class="val" data-base="0">+0</span></div>
-        <div><span class="lab">Харизма</span><span class="val neg" data-base="-2">&minus;2</span></div>
+        <div><span class="lab">Сила</span><span class="val" data-stat="strength" data-base="3">+3</span></div>
+        <div><span class="lab">Ловкость</span><span class="val" data-stat="dexterity" data-base="2">+2</span></div>
+        <div><span class="lab">Стойкость</span><span class="val" data-stat="toughness" data-base="1">+1</span></div>
+        <div><span class="lab">Интеллект</span><span class="val neg" data-stat="intelligence" data-base="-1">&minus;1</span></div>
+        <div><span class="lab">Мудрость</span><span class="val" data-stat="wisdom" data-base="0">+0</span></div>
+        <div><span class="lab">Харизма</span><span class="val neg" data-stat="charisma" data-base="-2">&minus;2</span></div>
     </div>
-    <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>Панцирный доспех</span></div>
-      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
+    <div class="loadout">
+      <button class="loadout-armor" type="button" data-arsenal-action="detail" data-kind="armor"
+              data-item-id="carapace" data-loadout-armor-button>
+        <span class="loadout-label">Броня</span>
+        <b data-loadout-armor-name>Панцирный доспех</b>
+        <em data-loadout-armor-meta>КБ —</em>
+        <small data-loadout-armor-rule>Нажмите, чтобы посмотреть или сменить броню.</small>
+      </button>
+
+      <div class="loadout-hands-row">
+        <span class="loadout-label">Руки</span>
+        <span class="loadout-hands" data-loadout-hands></span>
+        <b data-loadout-hands-value>0 / 2 занято</b>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Оружие</span>
+          <button type="button" data-arsenal-action="open" data-kind="weapon">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-weapons><span class="loadout-empty">Оружие не выбрано</span></div>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Снаряжение</span>
+          <button type="button" data-arsenal-action="open" data-kind="gear">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-gear><span class="loadout-empty">Снаряжение не выбрано</span></div>
+      </div>
     </div>
-    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">
@@ -905,7 +1070,8 @@
 </section>
 
 <section class="card" id="card-psyker" data-char="psyker"
-         data-hp-max="20" data-ult-cost="3" data-default-armor="Робы" >
+         data-hp-max="20" data-ult-cost="3"
+         data-default-armor="Робы" data-default-armor-id="robes" >
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка VII из VIII</span></div>
 
   <div class="head">
@@ -929,18 +1095,40 @@
       <span><b>Твой ход:</b> действие + бонусное + перемещение</span>
     </div>
     <div class="nums">
-        <div><span class="lab">Сила</span><span class="val neg" data-base="-2">&minus;2</span></div>
-        <div><span class="lab">Ловкость</span><span class="val" data-base="1">+1</span></div>
-        <div><span class="lab">Стойкость</span><span class="val neg" data-base="-2">&minus;2</span></div>
-        <div><span class="lab">Интеллект</span><span class="val" data-base="5">+5</span></div>
-        <div><span class="lab">Мудрость</span><span class="val" data-base="1">+1</span></div>
-        <div><span class="lab">Харизма</span><span class="val" data-base="1">+1</span></div>
+        <div><span class="lab">Сила</span><span class="val neg" data-stat="strength" data-base="-2">&minus;2</span></div>
+        <div><span class="lab">Ловкость</span><span class="val" data-stat="dexterity" data-base="1">+1</span></div>
+        <div><span class="lab">Стойкость</span><span class="val neg" data-stat="toughness" data-base="-2">&minus;2</span></div>
+        <div><span class="lab">Интеллект</span><span class="val" data-stat="intelligence" data-base="5">+5</span></div>
+        <div><span class="lab">Мудрость</span><span class="val" data-stat="wisdom" data-base="1">+1</span></div>
+        <div><span class="lab">Харизма</span><span class="val" data-stat="charisma" data-base="1">+1</span></div>
     </div>
-    <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>Робы</span></div>
-      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
+    <div class="loadout">
+      <button class="loadout-armor" type="button" data-arsenal-action="detail" data-kind="armor"
+              data-item-id="robes" data-loadout-armor-button>
+        <span class="loadout-label">Броня</span>
+        <b data-loadout-armor-name>Робы</b>
+        <em data-loadout-armor-meta>КБ —</em>
+        <small data-loadout-armor-rule>Нажмите, чтобы посмотреть или сменить броню.</small>
+      </button>
+
+      <div class="loadout-hands-row">
+        <span class="loadout-label">Руки</span>
+        <span class="loadout-hands" data-loadout-hands></span>
+        <b data-loadout-hands-value>0 / 2 занято</b>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Оружие</span>
+          <button type="button" data-arsenal-action="open" data-kind="weapon">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-weapons><span class="loadout-empty">Оружие не выбрано</span></div>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Снаряжение</span>
+          <button type="button" data-arsenal-action="open" data-kind="gear">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-gear><span class="loadout-empty">Снаряжение не выбрано</span></div>
+      </div>
     </div>
-    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">
@@ -1024,7 +1212,8 @@
 </section>
 
 <section class="card" id="card-sister" data-char="sister"
-         data-hp-max="20" data-ult-cost="1" data-default-armor="Броня сестры битвы" data-dmg-to-coins="5" data-choice-reset="battle">
+         data-hp-max="20" data-ult-cost="1"
+         data-default-armor="Броня сестры битвы" data-default-armor-id="sister-armor" data-dmg-to-coins="5" data-choice-reset="battle">
   <div class="runhead"><span>Легенды подземелий</span><span>Карточка VIII из VIII</span></div>
 
   <div class="head">
@@ -1048,18 +1237,40 @@
       <span><b>Твой ход:</b> действие + бонусное + перемещение</span>
     </div>
     <div class="nums">
-        <div><span class="lab">Сила</span><span class="val" data-base="1">+1</span></div>
-        <div><span class="lab">Ловкость</span><span class="val" data-base="2">+2</span></div>
-        <div><span class="lab">Стойкость</span><span class="val" data-base="1">+1</span></div>
-        <div><span class="lab">Интеллект</span><span class="val neg" data-base="-2">&minus;2</span></div>
-        <div><span class="lab">Мудрость</span><span class="val" data-base="0">+0</span></div>
-        <div><span class="lab">Харизма</span><span class="val" data-base="2">+2</span></div>
+        <div><span class="lab">Сила</span><span class="val" data-stat="strength" data-base="1">+1</span></div>
+        <div><span class="lab">Ловкость</span><span class="val" data-stat="dexterity" data-base="2">+2</span></div>
+        <div><span class="lab">Стойкость</span><span class="val" data-stat="toughness" data-base="1">+1</span></div>
+        <div><span class="lab">Интеллект</span><span class="val neg" data-stat="intelligence" data-base="-2">&minus;2</span></div>
+        <div><span class="lab">Мудрость</span><span class="val" data-stat="wisdom" data-base="0">+0</span></div>
+        <div><span class="lab">Харизма</span><span class="val" data-stat="charisma" data-base="2">+2</span></div>
     </div>
-    <div class="gear">
-      <div><span class="lab">Класс брони</span><span class="txt" data-gear-armor>Броня сестры битвы</span></div>
-      <div><span class="lab">Оружие и урон</span><span class="txt" data-gear-weapon>Не указано</span></div>
+    <div class="loadout">
+      <button class="loadout-armor" type="button" data-arsenal-action="detail" data-kind="armor"
+              data-item-id="sister-armor" data-loadout-armor-button>
+        <span class="loadout-label">Броня</span>
+        <b data-loadout-armor-name>Броня сестры битвы</b>
+        <em data-loadout-armor-meta>КБ —</em>
+        <small data-loadout-armor-rule>Нажмите, чтобы посмотреть или сменить броню.</small>
+      </button>
+
+      <div class="loadout-hands-row">
+        <span class="loadout-label">Руки</span>
+        <span class="loadout-hands" data-loadout-hands></span>
+        <b data-loadout-hands-value>0 / 2 занято</b>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Оружие</span>
+          <button type="button" data-arsenal-action="open" data-kind="weapon">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-weapons><span class="loadout-empty">Оружие не выбрано</span></div>
+      </div>
+
+      <div class="loadout-section">
+        <div class="loadout-section-head"><span class="loadout-label">Снаряжение</span>
+          <button type="button" data-arsenal-action="open" data-kind="gear">+ Добавить</button></div>
+        <div class="loadout-list" data-loadout-gear><span class="loadout-empty">Снаряжение не выбрано</span></div>
+      </div>
     </div>
-    <div class="inventory-line"><span class="lab">Предметы</span><span class="txt" data-gear-items>Не указаны</span></div>
   </div>
 
   <div class="body2">
@@ -1169,7 +1380,8 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=footer-fix-1"></script>
-<script type="module" src="auth.js?v=footer-fix-1"></script>
+<script src="arsenal.js?v=arsenal-1"></script>
+<script src="app.js?v=arsenal-1"></script>
+<script type="module" src="auth.js?v=arsenal-1"></script>
 </body>
 </html>

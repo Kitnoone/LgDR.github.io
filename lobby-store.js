@@ -7,7 +7,7 @@
    разных игроков не перезаписывают друг друга.
    ================================================================== */
 
-import { db } from './firebase-config.js?v=footer-fix-1';
+import { db } from './firebase-config.js?v=arsenal-1';
 import {
   doc,
   getDoc,
@@ -93,6 +93,7 @@ function ownSummary() {
     hp: Math.max(0, hp || 0),
     hpMax: Math.max(0, maxHp || 0),
     foundation,
+    loadout: app()?.getLoadoutSummary?.() || null,
   };
 }
 
@@ -264,6 +265,23 @@ function openMember(uid) {
   $('#member-archetype').textContent = member.archetypeName || 'Архетип не выбран';
   $('#member-hp').textContent = `${Number(member.hp || 0)} / ${Number(member.hpMax || 0)}`;
   $('#member-role').textContent = card ? $('.role', card)?.textContent || '' : '';
+
+  const loadout = $('#member-loadout');
+  const equipment = member.loadout || null;
+  if (loadout) {
+    loadout.hidden = !equipment;
+    if (equipment) {
+      const weapons = Array.isArray(equipment.weaponNames) && equipment.weaponNames.length
+        ? equipment.weaponNames.join(', ') : 'не выбрано';
+      const gear = Array.isArray(equipment.gearNames) && equipment.gearNames.length
+        ? equipment.gearNames.join(', ') : 'не выбрано';
+      loadout.innerHTML = `<b>Арсенал</b>`
+        + `<p>Броня: ${escapeHtml(equipment.armorName || 'Без брони')} · КБ ${Number(equipment.armorClass || 10)}</p>`
+        + `<p>Оружие: ${escapeHtml(weapons)}</p>`
+        + `<p>Снаряжение: ${escapeHtml(gear)}</p>`
+        + `<p>Руки: ${Number(equipment.handsUsed || 0)} / ${Number(equipment.handsMax || 2)}</p>`;
+    } else loadout.innerHTML = '';
+  }
 
   const tips = $('#member-tips');
   tips.innerHTML = '';
