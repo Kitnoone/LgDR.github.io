@@ -1,9 +1,22 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function currentUid() {
+      return request.auth.uid;
+    }
+
+    function memberOf(data) {
+      return signedIn() && currentUid() in data.memberIds;
+    }
+
     match /characters/{userId} {
       function signedInAsOwner() {
-        return request.auth != null && request.auth.uid == userId;
+        return signedIn() && currentUid() == userId;
       }
 
       allow read, delete: if signedInAsOwner();
@@ -12,14 +25,121 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
           'ownerId', 'schemaVersion', 'state', 'updatedAt'
         ])
-        && request.resource.data.ownerId == request.auth.uid;
+        && request.resource.data.ownerId == currentUid();
 
       allow update: if signedInAsOwner()
         && request.resource.data.keys().hasOnly([
           'ownerId', 'schemaVersion', 'state', 'updatedAt'
         ])
-        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.ownerId == currentUid()
         && request.resource.data.ownerId == resource.data.ownerId;
+    }
+
+    match /teams/{teamCode} {
+      /* По коду можно открыть только один документ. Получать список всех лобби нельзя. */
+      allow get: if signedIn();
+      allow list: if false;
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly([
+          'schemaVersion', 'code', 'name', 'ownerId',
+          'memberIds', 'members', 'memberCount',
+          'taint', 'coins', 'eventSeq', 'events',
+          'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.code == teamCode
+        && request.resource.data.ownerId == currentUid()
+        && request.resource.data.memberIds == [currentUid()]
+        && request.resource.data.memberIds.toSet().size() == 1
+        && request.resource.data.memberCount == 1
+        && request.resource.data.members.keys().hasOnly([currentUid()])
+        && request.resource.data.members[currentUid()].uid == currentUid()
+        && request.resource.data.taint == 0
+        && request.resource.data.coins == 0;
+
+      function resourceUpdate() {
+        return memberOf(resource.data)
+          && resource.data.memberCount >= 3
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'taint', 'coins', 'eventSeq', 'events', 'updatedAt'
+          ])
+          && request.resource.data.taint is int
+          && request.resource.data.coins is int
+          && request.resource.data.taint >= 0
+          && request.resource.data.coins >= 0;
+      }
+
+      function ownSummaryUpdate() {
+        return memberOf(resource.data)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'members', 'updatedAt'
+          ])
+          && request.resource.data.members.diff(resource.data.members)
+               .affectedKeys().hasOnly([currentUid()])
+          && request.resource.data.members[currentUid()].uid == currentUid();
+      }
+
+      function joinTeam() {
+        return signedIn()
+          && !(currentUid() in resource.data.memberIds)
+          && currentUid() in request.resource.data.memberIds
+          && resource.data.memberCount < 8
+          && request.resource.data.memberCount == resource.data.memberCount + 1
+          && request.resource.data.memberIds.size() == request.resource.data.memberCount
+          && request.resource.data.memberIds.toSet().size() == request.resource.data.memberIds.size()
+          && request.resource.data.memberIds.hasAll(resource.data.memberIds)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'memberIds', 'members', 'memberCount',
+            'eventSeq', 'events', 'updatedAt'
+          ])
+          && request.resource.data.members.diff(resource.data.members)
+               .affectedKeys().hasOnly([currentUid()])
+          && request.resource.data.members[currentUid()].uid == currentUid();
+      }
+
+      function leaveTeam() {
+        return memberOf(resource.data)
+          && !(currentUid() in request.resource.data.memberIds)
+          && request.resource.data.memberCount == resource.data.memberCount - 1
+          && request.resource.data.memberCount >= 1
+          && request.resource.data.memberIds.size() == request.resource.data.memberCount
+          && request.resource.data.memberIds.toSet().size() == request.resource.data.memberIds.size()
+          && request.resource.data.memberIds.hasAll(resource.data.memberIds.removeAll([currentUid()]))
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'ownerId', 'memberIds', 'members', 'memberCount',
+            'eventSeq', 'events', 'updatedAt'
+          ])
+          && request.resource.data.members.diff(resource.data.members)
+               .affectedKeys().hasOnly([currentUid()])
+          && (
+            (resource.data.ownerId != currentUid()
+              && request.resource.data.ownerId == resource.data.ownerId)
+            ||
+            (resource.data.ownerId == currentUid()
+              && request.resource.data.ownerId in request.resource.data.memberIds)
+          );
+      }
+
+      function ownerRename() {
+        return memberOf(resource.data)
+          && resource.data.ownerId == currentUid()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'name', 'updatedAt'
+          ])
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.name.size() <= 50;
+      }
+
+      allow update: if resourceUpdate()
+                    || ownSummaryUpdate()
+                    || joinTeam()
+                    || leaveTeam()
+                    || ownerRename();
+
+      allow delete: if memberOf(resource.data)
+        && resource.data.ownerId == currentUid()
+        && resource.data.memberCount == 1;
     }
   }
 }

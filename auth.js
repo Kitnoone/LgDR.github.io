@@ -5,6 +5,7 @@
 
 import { auth } from './firebase-config.js';
 import { connectCharacterStore, queueCharacterSave, stopCharacterStore } from './character-store.js';
+import { startLobbySession, stopLobbySession } from './lobby-store.js';
 import {
   browserLocalPersistence,
   createUserWithEmailAndPassword,
@@ -151,6 +152,7 @@ async function logout() {
 }
 
 function showSignedOut() {
+  stopLobbySession();
   stopCharacterStore();
   window.LegendyApp?.setCloudSaver(null);
   window.LegendyApp?.stop();
@@ -177,12 +179,14 @@ async function showSignedIn(user) {
     window.LegendyApp?.applyCloudState(initialState);
     window.LegendyApp?.setCloudSaver(queueCharacterSave);
     window.LegendyApp?.present();
+    await startLobbySession(user.uid);
     ui.screen.hidden = true;
   } catch (error) {
     console.error('Firestore connect:', error);
     window.LegendyApp?.setCloudStatus('error', error);
     window.LegendyApp?.setCloudSaver(null);
     window.LegendyApp?.present();
+    await startLobbySession(user.uid);
     ui.screen.hidden = true;
     window.LegendyApp?.notify('Облако недоступно. Состояние пока сохраняется только на этом устройстве.');
   }

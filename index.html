@@ -68,7 +68,15 @@
   <button class="tb-name" data-act="menu">
     <span class="tb-person"><strong id="tb-character-name">—</strong><small id="tb-title">—</small></span><i>▾</i>
   </button>
+  <button class="top-lobby" type="button" data-lobby-act="open" aria-label="Открыть лобби">
+    <span>Команда</span><b id="top-lobby-label">Лобби</b>
+  </button>
 </header>
+
+<!-- ═══════════════ строка сопартийцев ═══════════════ -->
+<nav class="partybar" id="partybar" hidden aria-label="Сопартийцы">
+  <div class="party-list" id="party-list"></div>
+</nav>
 
 <!-- ═══════════════ меню ═══════════════ -->
 <div class="sheetmenu" id="menu" hidden>
@@ -77,6 +85,7 @@
     <button class="menu-item" data-act="new-battle"><b>Новый бой</b><span>Вернуть заряды «за бой» и снять выбор боя</span></button>
     <button class="menu-item" data-act="new-day"><b>Новый день</b><span>Вернуть все заряды и восстановить здоровье</span></button>
     <button class="menu-item" data-act="edit-profile"><b>Имя и снаряжение</b><span>Оружие, броня, урон и список предметов</span></button>
+    <button class="menu-item" type="button" data-lobby-act="open"><b>Лобби команды</b><span>Создать отряд, войти по коду и посмотреть сопартийцев</span></button>
     <button class="menu-item" data-act="switch"><b>Сменить персонажа</b><span>Вернуться к выбору</span></button>
     <button class="menu-item" data-act="print"><b>Печать всех карточек</b><span>Восемь листов A4, как раньше</span></button>
     <button class="menu-item menu-item--warn" data-act="reset"><b>Сбросить всё</b><span>Здоровье, заряды, порча и монеты обнулятся</span></button>
@@ -118,6 +127,62 @@
     </div>
     <button class="auth-primary profile-save" data-act="save-profile">Сохранить</button>
     <button class="menu-close" data-act="close-profile">Закрыть</button>
+  </div>
+</div>
+
+<!-- ═══════════════ лобби команды ═══════════════ -->
+<div class="sheetmenu" id="lobbydlg" hidden>
+  <div class="sheetmenu-panel lobby-panel">
+    <div class="lobby-title-row">
+      <div><span class="lobby-kicker">Общая хроника</span><h2>Лобби команды</h2></div>
+      <button class="lobby-x" type="button" data-lobby-act="close" aria-label="Закрыть">×</button>
+    </div>
+
+    <div id="lobby-empty">
+      <p class="lobby-intro">Создатель получает шестизначный код. Введите его на телефонах друзей. До трёх участников команда считается формирующейся, максимум — восемь.</p>
+      <div class="lobby-form-card">
+        <h3>Создать лобби</h3>
+        <label><span>Название команды</span><input id="lobby-create-name" type="text" maxlength="50" placeholder="Например, Отряд Андрея"></label>
+        <button class="auth-primary" type="button" data-lobby-act="create">Создать и получить код</button>
+      </div>
+      <div class="lobby-divider"><span>или</span></div>
+      <div class="lobby-form-card">
+        <h3>Войти по коду</h3>
+        <label><span>Код приглашения</span><input id="lobby-join-code" class="lobby-code-input" type="text" inputmode="text" maxlength="6" autocomplete="off" placeholder="ABC234"></label>
+        <button class="auth-primary" type="button" data-lobby-act="join">Войти в лобби</button>
+      </div>
+    </div>
+
+    <div id="lobby-joined" hidden>
+      <div class="lobby-banner">
+        <span class="lobby-kicker">Ваша команда</span>
+        <h3 id="lobby-name-view">—</h3>
+        <div class="lobby-code-row"><span>Код</span><b id="lobby-code-view">——</b><button type="button" data-lobby-act="copy">Копировать</button></div>
+        <p id="lobby-status" class="lobby-status">—</p>
+        <small id="lobby-resource-note">—</small>
+      </div>
+      <div class="lobby-members-head"><b>Состав команды</b><span>Нажмите на имя, чтобы увидеть подсказки</span></div>
+      <div id="lobby-members" class="lobby-members"></div>
+      <div class="lobby-events-head"><b>Последние события</b><span>Короткий журнал общих ресурсов</span></div>
+      <div id="lobby-events" class="lobby-events"></div>
+      <button id="lobby-leave" class="menu-item menu-item--warn" type="button" data-lobby-act="leave"><b>Покинуть лобби</b><span>Персонаж останется в вашей личной хронике</span></button>
+    </div>
+
+    <p id="lobby-message" class="lobby-message"></p>
+    <button class="menu-close" type="button" data-lobby-act="close">Закрыть</button>
+  </div>
+</div>
+
+<!-- ═══════════════ карточка сопартийца ═══════════════ -->
+<div class="sheetmenu" id="memberdlg" hidden>
+  <div class="sheetmenu-panel member-panel">
+    <span class="lobby-kicker">Сопартиец</span>
+    <h2 id="member-name">—</h2>
+    <div class="member-meta"><b id="member-archetype">—</b><span>Здоровье <strong id="member-hp">—</strong></span></div>
+    <p id="member-role" class="member-role"></p>
+    <div class="member-tips-head">Подсказки по архетипу</div>
+    <div id="member-tips" class="member-tips"></div>
+    <button class="menu-close" type="button" data-lobby-act="close-member">Закрыть</button>
   </div>
 </div>
 
@@ -1079,6 +1144,7 @@
 
 <!-- ═══════════════ нижняя панель команды ═══════════════ -->
 <footer class="teambar" id="teambar" hidden>
+  <span id="team-resource-mode" class="team-resource-mode">локально</span>
   <div class="tb-cell">
     <span class="tb-lab">Здоровье</span>
     <button class="tb-val tb-hp" data-act="hp"><b data-hp-mirror>—</b></button>

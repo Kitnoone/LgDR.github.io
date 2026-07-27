@@ -34,7 +34,7 @@ async function writeNow(state) {
   statusHandler('saving');
   await setDoc(activeRef, {
     ownerId: activeUid,
-    schemaVersion: 1,
+    schemaVersion: 2,
     state: clean,
     updatedAt: serverTimestamp(),
   }, { merge: true });

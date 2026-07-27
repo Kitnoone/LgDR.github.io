@@ -3,14 +3,16 @@
    ------------------------------------------------------------------
    Всё состояние лежит в одном объекте S и пишется в localStorage.
    Командные счётчики (порча, монеты) читаются и пишутся ТОЛЬКО через
-   объект Team. Когда дойдём до синхронизации между телефонами, менять
-   надо будет один этот объект, остальной код останется как есть.
+   объект Team. Без лобби они локальные; в лобби объект получает сетевой
+   адаптер из lobby-store.js и работает через транзакции Firestore.
    ================================================================== */
 'use strict';
 
 let KEY = 'legendy.v1';
 let cloudSaver = null;
 let suppressCloudSave = false;
+let teamAdapter = null;
+const stateListeners = new Set();
 
 const BLANK = () => ({
   char: null,
@@ -20,6 +22,8 @@ const BLANK = () => ({
   spent: {},     // "charId:abilId" -> сколько зарядов потрачено
   choice: {},    // "charId:group" -> id выбранного пункта
   dmgAcc: {},    // charId -> накопленный урон (для сестры)
+  flags: { sisterFallReward: false },
+  teamCode: '',
   team: { taint: 0, coins: 0 },
 });
 
@@ -32,6 +36,8 @@ function normalizeState(raw) {
   next.spent = Object.assign({}, raw?.spent || {});
   next.choice = Object.assign({}, raw?.choice || {});
   next.dmgAcc = Object.assign({}, raw?.dmgAcc || {});
+  next.flags = Object.assign({ sisterFallReward: false }, raw?.flags || {});
+  next.teamCode = String(raw?.teamCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
   next.team = Object.assign({ taint: 0, coins: 0 }, raw?.team || {});
   next.inventory = Object.assign({ armor: '', weapon: '', damage: '', items: [] }, raw?.inventory || {});
   if (!Array.isArray(next.inventory.items)) next.inventory.items = [];
@@ -78,20 +84,64 @@ function saveLocal() {
 function save() {
   saveLocal();
   if (!suppressCloudSave && cloudSaver) cloudSaver(cloneState());
+  stateListeners.forEach(listener => {
+    try { listener(cloneState()); } catch (error) { console.warn('State listener:', error); }
+  });
 }
 
 /* ───────────── командные ресурсы: единственная точка входа ─────────────
-   Сейчас порча и монеты живут в этом же localStorage и вводятся руками.
-   Для комнаты с кодом достаточно переписать get/set на сетевой запрос
-   и вызывать render() при входящем обновлении.                        */
+   Без лобби порча и монеты живут в localStorage. После входа в лобби
+   lobby-store.js подключает teamAdapter, и те же методы работают с общей
+   командной записью Firestore.                                      */
 
 const Team = {
-  get taint() { return S.team.taint; },
-  get coins() { return S.team.coins; },
-  setTaint(v) { S.team.taint = Math.max(0, v | 0); save(); render(); },
-  setCoins(v) { S.team.coins = Math.max(0, v | 0); save(); render(); },
-  addTaint(d) { this.setTaint(this.taint + d); },
-  addCoins(d) { this.setCoins(this.coins + d); },
+  get taint() { return teamAdapter ? teamAdapter.taint : S.team.taint; },
+  get coins() { return teamAdapter ? teamAdapter.coins : S.team.coins; },
+  get shared() { return !!teamAdapter?.shared; },
+  get ready() { return !teamAdapter || !!teamAdapter.ready; },
+  get memberCount() { return teamAdapter?.memberCount || 0; },
+
+  async setTaint(v, meta = {}) {
+    const target = Math.max(0, v | 0);
+    if (teamAdapter) {
+      const delta = target - this.taint;
+      if (delta === 0) return true;
+      if (target === 0) return !!(await teamAdapter.clearTaint(meta));
+      try { await teamAdapter.addTaint(delta, meta); return true; } catch { return false; }
+    }
+    S.team.taint = target; save(); render(); return true;
+  },
+  async setCoins(v, meta = {}) {
+    const target = Math.max(0, v | 0);
+    if (teamAdapter) {
+      const delta = target - this.coins;
+      if (delta === 0) return true;
+      try { await teamAdapter.addCoins(delta, meta); return true; } catch { return false; }
+    }
+    S.team.coins = target; save(); render(); return true;
+  },
+  async addTaint(d, meta = {}) {
+    if (teamAdapter) {
+      try { await teamAdapter.addTaint(d, meta); return true; } catch { return false; }
+    }
+    return this.setTaint(this.taint + d, meta);
+  },
+  async addCoins(d, meta = {}) {
+    if (teamAdapter) {
+      try { await teamAdapter.addCoins(d, meta); return true; } catch { return false; }
+    }
+    return this.setCoins(this.coins + d, meta);
+  },
+  async spendCoins(cost, meta = {}) {
+    cost = Math.max(0, cost | 0);
+    if (teamAdapter) return !!(await teamAdapter.spendCoins(cost, meta));
+    if (this.coins < cost) return false;
+    S.team.coins -= cost; save(); render(); return true;
+  },
+  async clearTaint(meta = {}) {
+    if (teamAdapter) return !!(await teamAdapter.clearTaint(meta));
+    S.team.taint = 0; save(); render(); return true;
+  },
 };
 
 /* ─────────────────────────── утилиты ─────────────────────────── */
@@ -262,6 +312,13 @@ function render() {
   $('#taint-val').textContent = taint;
   $('#coins-val').textContent = coins;
   $('#teambar').classList.toggle('is-taint', taint > 0);
+  $('#teambar').classList.toggle('is-shared', Team.shared);
+  $('#teambar').classList.toggle('is-forming', Team.shared && !Team.ready);
+  $$('.tb-cell--team button').forEach(button => { button.disabled = Team.shared && !Team.ready; });
+  const mode = $('#team-resource-mode');
+  if (mode) mode.textContent = Team.shared
+    ? (Team.ready ? `лобби · ${Team.memberCount}/8` : `ждём 3 игроков · ${Team.memberCount}/3`)
+    : 'локально';
 }
 
 /* ─────────────────────── здоровье: урон и лечение ─────────────────────── */
@@ -301,7 +358,7 @@ function readAmount() {
   return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
-function applyDamage(raw) {
+async function applyDamage(raw) {
   const card = activeCard();
   const id = card.dataset.char;
   let dmg = raw;
@@ -311,22 +368,43 @@ function applyDamage(raw) {
     toast(`Проклятое основание: урон уменьшен до ${dmg}`);
   }
 
-  S.hp[id] = Math.max(0, hpCur(card) - dmg);
+  const beforeHp = hpCur(card);
+  const previousAcc = S.dmgAcc[id] || 0;
+  const previousFallReward = !!S.flags.sisterFallReward;
+  S.hp[id] = Math.max(0, beforeHp - dmg);
 
   const step = parseInt(card.dataset.dmgToCoins || '0', 10);
+  let earned = 0;
   if (step > 0) {
-    const acc = (S.dmgAcc[id] || 0) + raw;
-    const earned = Math.floor(acc / step);
+    const acc = previousAcc + raw;
+    earned = Math.floor(acc / step);
     S.dmgAcc[id] = acc % step;
-    if (earned > 0) {
-      Team.addCoins(earned);
-      toast(`Мученица императора: команде ${earned === 1 ? '1 монета' : earned + ' монеты'}`);
-    }
   }
 
+  const fellNow = id === 'sister' && beforeHp > 0 && S.hp[id] === 0 && !previousFallReward;
+  if (fellNow) S.flags.sisterFallReward = true;
   save(); render();
   $('#hpdlg-num').textContent = hpCur(card);
   if (hpCur(card) === 0) toast('Выведен из строя');
+
+  const reward = earned + (fellNow ? 5 : 0);
+  if (reward > 0) {
+    const parts = [];
+    if (earned > 0) parts.push(`${earned} за полученный урон`);
+    if (fellNow) parts.push('5 за падение');
+    const ok = await Team.addCoins(reward, {
+      type: fellNow ? 'martyr-fall' : 'martyr',
+      text: `${S.characterName}: Мученица императора приносит команде ${reward} монет (${parts.join(', ')}).`,
+    });
+    if (!ok) {
+      S.dmgAcc[id] = previousAcc;
+      S.flags.sisterFallReward = previousFallReward;
+      save(); render();
+      toast('Монеты Сестры не записались. Накопление урона сохранено для повторной попытки.');
+    } else if (!Team.shared) {
+      toast(`Мученица императора: команде +${reward} монет`);
+    }
+  }
 }
 
 function applyHeal(n) {
@@ -408,23 +486,29 @@ function newDay() {
 }
 
 function resetAll() {
-  if (!confirm('Сбросить здоровье, заряды, выборы, порчу и монеты?')) return;
+  if (!confirm(Team.shared
+    ? 'Сбросить здоровье, заряды и выборы этого персонажа? Общие ресурсы лобби останутся.'
+    : 'Сбросить здоровье, заряды, выборы, порчу и монеты?')) return;
   const keep = {
     char: S.char,
     characterName: S.characterName,
     inventory: JSON.parse(JSON.stringify(S.inventory)),
+    teamCode: S.teamCode,
+    team: JSON.parse(JSON.stringify(S.team)),
   };
   S = BLANK();
   S.char = keep.char;
   S.characterName = keep.characterName;
   S.inventory = keep.inventory;
+  S.teamCode = keep.teamCode;
+  S.team = keep.team;
   save(); render();
-  toast('Всё сброшено');
+  toast(Team.shared ? 'Личный персонаж сброшен. Ресурсы лобби не изменены.' : 'Всё сброшено');
 }
 
 /* ─────────────────────── обработчики ─────────────────────── */
 
-function onClick(e) {
+async function onClick(e) {
   const card = activeCard();
 
   /* заряды */
@@ -469,7 +553,7 @@ function onClick(e) {
     case 'close-hp':    $('#hpdlg').hidden = true; break;
     case 'damage': {
       const n = readAmount();
-      if (n > 0) applyDamage(n); else toast('Укажи количество');
+      if (n > 0) await applyDamage(n); else toast('Укажи количество');
       break;
     }
     case 'heal': {
@@ -478,16 +562,26 @@ function onClick(e) {
       break;
     }
 
-    case 'taint-plus':  Team.addTaint(1); break;
-    case 'taint-minus': Team.addTaint(-1); break;
-    case 'coins-plus':  Team.addCoins(1); break;
-    case 'coins-minus': Team.addCoins(-1); break;
+    case 'taint-plus':
+      await Team.addTaint(1, { type: 'taint', text: `${S.characterName} добавляет команде порчу.` });
+      break;
+    case 'taint-minus':
+      await Team.addTaint(-1, { type: 'taint', text: `${S.characterName} снимает 1 порчу команды.` });
+      break;
+    case 'coins-plus':
+      await Team.addCoins(1, { type: 'coins', text: `${S.characterName} добавляет команде 1 монету.` });
+      break;
+    case 'coins-minus':
+      await Team.addCoins(-1, { type: 'coins', text: `${S.characterName} убирает 1 монету из кошелька.` });
+      break;
 
     case 'psy-fumble': {
-      if (Team.coins >= 3) {
-        Team.addCoins(-3);
-        toast('Списано 3 монеты. Демон не пришёл');
-      } else {
+      const paid = await Team.spendCoins(3, {
+        type: 'psy-fumble',
+        text: `${S.characterName} платит 3 монеты за крит-провал псайкера. Демон не приходит.`,
+      });
+      if (paid && !Team.shared) toast('Списано 3 монеты. Демон не пришёл');
+      else if (!paid && !Team.shared) {
         toast(`В кошельке ${Team.coins} — не хватает. Получи урон за каждую неуплаченную монету`);
       }
       break;
@@ -496,15 +590,22 @@ function onClick(e) {
     case 'ult': {
       if (!card) break;
       const cost = parseInt(card.dataset.ultCost, 10);
-      if (Team.coins < cost) {
-        toast(`Нужно ${cost}, в кошельке ${Team.coins}`);
+      const ultName = $('.ult h3', card)?.textContent || 'Ультимейт';
+      const paid = await Team.spendCoins(cost, {
+        type: 'ultimate',
+        text: `${S.characterName} применяет «${ultName}» и тратит ${cost} монет.`,
+      });
+      if (!paid) {
+        if (!Team.shared) toast(`Нужно ${cost}, в кошельке ${Team.coins}`);
         break;
       }
-      Team.addCoins(-cost);
       if (card.dataset.char === 'heretic') {
-        Team.setTaint(0);
-        toast('Апофеоз: монеты списаны, порча сброшена');
-      } else {
+        await Team.clearTaint({
+          type: 'apotheosis',
+          text: `${S.characterName} завершает Апофеоз. Порча команды сброшена.`,
+        });
+        if (!Team.shared) toast('Апофеоз: монеты списаны, порча сброшена');
+      } else if (!Team.shared) {
         toast(`Ультимейт применён, списано ${cost}`);
       }
       break;
@@ -559,6 +660,9 @@ function applyCloudState(nextState) {
   S = normalizeState(nextState);
   saveLocal();
   suppressCloudSave = false;
+  stateListeners.forEach(listener => {
+    try { listener(cloneState()); } catch (error) { console.warn('State listener:', error); }
+  });
   buildChooser();
   if (S.char && S.characterName) showApp();
   else showChooser();
@@ -588,10 +692,26 @@ function stopForLogout() {
   activeUserId = null;
   cloudSaver = null;
   S = BLANK();
-  ['#chooser', '#topbar', '#teambar', '#app', '#menu', '#hpdlg', '#profiledlg'].forEach(sel => {
+  ['#chooser', '#topbar', '#partybar', '#teambar', '#app', '#menu', '#hpdlg', '#profiledlg', '#lobbydlg', '#memberdlg'].forEach(sel => {
     const el = $(sel);
     if (el) el.hidden = true;
   });
+}
+
+function setTeamAdapter(adapter) {
+  teamAdapter = adapter || null;
+  render();
+}
+
+function setTeamCode(code) {
+  S.teamCode = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+  save();
+}
+
+function onStateChange(listener) {
+  if (typeof listener !== 'function') return () => {};
+  stateListeners.add(listener);
+  return () => stateListeners.delete(listener);
 }
 
 window.LegendyApp = {
@@ -601,6 +721,10 @@ window.LegendyApp = {
   applyCloudState,
   setCloudSaver,
   setCloudStatus,
+  setTeamAdapter,
+  setTeamCode,
+  onStateChange,
+  refresh: render,
   notify: toast,
   exportState: cloneState,
   get userId() { return activeUserId; },
