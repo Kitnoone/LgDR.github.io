@@ -1,16 +1,16 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v8-arsenal';
+const V = 'legendy-v10-pact-strength-correct';
 const ASSETS = [
   './',
   './index.html',
-  './app.css?v=arsenal-1',
-  './arsenal.js?v=arsenal-1',
-  './app.js?v=arsenal-1',
-  './auth.js?v=arsenal-1',
-  './character-store.js?v=arsenal-1',
-  './lobby-store.js?v=arsenal-1',
-  './firebase-config.js?v=arsenal-1',
+  './app.css?v=pact-strength-3',
+  './arsenal.js?v=pact-strength-3',
+  './app.js?v=pact-strength-3',
+  './auth.js?v=pact-strength-3',
+  './character-store.js?v=pact-strength-3',
+  './lobby-store.js?v=pact-strength-3',
+  './firebase-config.js?v=pact-strength-3',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',

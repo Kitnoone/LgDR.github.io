@@ -317,17 +317,47 @@ function armorClass() {
   return base + bonus;
 }
 
+const HERETIC_PACT_ALIASES = Object.freeze({
+  strength: 'strength',
+  power: 'strength',
+  'pact-strength': 'strength',
+  'Пакт силы': 'strength',
+  'пакт силы': 'strength',
+  pride: 'pride',
+  'Пакт гордыни': 'pride',
+  'пакт гордыни': 'pride',
+  eternity: 'eternity',
+  'Пакт вечности': 'eternity',
+  'пакт вечности': 'eternity',
+});
+
+function selectedHereticPact() {
+  const raw = S.choice['heretic:pact'];
+  if (raw == null) return null;
+  const value = String(raw).trim();
+  return HERETIC_PACT_ALIASES[value] || value.toLowerCase();
+}
+
 function effectiveStatValue(card, stat, taint = Team.taint) {
   const el = $(`.nums .val[data-stat="${stat}"]`, card);
   if (!el) return 0;
-  const base = parseInt(el.dataset.base, 10) || 0;
+
+  const base = Number.parseInt(el.dataset.base, 10) || 0;
   const id = card.dataset.char;
-  const boost = card.dataset.taintBoost ? taint : 0;
-  const pact = id === 'heretic' ? S.choice['heretic:pact'] : null;
-  if (id === 'heretic' && pact === 'strength' && stat === 'strength') {
-    return (base * 2) + 2 + boost;
-  }
-  return base + boost + (id === 'heretic' && pact === 'pride' ? 1 : 0);
+  const taintBonus = card.dataset.taintBoost
+    ? Math.max(0, Number.parseInt(taint, 10) || 0)
+    : 0;
+
+  /* Сначала формируем текущую характеристику, включая постоянный бонус
+     Еретика от порчи. Пакт силы сначала даёт +2 к Силе, а затем удваивает
+     итоговое значение. При нулевой порче: (0 + 2) × 2 = +4. */
+  let value = base + taintBonus;
+  if (id !== 'heretic') return value;
+
+  const pact = selectedHereticPact();
+  if (pact === 'pride') value += 1;
+  if (pact === 'strength' && stat === 'strength') value = (value + 2) * 2;
+  return value;
 }
 
 function weaponDamageText(weapon, card = activeCard()) {
@@ -644,6 +674,15 @@ function render() {
     const isMe = chosen === p.dataset.pick;
     p.classList.toggle('is-chosen', isMe);
     p.classList.toggle('is-dimmed', !!chosen && !isMe);
+
+    const state = $('.pick-state', p);
+    if (state && id === 'heretic' && group === 'pact' && p.dataset.pick === 'strength') {
+      const strength = effectiveStatValue(card, 'strength', taint);
+      state.textContent = isMe
+        ? `Пакт действует · текущая Сила ${strength >= 0 ? '+' : ''}${strength}`
+        : '';
+      state.setAttribute('aria-hidden', isMe ? 'false' : 'true');
+    }
   });
 
   /* заряды */
@@ -891,13 +930,23 @@ async function onClick(e) {
   const pick = e.target.closest('.pick--choice');
   if (pick && card) {
     const key = `${card.dataset.char}:${pick.dataset.group}`;
-    S.choice[key] = (S.choice[key] === pick.dataset.pick) ? undefined : pick.dataset.pick;
-    if (!S.choice[key]) delete S.choice[key];
-    save();
+    const nextChoice = S.choice[key] === pick.dataset.pick ? undefined : pick.dataset.pick;
+    if (nextChoice) S.choice[key] = nextChoice;
+    else delete S.choice[key];
+
+    /* Отрисовываем производные характеристики до сетевого сохранения.
+       Поэтому изменение видно немедленно даже при медленном Firestore. */
     render();
+    save();
+
     if (card.dataset.char === 'heretic' && pick.dataset.group === 'pact') {
-      if (S.choice[key] === 'strength') toast('Пакт силы: Сила пересчитана автоматически');
-      else if (S.choice[key] === 'pride') toast('Пакт гордыни: +1 ко всем характеристикам');
+      const pact = selectedHereticPact();
+      if (pact === 'strength') {
+        const strength = effectiveStatValue(card, 'strength');
+        toast(`Пакт силы применён: Сила ${strength >= 0 ? '+' : ''}${strength}`);
+      } else if (pact === 'pride') {
+        toast('Пакт гордыни: +1 ко всем характеристикам');
+      }
     }
     return;
   }
@@ -1010,7 +1059,7 @@ function bindEventsOnce() {
   }));
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js').catch(err =>
+    navigator.serviceWorker.register('sw.js?v=pact-strength-3', { updateViaCache: 'none' }).catch(err =>
       console.warn('Service worker не зарегистрирован:', err));
   }
 }
@@ -1102,6 +1151,15 @@ window.LegendyApp = {
   refresh: render,
   notify: toast,
   exportState: cloneState,
+  getEffectiveStats() {
+    const card = activeCard();
+    if (!card) return {};
+    return Object.fromEntries($$('.nums .val[data-stat]', card).map(el => [
+      el.dataset.stat,
+      effectiveStatValue(card, el.dataset.stat),
+    ]));
+  },
+  getSelectedHereticPact: selectedHereticPact,
   getLoadoutSummary() {
     const card = activeCard();
     const armor = equippedArmor();

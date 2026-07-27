@@ -7,7 +7,7 @@
    разных игроков не перезаписывают друг друга.
    ================================================================== */
 
-import { db } from './firebase-config.js?v=arsenal-1';
+import { db } from './firebase-config.js?v=pact-strength-3';
 import {
   doc,
   getDoc,
