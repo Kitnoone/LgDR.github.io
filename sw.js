@@ -1,29 +1,70 @@
 /* Кэш приложения: работает без сети после первого открытия.
-   Меняешь файлы — подними номер версии, иначе телефоны останутся на старом. */
-const V = 'legendy-v1';
-const ASSETS = ['./', './index.html', './app.css', './app.js', './manifest.webmanifest'];
+   Firebase Authentication и внешние CDN service worker не перехватывает. */
+const V = 'legendy-v2-auth';
+const ASSETS = [
+  './',
+  './index.html',
+  './app.css',
+  './app.js',
+  './auth.js',
+  './firebase-config.js',
+  './manifest.webmanifest',
+  './icon-192.png',
+  './icon-512.png',
+];
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(V).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(V)
+      .then(cache => cache.addAll(ASSETS))
+      .then(() => self.skipWaiting())
+  );
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(
+self.addEventListener('activate', event => {
+  event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== V).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(key => key !== V).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
 
-self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
-      if (res.ok && new URL(e.request.url).origin === location.origin) {
-        const copy = res.clone();
-        caches.open(V).then(c => c.put(e.request, copy));
-      }
-      return res;
-    }).catch(() => caches.match('./index.html')))
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  if (request.method !== 'GET') return;
+
+  const url = new URL(request.url);
+
+  /* Не трогаем Firebase, Google Fonts и другие внешние запросы. */
+  if (url.origin !== self.location.origin) return;
+
+  /* Для переходов по страницам сначала просим свежую версию из сети. */
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(V).then(cache => cache.put('./index.html', copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
+  /* Для локальных файлов: кэш сразу, обновление в фоне. */
+  event.respondWith(
+    caches.match(request).then(cached => {
+      const fresh = fetch(request).then(response => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(V).then(cache => cache.put(request, copy));
+        }
+        return response;
+      }).catch(() => cached || Response.error());
+      return cached || fresh;
+    })
   );
 });

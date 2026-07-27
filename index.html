@@ -13,6 +13,42 @@
 </head>
 <body>
 
+<!-- ═══════════════ вход Firebase ═══════════════ -->
+<section id="auth-screen" class="auth-screen" aria-live="polite">
+  <div class="auth-card">
+    <span class="auth-eyebrow">Легенды подземелий</span>
+    <h1>Вход в хронику</h1>
+    <p class="auth-lead">Аккаунт хранит выбор персонажа отдельно от других игроков на этом устройстве.</p>
+
+    <div class="auth-tabs" role="tablist" aria-label="Режим авторизации">
+      <button type="button" class="is-active" data-auth-mode="login">Войти</button>
+      <button type="button" data-auth-mode="register">Создать аккаунт</button>
+    </div>
+
+    <form id="auth-form" class="auth-form">
+      <label>
+        <span>Электронная почта</span>
+        <input id="auth-email" type="email" inputmode="email" autocomplete="email" required
+               placeholder="player@example.com">
+      </label>
+      <label>
+        <span>Пароль</span>
+        <input id="auth-password" type="password" autocomplete="current-password"
+               minlength="6" required placeholder="Не меньше 6 символов">
+      </label>
+      <label id="auth-confirm-wrap" hidden>
+        <span>Повторите пароль</span>
+        <input id="auth-confirm" type="password" autocomplete="new-password"
+               minlength="6" placeholder="Введите пароль ещё раз">
+      </label>
+      <button id="auth-submit" class="auth-primary" type="submit">Войти</button>
+    </form>
+
+    <button id="auth-reset" class="auth-link" type="button">Забыли пароль?</button>
+    <p id="auth-message" class="auth-message">Проверяем вход…</p>
+  </div>
+</section>
+
 <!-- ═══════════════ выбор персонажа ═══════════════ -->
 <div id="chooser" class="chooser" hidden>
   <div class="chooser-inner">
@@ -37,6 +73,8 @@
     <button class="menu-item" data-act="switch"><b>Сменить персонажа</b><span>Вернуться к выбору</span></button>
     <button class="menu-item" data-act="print"><b>Печать всех карточек</b><span>Восемь листов A4, как раньше</span></button>
     <button class="menu-item menu-item--warn" data-act="reset"><b>Сбросить всё</b><span>Здоровье, заряды, порча и монеты обнулятся</span></button>
+    <div class="auth-account"><span>Аккаунт</span><b id="auth-user-email">—</b></div>
+    <button class="menu-item menu-item--warn" type="button" data-auth-action="logout"><b>Выйти из аккаунта</b><span>Локальное состояние этого пользователя останется на устройстве</span></button>
     <button class="menu-close" data-act="close-menu">Закрыть</button>
   </div>
 </div>
@@ -1035,5 +1073,6 @@
 <div class="toast" id="toast" hidden></div>
 
 <script src="app.js"></script>
+<script type="module" src="auth.js"></script>
 </body>
 </html>

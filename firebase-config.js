@@ -4,7 +4,6 @@ import { initializeApp } from
 import { getAuth } from
   "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyDTv1nN-LnEDm3G8WUj4ekgWp8GrPMApww",
   authDomain: "legendsdungeon-1ac12.firebaseapp.com",

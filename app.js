@@ -8,7 +8,7 @@
    ================================================================== */
 'use strict';
 
-const KEY = 'legendy.v1';
+let KEY = 'legendy.v1';
 
 const BLANK = () => ({
   char: null,
@@ -23,9 +23,21 @@ let S = BLANK();
 
 /* ─────────────────────────── хранилище ─────────────────────────── */
 
-function load() {
+function load(userId) {
+  KEY = `legendy.v2:${userId}`;
+  S = BLANK();
   try {
-    const raw = localStorage.getItem(KEY);
+    let raw = localStorage.getItem(KEY);
+
+    /* Однократно переносим старое локальное сохранение первому вошедшему аккаунту. */
+    if (!raw && !localStorage.getItem('legendy.auth.migrated')) {
+      const legacy = localStorage.getItem('legendy.v1');
+      if (legacy) {
+        raw = legacy;
+        localStorage.setItem(KEY, legacy);
+      }
+      localStorage.setItem('legendy.auth.migrated', '1');
+    }
     if (raw) S = Object.assign(BLANK(), JSON.parse(raw));
     if (!S.team) S.team = { taint: 0, coins: 0 };
   } catch (e) {
@@ -402,11 +414,14 @@ function onClick(e) {
   }
 }
 
-/* ─────────────────────── запуск ─────────────────────── */
+/* ─────────────────────── запуск после Firebase Auth ─────────────────────── */
 
-function init() {
-  load();
-  buildChooser();
+let eventsBound = false;
+let activeUserId = null;
+
+function bindEventsOnce() {
+  if (eventsBound) return;
+  eventsBound = true;
 
   document.addEventListener('click', onClick);
 
@@ -421,12 +436,40 @@ function init() {
     if (e.target === sm) sm.hidden = true;
   }));
 
-  if (S.char && $(`.card[data-char="${S.char}"]`)) showApp();
-  else showChooser();
-
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register('sw.js').catch(err =>
+      console.warn('Service worker не зарегистрирован:', err));
   }
 }
 
-document.addEventListener('DOMContentLoaded', init);
+function startForUser(userId) {
+  if (!userId) return;
+  bindEventsOnce();
+  activeUserId = userId;
+  load(userId);
+  buildChooser();
+
+  if (S.char && $(`.card[data-char="${S.char}"]`)) showApp();
+  else showChooser();
+}
+
+function stopForLogout() {
+  activeUserId = null;
+  S = BLANK();
+  ['#chooser', '#topbar', '#teambar', '#app', '#menu', '#hpdlg'].forEach(sel => {
+    const el = $(sel);
+    if (el) el.hidden = true;
+  });
+}
+
+window.LegendyApp = {
+  start: startForUser,
+  stop: stopForLogout,
+  get userId() { return activeUserId; },
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bindEventsOnce, { once: true });
+} else {
+  bindEventsOnce();
+}
