@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d2b30">
+<title>Легенды подземелий</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=PT+Sans+Narrow:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<!-- ═══════════════ выбор персонажа ═══════════════ -->
+<div id="chooser" class="chooser" hidden>
+  <div class="chooser-inner">
+    <span class="eyebrow">Легенды подземелий</span>
+    <h1>Кем ты играешь?</h1>
+    <p class="lead">Выбери своего персонажа. Приложение запомнит его на этом телефоне.</p>
+    <div class="chooser-grid" id="chooser-grid"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ верхняя панель ═══════════════ -->
+<header class="topbar" id="topbar" hidden>
+  <button class="tb-name" data-act="menu"><span id="tb-title">—</span><i>▾</i></button>
+</header>
+
+<!-- ═══════════════ меню ═══════════════ -->
+<div class="sheetmenu" id="menu" hidden>
+  <div class="sheetmenu-panel">
+    <h2>Меню</h2>
+    <button class="menu-item" data-act="new-battle"><b>Новый бой</b><span>Вернуть заряды «за бой» и снять выбор боя</span></button>
+    <button class="menu-item" data-act="new-day"><b>Новый день</b><span>Вернуть все заряды и восстановить здоровье</span></button>
+    <button class="menu-item" data-act="switch"><b>Сменить персонажа</b><span>Вернуться к выбору</span></button>
+    <button class="menu-item" data-act="print"><b>Печать всех карточек</b><span>Восемь листов A4, как раньше</span></button>
+    <button class="menu-item menu-item--warn" data-act="reset"><b>Сбросить всё</b><span>Здоровье, заряды, порча и монеты обнулятся</span></button>
+    <button class="menu-close" data-act="close-menu">Закрыть</button>
+  </div>
+</div>
+
+<!-- ═══════════════ окно урона и лечения ═══════════════ -->
+<div class="sheetmenu" id="hpdlg" hidden>
+  <div class="sheetmenu-panel">
+    <h2>Здоровье</h2>
+    <div class="hpdlg-cur"><b id="hpdlg-num">0</b><i id="hpdlg-max">/ 0</i></div>
+    <div class="hpdlg-quick">
+      <button data-hpq="1">1</button><button data-hpq="5">5</button>
+      <button data-hpq="10">10</button>
+      <input type="number" id="hpdlg-input" inputmode="numeric" min="0" placeholder="сколько">
+    </div>
+    <div class="hpdlg-act">
+      <button class="btn btn--dmg" data-act="damage">Нанести урон</button>
+      <button class="btn btn--heal" data-act="heal">Лечить</button>
+    </div>
+    <p class="hpdlg-note" id="hpdlg-note"></p>
+    <button class="menu-close" data-act="close-hp">Закрыть</button>
+  </div>
+</div>
+
+<main id="app" hidden>
+
+<section class="card" id="card-guardsman" data-char="guardsman"
+         data-hp-max="20" data-ult-cost="2" data-choice-reset="battle">
+  <div class="runhead"><span>Легенды подземелий</span><span>Карточка I из VIII</span></div>
+
+  <div class="head">
+    <div class="titles">
+      <span class="eyebrow">Гвардеец</span>
+      <h1>Имперский<br>гвардеец</h1>
+      <p class="role">Солдат. Стреляет из чего угодно и раздаёт союзникам лишние действия.</p>
+    </div>
+    <button class="hpbox" data-act="hp">
+      <span class="lab">Здоровье</span>
+      <span class="num"><b data-hp-cur>20</b><i>/ 20</i></span>
+      <span class="down">Выведен из строя</span>
+    </button>
+  </div>
+
+  <div class="numsblock">
+    <div class="basics">
+      <span><b>Тест:</b> d20 + модификатор, результат не меньше СЛ</span>
+      <span><b>Преимущество:</b> два d20, берёшь больший</span>
+      <span><b>Помеха:</b> берёшь меньший</span>
+      <span><b>Твой ход:</b> действие + бонусное + перемещение</span>
+    </div>
+    <div class="nums">
+        <div><span class="lab">Сила</span><span class="val" data-base="1">+1</span></div>
+        <div><span class="lab">Ловкость</span><span class="val" data-base="1">+1</span></div>
+        <div><span class="lab">Стойкость</span><span class="val neg" data-base="-1">&minus;1</span></div>
+        <div><span class="lab">Интеллект</span><span class="val" data-base="1">+1</span></div>
+        <div><span class="lab">Мудрость</span><span class="val" data-base="2">+2</span></div>
+        <div><span class="lab">Харизма</span><span class="val" data-base="0">+0</span></div>
+    </div>
+    <div class="gear">
+      <div><span class="lab">Класс брони</span><span class="txt">Флак на старте</span></div>
+      <div><span class="lab">Урон оружия</span><span class="txt empty"></span></div>
+    </div>
+  </div>
+
+  <div class="body2">
+    <div>
+      <div class="snum"><span class="n">1</span><span class="t"><h2>Тактика боя</h2>
+        <span class="sub">Выбери один бонус до броска инициативы. В новом бою можно взять другой.</span></span></div>
+      <p class="intro">Годы службы и тренировок научили вас обращаться с любым оружием! Вы получаете пасивно бонус к любому оружию которым вооружены. Бонус выбирается до броска инициативы в бою. Менять бонус можно в каждом новом бою.</p>
+      <p class="choice-hint">Нажми на бонус, чтобы выбрать его на этот бой</p>
+        <div class="pick pick--choice" data-pick="sharp" data-group="bonus">
+        <h3>Меткий</h3>
+        <p>Вы никогда не раните своими атаками союзников, по любой причине.</p>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick pick--choice" data-pick="fearless" data-group="bonus">
+        <h3>Бесстрашный</h3>
+        <p>Вы не получаете помеху при стрельбе в базовом контакте с врагом.</p>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick pick--choice" data-pick="skilled" data-group="bonus">
+        <h3>Умелый</h3>
+        <p>При перегреве оружия вы не получаете урон от крит-провала.</p>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick pick--choice" data-pick="deadly" data-group="bonus">
+        <h3>Смертоносный</h3>
+        <p>Враг бросает спас броски от взрыва с помехой.</p>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+    </div>
+
+    <div>
+      <div class="snum"><span class="n">2</span><span class="t"><h2>Способности персонажа</h2>
+        <span class="sub">Плашка говорит, что тратишь. Нажми на заряд, когда потратил, — нажми ещё раз, чтобы вернуть.</span></span></div>
+        <div class="abil" data-abil="hammer" data-slot="bonus">
+        <h3>Молот Императора</h3>
+        <div class="row">
+        <span class="slot bonus">Бонусное действие</span>
+        <span class="uses none">без ограничений</span>
+        </div>
+        <p>Если вы атакуете цель, уже получившую атаку в этом раунде, вы можете перебросить кубики урона. Все союзники, атакующие эту цель после вас, также могут перебросить кубики урона.</p>
+        </div>
+
+        <div class="abil" data-abil="expert" data-slot="react" data-uses="1" data-reset="battle">
+        <h3>Эксперт в насилии</h3>
+        <div class="row">
+        <span class="slot react">Реакция</span>
+        <span class="uses" data-word="за бой"><i></i><em>1 раз за бой</em></span>
+        </div>
+        <p>Вы можете заявить на одном броске атаки чистую 20ку!</p>
+        </div>
+
+        <div class="abil" data-abil="tacteye" data-slot="bonus" data-uses="2" data-reset="battle">
+        <h3>Тактический взор</h3>
+        <div class="row">
+        <span class="slot bonus">Бонусное действие</span>
+        <span class="uses" data-word="за бой"><i></i><i></i><em>2 раза за бой</em></span>
+        </div>
+        <p>Пройдите Тест Мудрости (СЛ 12). При успехе один союзник в пределах вашей линии видимости получает дополнительное действие.</p>
+        </div>
+    </div>
+  </div>
+
+  <div class="ult" data-ult>
+    <div class="top">
+      <div><span class="kick">3 · Ультимейт</span><h3>Император хранит</h3></div>
+      <button class="price" data-act="ult">2 монеты</button>
+    </div>
+    <p>Когда персонаж должен потерять последнее здоровье, потратьте 2 монеты и вы остаетесь в сознании с 1 пунктом здоровья.</p>
+  </div>
+
+  <div class="tips">
+    <div class="th">Подсказки за этого персонажа <span>советы, а не правила</span></div>
+    <div class="grid">
+        <div><h4>Не забывай про тактический взор</h4><p>Мудрость +2 — твой лучший модификатор, СЛ 12 ты проходишь легко. Отдай дополнительное действие тому, кто ударит больнее тебя: неофиту или культисту. Дважды за бой ты фактически добавляешь отряду лишнего бойца.</p></div>
+        <div><h4>Ходи не первым</h4><p>Молот Императора работает по цели, которую уже задели в этом раунде. Дождись, пока по врагу отработает кто-то другой, — тогда перебросишь урон и ты, и все, кто ударит после тебя.</p></div>
+        <div><h4>Чистую двадцатку держи в запасе</h4><p>Эксперт в насилии один раз за бой превращает любой твой бросок атаки в верное попадание. Не трать на обычного противника: держи на момент, когда промах стоит слишком дорого.</p></div>
+        <div><h4>Бонус подбирай под врага</h4><p>Он выбирается заново перед каждым боем. Против плотной толпы — Смертоносный, в тесном коридоре вплотную — Бесстрашный, когда союзники впереди на линии огня — Меткий.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="card" id="card-heretic" data-char="heretic"
+         data-hp-max="40" data-ult-cost="3" data-taint-boost="1" data-choice-reset="day">
+  <div class="runhead"><span>Легенды подземелий</span><span>Карточка II из VIII</span></div>
+
+  <div class="head">
+    <div class="titles">
+      <span class="eyebrow">Еретик</span>
+      <h1>Кающийся<br>еретик</h1>
+      <p class="role">Самый живучий в отряде. Копит порчу команды и растёт вместе с ней.</p>
+    </div>
+    <button class="hpbox" data-act="hp">
+      <span class="lab">Здоровье</span>
+      <span class="num"><b data-hp-cur>40</b><i>/ 40</i></span>
+      <span class="down">Выведен из строя</span>
+    </button>
+  </div>
+
+  <div class="numsblock">
+    <div class="basics">
+      <span><b>Тест:</b> d20 + модификатор, результат не меньше СЛ</span>
+      <span><b>Преимущество:</b> два d20, берёшь больший</span>
+      <span><b>Помеха:</b> берёшь меньший</span>
+      <span><b>Твой ход:</b> действие + бонусное + перемещение</span>
+    </div>
+    <div class="nums">
+        <div><span class="lab">Сила</span><span class="val" data-base="0">+0</span></div>
+        <div><span class="lab">Ловкость</span><span class="val" data-base="1">+1</span></div>
+        <div><span class="lab">Стойкость</span><span class="val" data-base="1">+1</span></div>
+        <div><span class="lab">Интеллект</span><span class="val" data-base="0">+0</span></div>
+        <div><span class="lab">Мудрость</span><span class="val" data-base="0">+0</span></div>
+        <div><span class="lab">Харизма</span><span class="val" data-base="2">+2</span></div>
+    </div>
+    <div class="gear">
+      <div><span class="lab">Класс брони</span><span class="txt">Робы</span></div>
+      <div><span class="lab">Урон оружия</span><span class="txt empty"></span></div>
+    </div>
+  </div>
+
+  <div class="body2">
+    <div>
+      <div class="snum"><span class="n">1</span><span class="t"><h2>Пакты</h2>
+        <span class="sub">Один пакт выбирается в начале игры и держится, пока не заменишь другим.</span></span></div>
+      
+      <p class="choice-hint">Нажми на пакт, чтобы взять его</p>
+        <div class="pick pick--choice" data-pick="pride" data-group="pact">
+        <h3>Пакт гордыни</h3>
+        <p>Вы получаете +1 ко всем характеристикам. Если у команды есть хотя бы 1 очко порчи, все Тесты (проверки) Харизмы совершаются с преимуществом.</p>
+        <span class="price">Цена: гордыня по отношению к другим</span>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick pick--choice" data-pick="eternity" data-group="pact">
+        <h3>Пакт вечности</h3>
+        <p>Вы можете потратить 1 монету, чтобы уменьшить получаемый вами урон вдвое. Если у команды есть хотя бы 1 очко порчи, все Тесты Стойкости совершаются с преимуществом.</p>
+        <span class="price">Цена: меланхолия по отношению к другим</span>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick pick--choice" data-pick="strength" data-group="pact">
+        <h3>Пакт силы</h3>
+        <p>Вы удваиваете свою Силу и получает +2 к Силе. Если у команды есть хотя бы 1 очко порчи, все Тесты Силы совершаются с преимуществом.</p>
+        <span class="price">Цена: агрессия по отношению к другим</span>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+    </div>
+
+    <div>
+      <div class="snum"><span class="n">2</span><span class="t"><h2>Способности персонажа</h2>
+        <span class="sub">Плашка говорит, что тратишь. Нажми на заряд, когда потратил, — нажми ещё раз, чтобы вернуть.</span></span></div>
+        <div class="abil" data-abil="gifts" data-slot="bonus" data-uses="2" data-reset="battle" data-special="taint_plus">
+        <h3>Дары тьмы</h3>
+        <div class="row">
+        <span class="slot bonus">Бонусное действие</span>
+        <span class="uses" data-word="за бой"><i></i><i></i><em>2 раза за бой</em></span>
+        </div>
+        <p>Вы можете добавить команде 1 очко порчи. Пассивно получаете +1 ко всем характеристикам за каждое очко порчи команды.</p>
+        <button class="act" data-act="taint-plus">Добавить команде 1 порчу</button>
+        </div>
+
+        <div class="abil" data-abil="darkpact" data-slot="bonus" data-uses="1" data-reset="day">
+        <h3>Тёмный пакт</h3>
+        <div class="row">
+        <span class="slot bonus">Бонусное действие</span>
+        <span class="uses" data-word="в день"><i></i><em>1 раз в день</em></span>
+        </div>
+        <p>Вы выбираете один пакт из списка в начале игры не тратя способность. Этот пакт действует, пока не будет заменён другим.</p>
+        </div>
+
+        <div class="abil" data-abil="notdie" data-slot="react">
+        <h3>Оно не даст умереть…</h3>
+        <div class="row">
+        <span class="slot react">Реакция</span>
+        <span class="uses none">без ограничений</span>
+        </div>
+        <p>Когда вы должны пасть, вы может немедленно совершить ответную атаку. Если этой атакой вы убиваете противника, то не теряете здоровье и вместо этого восстанавливает 10 единиц здоровья. При успехе Команда получает 1 единицу порчи.</p>
+        </div>
+    </div>
+  </div>
+
+  <div class="ult" data-ult>
+    <div class="top">
+      <div><span class="kick">3 · Ультимейт</span><h3>Апофеоз</h3></div>
+      <button class="price" data-act="ult">3 монеты</button>
+    </div>
+    <p>Вы выпускаете своё демоническое нутро! Вы можете совершить 4 атаки когтями, при этом ваше перемещение не ограничено! Вы обязаны атаковать ближайшее существо пока не закончатся атаки. Все очки порчи команды сбрасываются в конце апофеоза.</p>
+  </div>
+
+  <div class="tips">
+    <div class="th">Подсказки за этого персонажа <span>советы, а не правила</span></div>
+    <div class="grid">
+        <div><h4>Порча — твоя сила и чужая беда</h4><p>Каждое очко порчи команды даёт тебе +1 ко всем характеристикам. Те же очки гасят молитвы жреца императора. Договоритесь за столом заранее, до какого числа ты её доводишь, иначе будете тянуть отряд в разные стороны.</p></div>
+        <div><h4>Стой в первой линии</h4><p>40 здоровья — больше, чем у кого-либо. Твоя работа — принимать удары, а не уворачиваться. Реакция «Оно не даст умереть» превращает твою гибель в контратаку: добьёшь врага — вернёшь 10 здоровья вместо смерти.</p></div>
+        <div><h4>Пакт подбирай под кампанию</h4><p>Гордыня — если много разговоров и проверок, вечность — если тебя постоянно бьют и есть монеты, сила — если ты дерёшься вплотную. Меняется он раз в день, так что решай на утро, а не в середине боя.</p></div>
+        <div><h4>Апофеоз бьёт по ближайшему</h4><p>В нём ты обязан атаковать ближайшее существо, и союзник тоже считается ближайшим. Перед включением отойди так, чтобы рядом с тобой стояли только враги, иначе четыре атаки уйдут в свою же команду.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="card" id="card-cultist" data-char="cultist"
+         data-hp-max="20" data-ult-cost="4" >
+  <div class="runhead"><span>Легенды подземелий</span><span>Карточка III из VIII</span></div>
+
+  <div class="head">
+    <div class="titles">
+      <span class="eyebrow">Культист смерти</span>
+      <h1>Фанатик<br>смерти</h1>
+      <p class="role">Быстрый убийца. Заливает пол кровью, бьёт ловкостью и уходит от урона.</p>
+    </div>
+    <button class="hpbox" data-act="hp">
+      <span class="lab">Здоровье</span>
+      <span class="num"><b data-hp-cur>20</b><i>/ 20</i></span>
+      <span class="down">Выведен из строя</span>
+    </button>
+  </div>
+
+  <div class="numsblock">
+    <div class="basics">
+      <span><b>Тест:</b> d20 + модификатор, результат не меньше СЛ</span>
+      <span><b>Преимущество:</b> два d20, берёшь больший</span>
+      <span><b>Помеха:</b> берёшь меньший</span>
+      <span><b>Твой ход:</b> действие + бонусное + перемещение</span>
+    </div>
+    <div class="nums">
+        <div><span class="lab">Сила</span><span class="val" data-base="0">+0</span></div>
+        <div><span class="lab">Ловкость</span><span class="val" data-base="4">+4</span></div>
+        <div><span class="lab">Стойкость</span><span class="val" data-base="0">+0</span></div>
+        <div><span class="lab">Интеллект</span><span class="val" data-base="1">+1</span></div>
+        <div><span class="lab">Мудрость</span><span class="val" data-base="2">+2</span></div>
+        <div><span class="lab">Харизма</span><span class="val neg" data-base="-3">&minus;3</span></div>
+    </div>
+    <div class="gear">
+      <div><span class="lab">Класс брони</span><span class="txt">Синтекостюм</span></div>
+      <div><span class="lab">Урон оружия</span><span class="txt empty"></span></div>
+    </div>
+  </div>
+
+  <div class="body2">
+    <div>
+      <div class="snum"><span class="n">1</span><span class="t"><h2>Знамение его</h2>
+        <span class="sub">Выполнил условие — знамение работает до конца боя.</span></span></div>
+      <p class="intro">Вы верны обетам вашего культа! Он питает вас знамениями что посылает бог император. Выполняя условия вы получаете знамение до конца боя.</p>
+      
+        <div class="pick" data-pick="pride">
+        <h3>Гордость ведёт к погибели</h3>
+        <p>Критический успех противника перезаряжает одну вашу способность.</p>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick" data-pick="death">
+        <h3>Смерть есть искупление</h3>
+        <p>Пав вы можете потратить монету для получения одного успеха на тесте против смерти.</p>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick" data-pick="blood">
+        <h3>Кровь мученика, его оружие</h3>
+        <p>Как только враг погибает в токене крови вы можете переместиться не провоцируя атак по возможности.</p>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+    </div>
+
+    <div>
+      <div class="snum"><span class="n">2</span><span class="t"><h2>Способности персонажа</h2>
+        <span class="sub">Плашка говорит, что тратишь. Нажми на заряд, когда потратил, — нажми ещё раз, чтобы вернуть.</span></span></div>
+        <div class="abil" data-abil="trail" data-slot="bonus" data-uses="2" data-reset="battle">
+        <h3>Каровавый след</h3>
+        <div class="row">
+        <span class="slot bonus">Бонусное действие</span>
+        <span class="uses" data-word="за бой"><i></i><i></i><em>2 раза за бой</em></span>
+        </div>
+        <p>Вы при следующей атаке создаете зону крови под врагом. Все враги в зоне получают дополнительно 5 урона от каждой атаки по нему! А союзники на 5 урона меньше!</p>
+        </div>
+
+        <div class="abil" data-abil="perf" data-slot="react" data-uses="2" data-reset="battle">
+        <h3>Смертельное выступление</h3>
+        <div class="row">
+        <span class="slot react">Реакция</span>
+        <span class="uses" data-word="за бой"><i></i><i></i><em>2 раза за бой</em></span>
+        </div>
+        <p>Выбрать вас в качестве цели было роковой ошибкой. Избегите урона от любой атаки или способности, которую можете видеть.</p>
+        </div>
+
+        <div class="abil" data-abil="grace" data-slot="pass">
+        <h3>Грация смерти</h3>
+        <div class="row">
+        <span class="slot pass">Пассивно</span>
+        <span class="uses none">работает всегда</span>
+        </div>
+        <p>Совершая атаки вы всегда добавляете свою ловкость к урону!</p>
+        </div>
+
+        <div class="abil" data-abil="pirouette" data-slot="react" data-uses="2" data-reset="battle">
+        <h3>Смертельный пируэт</h3>
+        <div class="row">
+        <span class="slot react">Реакция</span>
+        <span class="uses" data-word="за бой"><i></i><i></i><em>2 раза за бой</em></span>
+        </div>
+        <p>Использовав эту способность, вы прибавляете удвоенную ловкость к урону!</p>
+        </div>
+    </div>
+  </div>
+
+  <div class="ult" data-ult>
+    <div class="top">
+      <div><span class="kick">3 · Ультимейт</span><h3>Пляска смерти</h3></div>
+      <button class="price" data-act="ult">4 монеты</button>
+    </div>
+    <p>Активировав эту способность, вы можете атаковать и бонусным действием в течении хода. Если после любой атаки цель вашей атаки погибает, вы немедленно восстанавливаете действие и бонусное действие.</p>
+  </div>
+
+  <div class="tips">
+    <div class="th">Подсказки за этого персонажа <span>советы, а не правила</span></div>
+    <div class="grid">
+        <div><h4>Зона крови — подарок всей команде</h4><p>Ставь её не под случайного врага, а под того, по кому будет бить весь отряд: каждая атака по цели в зоне добавляет 5 урона. Скажи вслух, куда положил зону, иначе союзники о ней просто забудут.</p></div>
+        <div><h4>Ловкость и есть твой урон</h4><p>Грация смерти уже прибавляет +4 к урону каждой атаки без всяких затрат. Пируэт удваивает это до +8, но он реакция и его всего два. Трать на цель, которую нужно снять немедленно.</p></div>
+        <div><h4>Две реакции — не путай их</h4><p>Выступление спасает тебя от чужого удара, Пируэт усиливает твой. Заряды считаются отдельно, по два у каждой. С 20 здоровья хотя бы одно Выступление держи до конца боя.</p></div>
+        <div><h4>Уходи по трупам</h4><p>Враг погиб в зоне крови — можешь сместиться, не подставляясь под атаки по возможности. Это твой бесплатный способ выйти из окружения, к которому Харизма −3 и синтекостюм тебя быстро приведут.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="card" id="card-techpriest" data-char="techpriest"
+         data-hp-max="30" data-ult-cost="5" data-choice-reset="day">
+  <div class="runhead"><span>Легенды подземелий</span><span>Карточка IV из VIII</span></div>
+
+  <div class="head">
+    <div class="titles">
+      <span class="eyebrow">Техно-жрец</span>
+      <h1>Техно-жрец</h1>
+      <p class="role">Мастеровой и медик. Улучшает снаряжение, латает себя, поднимает павших.</p>
+    </div>
+    <button class="hpbox" data-act="hp">
+      <span class="lab">Здоровье</span>
+      <span class="num"><b data-hp-cur>30</b><i>/ 30</i></span>
+      <span class="down">Выведен из строя</span>
+    </button>
+  </div>
+
+  <div class="numsblock">
+    <div class="basics">
+      <span><b>Тест:</b> d20 + модификатор, результат не меньше СЛ</span>
+      <span><b>Преимущество:</b> два d20, берёшь больший</span>
+      <span><b>Помеха:</b> берёшь меньший</span>
+      <span><b>Твой ход:</b> действие + бонусное + перемещение</span>
+    </div>
+    <div class="nums">
+        <div><span class="lab">Сила</span><span class="val" data-base="1">+1</span></div>
+        <div><span class="lab">Ловкость</span><span class="val neg" data-base="-2">&minus;2</span></div>
+        <div><span class="lab">Стойкость</span><span class="val" data-base="1">+1</span></div>
+        <div><span class="lab">Интеллект</span><span class="val" data-base="4">+4</span></div>
+        <div><span class="lab">Мудрость</span><span class="val" data-base="2">+2</span></div>
+        <div><span class="lab">Харизма</span><span class="val neg" data-base="-2">&minus;2</span></div>
+    </div>
+    <div class="gear">
+      <div><span class="lab">Класс брони</span><span class="txt">Серво броня</span></div>
+      <div><span class="lab">Урон оружия</span><span class="txt empty"></span></div>
+    </div>
+  </div>
+
+  <div class="body2">
+    <div>
+      <div class="snum"><span class="n">1</span><span class="t"><h2>Милость духов машин</h2>
+        <span class="sub">Один предмет в день. Выбери, какой именно, и посмотри, что он даст.</span></span></div>
+      <p class="intro">Вы умеете общаться с духами машин абсолютно любых механизмов. Прося их о милости вы можете улучшать свои предметы, или предметы союзников. Вы можете улучшить 1 предмет. <b>(1 раз в день)</b></p>
+      <p class="choice-hint">Нажми на предмет, который улучшаешь сегодня</p>
+        <div class="pick pick--choice" data-pick="stimm" data-group="upgrade">
+        <h3>Стимм</h3>
+        <p>Добавляет не +2 к броску, а ваш интеллект. (стимм это не сама аптечка)</p>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick pick--choice" data-pick="ranged" data-group="upgrade">
+        <h3>Стрелковое оружие</h3>
+        <p>Позволяет бонусным действием прицелиться и получить +ваш интеллект к броску атаки.</p>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick pick--choice" data-pick="melee" data-group="upgrade">
+        <h3>Рукопашное оружие</h3>
+        <p>Позволяет использовать реакцию что бы увеличить свой класс брони на ваш интеллект.</p>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick pick--choice" data-pick="armour" data-group="upgrade">
+        <h3>Броня</h3>
+        <p>Один раз в бой игнорирует успешную атаку врага не являющуюся психо-силой.</p>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick pick--choice" data-pick="field" data-group="upgrade">
+        <h3>Силовые поля</h3>
+        <p>Отражает урон обратно в противника при использовании силового поля.</p>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+    </div>
+
+    <div>
+      <div class="snum"><span class="n">2</span><span class="t"><h2>Способности персонажа</h2>
+        <span class="sub">Плашка говорит, что тратишь. Нажми на заряд, когда потратил, — нажми ещё раз, чтобы вернуть.</span></span></div>
+        <div class="abil" data-abil="logic" data-slot="bonus" data-uses="1" data-reset="battle">
+        <h3>Адепт логики</h3>
+        <div class="row">
+        <span class="slot bonus">Бонусное действие</span>
+        <span class="uses" data-word="за бой"><i></i><em>1 раз за бой</em></span>
+        </div>
+        <p>Вы можете дать преимущество союзнику которого видите. Если союзник уже имеет преимущество, то к такой проверке прибавляется ваше значение интеллекта.</p>
+        </div>
+
+        <div class="abil" data-abil="surgeon" data-slot="action" data-uses="1" data-reset="day">
+        <h3>Хирургеон</h3>
+        <div class="row">
+        <span class="slot action">Действие</span>
+        <span class="uses" data-word="в день"><i></i><em>1 раз в день</em></span>
+        </div>
+        <p>Вы проводите полевую операцию, пройдите тест интеллекта — 12 и в случае успеха вы возрождаете мертвого союзника с 1 здоровья.</p>
+        </div>
+
+        <div class="abil" data-abil="flesh" data-slot="pass">
+        <h3>Плоть — слаба! Металл — вечен!</h3>
+        <div class="row">
+        <span class="slot pass">Пассивно</span>
+        <span class="uses none">работает всегда</span>
+        </div>
+        <p>Вы восстанавливаете d4 здоровья на начало каждого своего раунда.<br>Если вы пали, вы должены пройти тест интеллекта −20 дабы способность сработала!<br>Смерть не повод нарушать присягу!</p>
+        </div>
+    </div>
+  </div>
+
+  <div class="ult" data-ult>
+    <div class="top">
+      <div><span class="kick">3 · Ультимейт</span><h3>Гнев машины</h3></div>
+      <button class="price" data-act="ult">5 монет</button>
+    </div>
+    <p>Вы произносите бинарные проклятия и на 1 раунд накладываете помеху на атаки всем противникам с оружием которое не считается обычным. При неудачной атаке держащий такое оружие получает 5 урона.</p>
+  </div>
+
+  <div class="tips">
+    <div class="th">Подсказки за этого персонажа <span>советы, а не правила</span></div>
+    <div class="grid">
+        <div><h4>Улучшение решается до выхода</h4><p>Предмет всего один и всего раз в день, переиграть на месте нельзя. Идёте в перестрелку — улучшай стрелковое оружие тому, кто стреляет лучше всех. Ждёте рукопашную свалку — бери броню или силовое поле себе.</p></div>
+        <div><h4>Хирургеон — единственный шанс отряда</h4><p>Никто больше не поднимает погибших. Держи действие свободным, когда бой пошёл плохо, и не забывай, что заряд один на весь день. Тест идёт от интеллекта, а он у тебя +4 — шансы хорошие.</p></div>
+        <div><h4>Адепт логики сильнее, чем кажется</h4><p>Если у союзника преимущество уже есть, способность прибавляет к его проверке твой интеллект, то есть сразу +4. Поэтому выгоднее подключаться не первым, а после того, как кто-то уже дал ему преимущество.</p></div>
+        <div><h4>Время работает на тебя</h4><p>d4 здоровья в начале каждого своего раунда идёт само, без затрат. При 30 здоровья и Ловкости −2 тебе не нужно бегать: закрепись за укрытием и лечись, пока противник тратит выстрелы.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="card" id="card-priest" data-char="priest"
+         data-hp-max="25" data-ult-cost="2" >
+  <div class="runhead"><span>Легенды подземелий</span><span>Карточка V из VIII</span></div>
+
+  <div class="head">
+    <div class="titles">
+      <span class="eyebrow">Министорум жрец</span>
+      <h1>Жрец<br>императора</h1>
+      <p class="role">Поддержка верой. Лечит, чистит порчу и давит волей. Чем чище команда, тем сильнее молитвы.</p>
+    </div>
+    <button class="hpbox" data-act="hp">
+      <span class="lab">Здоровье</span>
+      <span class="num"><b data-hp-cur>25</b><i>/ 25</i></span>
+      <span class="down">Выведен из строя</span>
+    </button>
+  </div>
+
+  <div class="numsblock">
+    <div class="basics">
+      <span><b>Тест:</b> d20 + модификатор, результат не меньше СЛ</span>
+      <span><b>Преимущество:</b> два d20, берёшь больший</span>
+      <span><b>Помеха:</b> берёшь меньший</span>
+      <span><b>Твой ход:</b> действие + бонусное + перемещение</span>
+    </div>
+    <div class="nums">
+        <div><span class="lab">Сила</span><span class="val" data-base="2">+2</span></div>
+        <div><span class="lab">Ловкость</span><span class="val" data-base="0">+0</span></div>
+        <div><span class="lab">Стойкость</span><span class="val" data-base="2">+2</span></div>
+        <div><span class="lab">Интеллект</span><span class="val neg" data-base="-2">&minus;2</span></div>
+        <div><span class="lab">Мудрость</span><span class="val neg" data-base="-1">&minus;1</span></div>
+        <div><span class="lab">Харизма</span><span class="val" data-base="3">+3</span></div>
+    </div>
+    <div class="gear">
+      <div><span class="lab">Класс брони</span><span class="txt">Панцирный доспех</span></div>
+      <div><span class="lab">Урон оружия</span><span class="txt empty"></span></div>
+    </div>
+  </div>
+
+  <div class="body2">
+    <div>
+      <div class="snum"><span class="n">1</span><span class="t"><h2>Молитвы</h2>
+        <span class="sub">Работают, пока порчи у команды мало. Порча растёт — молитвы гаснут сами.</span></span></div>
+      <p class="intro">Вы несете в себе свет его! И должны ограждать от порчи паству свою. Каждая молитва дает вам бонус, но с накоплением порчи они становятся не произносимы и не работают, пока свет праведности не вернет вам сил.</p>
+      
+        <div class="pick pick--gated" data-pick="face" data-taint-max="1">
+        <h3>Святой лик</h3>
+        <p>Восславьте лик святой! И покуда в команде менее 1 порчи, вы можете прибавить свой параметр харизмы на проверки союзнику которого видите <b>реакцией</b>.</p>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick pick--gated" data-pick="faith" data-taint-max="2">
+        <h3>Чистая вера</h3>
+        <p>Отриньте ересь! И покуда в команде менее 2 порчи, вы всегда лечите на максимальное значение кубика.</p>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick pick--gated" data-pick="penance" data-taint-max="3">
+        <h3>Покаяние</h3>
+        <p>Примите покаяние. Покуда в команде менее 3 порчи, всякий раз когда тратится монета вы лечите одного союзника что можете видеть на 1 здоровья. Траты монеты опасностью варпа, или в качестве расплаты за порчу, не учитываются.</p>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+    </div>
+
+    <div>
+      <div class="snum"><span class="n">2</span><span class="t"><h2>Способности персонажа</h2>
+        <span class="sub">Плашка говорит, что тратишь. Нажми на заряд, когда потратил, — нажми ещё раз, чтобы вернуть.</span></span></div>
+        <div class="abil" data-abil="voice" data-slot="bonus" data-uses="2" data-reset="battle">
+        <h3>Голос императора</h3>
+        <div class="row">
+        <span class="slot bonus">Бонусное действие</span>
+        <span class="uses" data-word="за бой"><i></i><i></i><em>2 раза за бой</em></span>
+        </div>
+        <p>Вы выбираете одно существо в зоне видимости и заставляет его пройти тест интеллекта, сложность 15 или пропустить ход.</p>
+        </div>
+
+        <div class="abil" data-abil="light" data-slot="action" data-uses="2" data-reset="battle">
+        <h3>Свет праведника</h3>
+        <div class="row">
+        <span class="slot action">Действие</span>
+        <span class="uses" data-word="за бой"><i></i><i></i><em>2 раза за бой</em></span>
+        </div>
+        <p>Вы создаете столб света вокруг себя зоной и все враги обязаны покинуть эту область в свой ход, а союзники восстанавливают 2D6 + Харизма здоровья.</p>
+        </div>
+
+        <div class="abil" data-abil="hour" data-slot="bonus" data-uses="3" data-reset="day" data-special="taint_minus">
+        <h3>Час молитвы</h3>
+        <div class="row">
+        <span class="slot bonus">Бонусное действие</span>
+        <span class="uses" data-word="в день"><i></i><i></i><i></i><em>3 раза в день</em></span>
+        </div>
+        <p>Вы молитесь и снижает порчу на 1 в команде.</p>
+        <button class="act" data-act="taint-minus">Снять 1 порчу</button>
+        </div>
+    </div>
+  </div>
+
+  <div class="ult" data-ult>
+    <div class="top">
+      <div><span class="kick">3 · Ультимейт</span><h3>Имперское кредо</h3></div>
+      <button class="price" data-act="ult">2 монеты</button>
+    </div>
+    <p>Вы автоматически проходите тест харизмы, потратив при этом 2 монеты. Однако такая проверка не может быть направленной на персонажа еретика, ксеноса, мутанта!</p>
+  </div>
+
+  <div class="tips">
+    <div class="th">Подсказки за этого персонажа <span>советы, а не правила</span></div>
+    <div class="grid">
+        <div><h4>Следи за счётчиком порчи</h4><p>Это твой счётчик силы. При нуле работают все три молитвы, при трёх — ни одной. Час молитвы снимает по одному очку и есть трижды в день: тратить его лучше не сразу, а когда порча подходит к порогу, который тебе важен.</p></div>
+        <div><h4>Свет праведника делает две вещи сразу</h4><p>Он лечит союзников на 2D6 + Харизма и одновременно выгоняет врагов из области. Встань так, чтобы в круг попали и раненые товарищи, и толпа противников, — одно действие сработает и как лечение, и как расчистка.</p></div>
+        <div><h4>Лечи, пока команда чистая</h4><p>Чистая вера при порче меньше двух даёт максимум на кубике лечения. Если порча вот-вот перевалит за два, лучше вылечить сейчас, а не после того, как еретик снова себя усилит.</p></div>
+        <div><h4>Договорись с еретиком до боя</h4><p>Порча делает его сильнее и глушит тебя. Это заложено в игру специально, и решается не броском, а разговором за столом: определите порог, выше которого он не поднимает счётчик.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="card" id="card-neophyte" data-char="neophyte"
+         data-hp-max="35" data-ult-cost="5" >
+  <div class="runhead"><span>Легенды подземелий</span><span>Карточка VI из VIII</span></div>
+
+  <div class="head">
+    <div class="titles">
+      <span class="eyebrow">Неофит астартес</span>
+      <h1>Неофит<br>астартес</h1>
+      <p class="role">Тяжёлый боец ближнего боя. Держит удар, разгоняет строй врагов и пугает силой.</p>
+    </div>
+    <button class="hpbox" data-act="hp">
+      <span class="lab">Здоровье</span>
+      <span class="num"><b data-hp-cur>35</b><i>/ 35</i></span>
+      <span class="down">Выведен из строя</span>
+    </button>
+  </div>
+
+  <div class="numsblock">
+    <div class="basics">
+      <span><b>Тест:</b> d20 + модификатор, результат не меньше СЛ</span>
+      <span><b>Преимущество:</b> два d20, берёшь больший</span>
+      <span><b>Помеха:</b> берёшь меньший</span>
+      <span><b>Твой ход:</b> действие + бонусное + перемещение</span>
+    </div>
+    <div class="nums">
+        <div><span class="lab">Сила</span><span class="val" data-base="3">+3</span></div>
+        <div><span class="lab">Ловкость</span><span class="val" data-base="2">+2</span></div>
+        <div><span class="lab">Стойкость</span><span class="val" data-base="1">+1</span></div>
+        <div><span class="lab">Интеллект</span><span class="val neg" data-base="-1">&minus;1</span></div>
+        <div><span class="lab">Мудрость</span><span class="val" data-base="0">+0</span></div>
+        <div><span class="lab">Харизма</span><span class="val neg" data-base="-2">&minus;2</span></div>
+    </div>
+    <div class="gear">
+      <div><span class="lab">Класс брони</span><span class="txt">Панцирный доспех</span></div>
+      <div><span class="lab">Урон оружия</span><span class="txt empty"></span></div>
+    </div>
+  </div>
+
+  <div class="body2">
+    <div>
+      <div class="snum"><span class="n">1</span><span class="t"><h2>Наследие его</h2>
+        <span class="sub">Выбор делается один раз в начале приключения. Изменить нельзя.</span></span></div>
+      <p class="intro">Сделайте выбор основания ордена в начале приключения. Этот выбор нельзя изменить! Помните о своем наследии и предках!</p>
+      <p class="choice-hint">Нажми на основание — выбор на всё приключение</p>
+        <div class="pick pick--choice" data-pick="first" data-group="foundation">
+        <h3>Первое основание</h3>
+        <p>Вы несёте в себе мощь самого примарха. Все ваши атаки ближнего боя совершаются с преимуществом.</p>
+        <span class="price">Выбрав эту черту, остальные станут недоступны</span>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick pick--choice" data-pick="secret" data-group="foundation">
+        <h3>Секретное основание</h3>
+        <p>Вы совершаете все проверки Скрытности с преимуществом. Все дальнобойные атаки, совершённые из скрытности, считаются критическими попаданиями в случае если такая атака была успешной.</p>
+        <span class="price">Выбрав эту черту, остальные станут недоступны</span>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick pick--choice" data-pick="cursed" data-group="foundation">
+        <h3>Проклятое основание</h3>
+        <p>При получении порчи команда всегда получает на 1 очко порчи больше. Если у команды есть очки порчи, вы всегда получает половину урона.</p>
+        <span class="price">Выбрав эту черту, остальные станут недоступны</span>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+    </div>
+
+    <div>
+      <div class="snum"><span class="n">2</span><span class="t"><h2>Способности персонажа</h2>
+        <span class="sub">Плашка говорит, что тратишь. Нажми на заряд, когда потратил, — нажми ещё раз, чтобы вернуть.</span></span></div>
+        <div class="abil" data-abil="angel" data-slot="action" data-uses="2" data-reset="battle">
+        <h3>Ангел смерти</h3>
+        <div class="row">
+        <span class="slot action">Действие</span>
+        <span class="uses" data-word="за бой"><i></i><i></i><em>2 раза за бой</em></span>
+        </div>
+        <p>Пройдите тест силы со Сложностью 15. В случае успеха передвиньтесь вперёд по шаблону, нанеся всем врагам урон вашим оружием ближнего боя.</p>
+        </div>
+
+        <div class="abil" data-abil="avatar" data-slot="react" data-uses="3" data-reset="day">
+        <h3>Аватар гнева его</h3>
+        <div class="row">
+        <span class="slot react">Реакция</span>
+        <span class="uses" data-word="в день"><i></i><i></i><i></i><em>3 раза в день</em></span>
+        </div>
+        <p>Вы запугивает с преимуществом и совершает проверку по силе вместо харизмы.<br>В бою если к вам подошел противник в ближний бой, вы можете использовать запугивание, дабы заставить его вместо атаки отойти от вас.</p>
+        </div>
+    </div>
+  </div>
+
+  <div class="ult" data-ult>
+    <div class="top">
+      <div><span class="kick">3 · Ультимейт</span><h3>И не познаю я страха!</h3></div>
+      <button class="price" data-act="ult">5 монет</button>
+    </div>
+    <p>Вы наносите удар, или выстрел в ответ на любой удар и выстрел врага! А так же заставляете всех врагов атаковать себя до начала вашего следующего хода!</p>
+  </div>
+
+  <div class="tips">
+    <div class="th">Подсказки за этого персонажа <span>советы, а не правила</span></div>
+    <div class="grid">
+        <div><h4>Основание — решение на всё приключение</h4><p>Первое, если ты стоишь в первой линии и бьёшь вплотную. Секретное, если предпочитаешь стрелять из тени. Проклятое, если в отряде есть еретик и порча всё равно будет копиться — тогда ты станешь получать вдвое меньше урона.</p></div>
+        <div><h4>Ангел смерти ждёт строя</h4><p>Он задевает всех врагов на пути. Пускать его на одиночную цель — потеря заряда. Подожди раунд, пока противники сойдутся в линию или коридор, и только тогда бросай тест Силы на СЛ 15 — с +3 у тебя хорошие шансы.</p></div>
+        <div><h4>Запугивание идёт от Силы</h4><p>Аватар гнева считает проверку по Силе вместо Харизмы, поэтому у тебя тут +3, а не −2. Реакцией можно заставить подошедшего врага отойти вместо атаки — это фактически ещё один способ не получить урон.</p></div>
+        <div><h4>Ульту включай, когда за спиной раненые</h4><p>Она стягивает все атаки врагов на тебя до начала твоего следующего хода. У тебя 35 здоровья и панцирный доспех, поэтому это осознанная жертва: жми, когда жрец или псайкер вот-вот падут, а не в начале боя.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="card" id="card-psyker" data-char="psyker"
+         data-hp-max="20" data-ult-cost="3" >
+  <div class="runhead"><span>Легенды подземелий</span><span>Карточка VII из VIII</span></div>
+
+  <div class="head">
+    <div class="titles">
+      <span class="eyebrow">Псайкер</span>
+      <h1>Псионик</h1>
+      <p class="role">Самый сильный урон и самый хрупкий в отряде. Провал на психосиле зовёт демона.</p>
+    </div>
+    <button class="hpbox" data-act="hp">
+      <span class="lab">Здоровье</span>
+      <span class="num"><b data-hp-cur>20</b><i>/ 20</i></span>
+      <span class="down">Выведен из строя</span>
+    </button>
+  </div>
+
+  <div class="numsblock">
+    <div class="basics">
+      <span><b>Тест:</b> d20 + модификатор, результат не меньше СЛ</span>
+      <span><b>Преимущество:</b> два d20, берёшь больший</span>
+      <span><b>Помеха:</b> берёшь меньший</span>
+      <span><b>Твой ход:</b> действие + бонусное + перемещение</span>
+    </div>
+    <div class="nums">
+        <div><span class="lab">Сила</span><span class="val neg" data-base="-2">&minus;2</span></div>
+        <div><span class="lab">Ловкость</span><span class="val" data-base="1">+1</span></div>
+        <div><span class="lab">Стойкость</span><span class="val neg" data-base="-2">&minus;2</span></div>
+        <div><span class="lab">Интеллект</span><span class="val" data-base="5">+5</span></div>
+        <div><span class="lab">Мудрость</span><span class="val" data-base="1">+1</span></div>
+        <div><span class="lab">Харизма</span><span class="val" data-base="1">+1</span></div>
+    </div>
+    <div class="gear">
+      <div><span class="lab">Класс брони</span><span class="txt">Робы</span></div>
+      <div><span class="lab">Урон оружия</span><span class="txt empty"></span></div>
+    </div>
+  </div>
+
+  <div class="body2">
+    <div>
+      <div class="snum"><span class="n">1</span><span class="t"><h2>Психо-силы</h2>
+        <span class="sub">Не более одной в ход. Сначала тест интеллекта, потом эффект.</span></span></div>
+      
+      
+        <div class="pick" data-pick="ray">
+        <h3>Расплавляющий луч</h3>
+        <p>Вы создаёте поток пламени по шаблону огня. Все цели, попавшие под действие силы, получают <b>2D6 + интеллект</b> урона и теряют <b>2 единицы брони</b> до следующего вашего хода.</p>
+        <span class="test">Тест интеллекта, сложность 15</span>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick" data-pick="bolt">
+        <h3>Био-молния</h3>
+        <p>Вы выбираете цель в зоне видимости и наносит <b>4D4</b> урона. Цель атаки должна немедленно пройти тест стойкости (сложность 15) или потеряет возможность передвигаться.</p>
+        <span class="test">Тест интеллекта, сложность 14</span>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick" data-pick="dome">
+        <h3>Телекинетический купол</h3>
+        <p>Вы создаёт купол круглым шаблоном вокруг себя и повышает броню всем союзникам и себе на <b>2</b>. А при критическом применении — на <b>4</b>.</p>
+        <span class="test">Тест интеллекта, сложность 12</span>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+    </div>
+
+    <div>
+      <div class="snum"><span class="n">2</span><span class="t"><h2>Способности персонажа</h2>
+        <span class="sub">Плашка говорит, что тратишь. Нажми на заряд, когда потратил, — нажми ещё раз, чтобы вернуть.</span></span></div>
+        <div class="abil" data-abil="might" data-slot="action" data-special="psy_fumble">
+        <h3>Психоническая мощь</h3>
+        <div class="row">
+        <span class="slot action">Действие</span>
+        <span class="uses none">без ограничений</span>
+        </div>
+        <p>Вы обладаете тремя малыми Психо-силами силами. Вы можете использовать любую психосилу но не более одной в ход. Каждый раз когда вы бросаете критеческий провал на броске использования психосилы. Вы обязаны заплатить 3 золотые монеты, или получить урон за куаждую не уплаченную монету! Если вы пали от такого урона, контроль над вами берет демон. И Будет держать вас под контролем 1 ход за каждое очко порчи в команде.</p>
+        <button class="act act--warn" data-act="psy-fumble">Крит-провал: списать 3 монеты</button>
+        </div>
+
+        <div class="abil" data-abil="telepath" data-slot="action" data-uses="2" data-reset="day">
+        <h3>Телепат</h3>
+        <div class="row">
+        <span class="slot action">Действие</span>
+        <span class="uses" data-word="в день"><i></i><i></i><em>2 раза в день</em></span>
+        </div>
+        <p>Вы можете задать один вопрос любой цели, и она обязана ответить правду. Не действует на демонов и одержимых.</p>
+        </div>
+
+        <div class="abil" data-abil="foresee" data-slot="react" data-uses="2" data-reset="battle">
+        <h3>Предвидя всё</h3>
+        <div class="row">
+        <span class="slot react">Реакция</span>
+        <span class="uses" data-word="за бой"><i></i><i></i><em>2 раза за бой</em></span>
+        </div>
+        <p>Вы или союзник в зоне видимости может перебросить куб D20 по любой причине.</p>
+        </div>
+    </div>
+  </div>
+
+  <div class="ult" data-ult>
+    <div class="top">
+      <div><span class="kick">3 · Ультимейт</span><h3>Кукловод</h3></div>
+      <button class="price" data-act="ult">3 монеты</button>
+    </div>
+    <p>Вы выбирает одно существо не демона, и отдает ему один приказ атаки любого другого существа.</p>
+  </div>
+
+  <div class="tips">
+    <div class="th">Подсказки за этого персонажа <span>советы, а не правила</span></div>
+    <div class="grid">
+        <div><h4>Предвидя всё — это страховка от демона</h4><p>Реакция перебрасывает любой d20, включая твой собственный крит-провал на психосиле. Держи хотя бы один заряд до конца боя: он стоит дешевле, чем три золотых и ход под контролем демона.</p></div>
+        <div><h4>Купол, когда рисковать нельзя</h4><p>Сложность 12 против 15 у луча — это заметно надёжнее. Если провал сейчас недопустим, бросай на купол: +2 брони всей команде и никакого шанса подставить отряд.</p></div>
+        <div><h4>Предупреди команду про монеты</h4><p>Крит-провал требует 3 золотые монеты из общего кошелька, иначе ты получаешь урон и можешь попасть под демона на столько ходов, сколько у команды порчи. Скажи это вслух до боя, чтобы монеты не спустили на чужую ульту.</p></div>
+        <div><h4>Дистанция — твоя броня</h4><p>20 здоровья, Стойкость −2 и робы: в ближнем бою ты живёшь один раунд. Луч и молния работают на дистанции, поэтому вставай за спинами еретика и неофита и не выходи из-за укрытия.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="card" id="card-sister" data-char="sister"
+         data-hp-max="20" data-ult-cost="1" data-dmg-to-coins="5" data-choice-reset="battle">
+  <div class="runhead"><span>Легенды подземелий</span><span>Карточка VIII из VIII</span></div>
+
+  <div class="head">
+    <div class="titles">
+      <span class="eyebrow">Сестра битвы</span>
+      <h1>Сестра<br>милитант</h1>
+      <p class="role">Командир хора. Один гимн меняет бой для всей команды сразу.</p>
+    </div>
+    <button class="hpbox" data-act="hp">
+      <span class="lab">Здоровье</span>
+      <span class="num"><b data-hp-cur>20</b><i>/ 20</i></span>
+      <span class="down">Выведен из строя</span>
+    </button>
+  </div>
+
+  <div class="numsblock">
+    <div class="basics">
+      <span><b>Тест:</b> d20 + модификатор, результат не меньше СЛ</span>
+      <span><b>Преимущество:</b> два d20, берёшь больший</span>
+      <span><b>Помеха:</b> берёшь меньший</span>
+      <span><b>Твой ход:</b> действие + бонусное + перемещение</span>
+    </div>
+    <div class="nums">
+        <div><span class="lab">Сила</span><span class="val" data-base="1">+1</span></div>
+        <div><span class="lab">Ловкость</span><span class="val" data-base="2">+2</span></div>
+        <div><span class="lab">Стойкость</span><span class="val" data-base="1">+1</span></div>
+        <div><span class="lab">Интеллект</span><span class="val neg" data-base="-2">&minus;2</span></div>
+        <div><span class="lab">Мудрость</span><span class="val" data-base="0">+0</span></div>
+        <div><span class="lab">Харизма</span><span class="val" data-base="2">+2</span></div>
+    </div>
+    <div class="gear">
+      <div><span class="lab">Класс брони</span><span class="txt">Броня сестры битвы</span></div>
+      <div><span class="lab">Урон оружия</span><span class="txt empty"></span></div>
+    </div>
+  </div>
+
+  <div class="body2">
+    <div>
+      <div class="snum"><span class="n">1</span><span class="t"><h2>Гимны</h2>
+        <span class="sub">Гимн выбирается в тот момент, когда возглашаешь его способностью из раздела 2.</span></span></div>
+      
+      <p class="choice-hint">Нажми на гимн, который возгласила. Повторный тап снимает его</p>
+        <div class="pick pick--choice" data-pick="wrath" data-group="hymn">
+        <h3>Гимн гнева</h3>
+        <p>Союзники персонажа совершают критические попадания при выпадении <b>19 или 20</b> на кубике атаки. Кроме того, их атаки наносят дополнительный урон в размере <b>1к4</b>.</p>
+        <span class="test">До начала следующего хода сестры</span>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick pick--choice" data-pick="fort" data-group="hymn">
+        <h3>Гимн стойкости</h3>
+        <p>Противники не могут совершать критические попадания. Кроме того, весь входящий урон, получаемый союзниками, уменьшается на <b>1к4</b>.</p>
+        <span class="test">До начала следующего хода сестры</span>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+
+        <div class="pick pick--choice" data-pick="terror" data-group="hymn">
+        <h3>Гимн ужаса</h3>
+        <p>Пройдите проверку Харизмы (СЛ 15). При успехе все враги выходят из ближнего боя со всеми союзниками и отступают на короткую дистанцию. Кроме того, союзники могут совершать атаки по возможности без затраты реакции.</p>
+        <span class="test">До начала следующего хода сестры</span>
+        <span class="pick-state" aria-hidden="true"></span>
+        </div>
+    </div>
+
+    <div>
+      <div class="snum"><span class="n">2</span><span class="t"><h2>Способности персонажа</h2>
+        <span class="sub">Плашка говорит, что тратишь. Нажми на заряд, когда потратил, — нажми ещё раз, чтобы вернуть.</span></span></div>
+        <div class="abil" data-abil="hymns" data-slot="bonus" data-uses="2" data-reset="battle">
+        <h3>Гимны империума</h3>
+        <div class="row">
+        <span class="slot bonus">Бонусное действие</span>
+        <span class="uses" data-word="за бой"><i></i><i></i><em>2 раза за бой</em></span>
+        </div>
+        <p>Персонаж может возгласить гимн Империума. Выберите один из гимнов и примените его эффект.</p>
+        </div>
+
+        <div class="abil" data-abil="guidance" data-slot="action" data-uses="2" data-reset="day">
+        <h3>Святое наставление</h3>
+        <div class="row">
+        <span class="slot action">Действие</span>
+        <span class="uses" data-word="в день"><i></i><i></i><em>2 раза в день</em></span>
+        </div>
+        <p>Выберите одного союзника в пределах поля зрения. Он немедленно восстанавливает 1 заряд одной из своих способностей.</p>
+        </div>
+
+        <div class="abil" data-abil="martyr" data-slot="pass">
+        <h3>Мученица императора</h3>
+        <div class="row">
+        <span class="slot pass">Пассивно</span>
+        <span class="uses none">работает всегда</span>
+        </div>
+        <p>Каждый раз, когда Сестра Битвы получает 5 единиц урона, команда получает 1 монету. Один раз за игру, если Сестра Битвы пала, команда получает 5 золотых монет.</p>
+        </div>
+    </div>
+  </div>
+
+  <div class="ult" data-ult>
+    <div class="top">
+      <div><span class="kick">3 · Ультимейт</span><h3>Щит веры</h3></div>
+      <button class="price" data-act="ult">1 монета</button>
+    </div>
+    <p>Персонаж Сестры или любой союзник в поле зрения Сестры может бросить кубик D6 сразу после получения урона: при результате <b>4—5</b> получит половину урона, при <b>6</b> — не получит урона вовсе.</p>
+  </div>
+
+  <div class="tips">
+    <div class="th">Подсказки за этого персонажа <span>советы, а не правила</span></div>
+    <div class="grid">
+        <div><h4>Гимн выбирай по обстановке</h4><p>Одно бонусное действие меняет бой для всего отряда. Гнев — когда враг уже ранен и его нужно добить. Стойкость — когда по вам стреляют залпом. Ужас — когда вас зажали в ближнем бою.</p></div>
+        <div><h4>Наставление смотрит на квадратики</h4><p>Ты возвращаешь союзнику один израсходованный заряд, поэтому ищи глазами зачёркнутые клетки. Выгоднее вернуть то, что даётся раз в день, а не раз за бой: такой заряд иначе не восстановится до конца приключения.</p></div>
+        <div><h4>Самая дешёвая ульта в отряде</h4><p>Щит веры стоит одну монету и работает не только на тебя, но и на любого союзника в поле зрения. Держи монету в запасе на чужой опасный удар — это лучшая покупка за столом.</p></div>
+        <div><h4>Твой урон приносит команде деньги</h4><p>Каждые 5 полученных единиц урона дают отряду монету, а твоя гибель — сразу пять. Стоять под ударом иногда выгодно, но здоровья у тебя всего 20: считай, стоит ли монета этих очков.</p></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ═══════════════ нижняя панель команды ═══════════════ -->
+<footer class="teambar" id="teambar" hidden>
+  <div class="tb-cell">
+    <span class="tb-lab">Здоровье</span>
+    <button class="tb-val tb-hp" data-act="hp"><b data-hp-mirror>—</b></button>
+  </div>
+  <div class="tb-cell tb-cell--team">
+    <span class="tb-lab">Порча команды</span>
+    <div class="tb-step">
+      <button data-act="taint-minus">−</button>
+      <b id="taint-val">0</b>
+      <button data-act="taint-plus">+</button>
+    </div>
+  </div>
+  <div class="tb-cell tb-cell--team">
+    <span class="tb-lab">Монеты</span>
+    <div class="tb-step">
+      <button data-act="coins-minus">−</button>
+      <b id="coins-val">0</b>
+      <button data-act="coins-plus">+</button>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
