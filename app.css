@@ -1043,3 +1043,116 @@ body.has-partybar main{padding-top:calc(var(--topbar-h) + var(--partybar-h) + en
 @media print{
   .item-detail-visual,.arsenal-row-visual{display:none!important;}
 }
+
+
+/* v1.11 · читаемые названия архетипов и крупный класс брони */
+.head h1 br{
+  display:block;
+  content:"";
+}
+
+.loadout-armor{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 112px;
+  grid-template-areas:
+    "label ac"
+    "name ac"
+    "rule rule";
+  column-gap:14px;
+  row-gap:4px;
+  align-items:stretch;
+  padding:12px 13px 13px;
+  overflow:hidden;
+}
+.loadout-armor::after{display:none;content:none;}
+.loadout-armor .loadout-label{
+  grid-area:label;
+  align-self:end;
+  margin:0;
+}
+.loadout-armor b{
+  grid-area:name;
+  min-width:0;
+  padding-right:0;
+  font-size:22px;
+  line-height:1.05;
+  overflow-wrap:anywhere;
+}
+.loadout-armor em{
+  grid-area:ac;
+  min-width:112px;
+  margin:0;
+  padding:8px 8px 7px;
+  border-left:1px solid rgba(176,138,62,.72);
+  background:rgba(255,255,255,.055);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:2px;
+  text-align:center;
+  color:#fff;
+}
+.loadout-armor em span{
+  display:block;
+  font:700 9.5px/1.05 var(--util);
+  text-transform:uppercase;
+  letter-spacing:.09em;
+  color:var(--brass);
+  white-space:normal;
+}
+.loadout-armor em strong{
+  display:block;
+  font:700 42px/.92 var(--display);
+  color:#fff;
+  letter-spacing:-.03em;
+}
+.loadout-armor em i{
+  display:block;
+  margin-top:2px;
+  font:700 9px/1 var(--util);
+  font-style:normal;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#d7c28d;
+}
+.loadout-armor small{
+  grid-area:rule;
+  margin-top:5px;
+  padding-top:8px;
+  border-top:1px solid rgba(255,255,255,.12);
+}
+
+@media screen and (max-width:430px){
+  .head h1{font-size:32px;line-height:.98;}
+  .loadout-armor{
+    grid-template-columns:minmax(0,1fr) 94px;
+    column-gap:10px;
+    padding:11px 11px 12px;
+  }
+  .loadout-armor b{font-size:20px;}
+  .loadout-armor em{min-width:94px;padding-left:6px;padding-right:6px;}
+  .loadout-armor em strong{font-size:38px;}
+  .loadout-armor em span{font-size:8.5px;letter-spacing:.06em;}
+}
+
+@media print{
+  .head h1 br{display:block;}
+  .loadout-armor{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 25mm;
+    grid-template-areas:"label ac" "name ac" "rule rule";
+    gap:1mm 3mm;
+    overflow:hidden;
+  }
+  .loadout-armor em{
+    min-width:25mm;
+    padding:1mm 2mm;
+    border-left:1px solid var(--paper-edge);
+    background:transparent;
+  }
+  .loadout-armor em span{font-size:6.5pt;color:var(--teal);}
+  .loadout-armor em strong{font-size:22pt;color:var(--ink);}
+  .loadout-armor em i{font-size:6.5pt;color:var(--teal);}
+  .loadout-armor small{border-top:1px solid var(--paper-edge);}
+}

@@ -440,14 +440,19 @@ function renderLoadout(card) {
     armorButton.dataset.arsenalAction = armor ? 'detail' : 'open';
   }
   const armorName = $('[data-loadout-armor-name]', card);
-  const armorMeta = $('[data-loadout-armor-meta]', card);
+  const armorAc = $('[data-loadout-armor-ac]', card);
+  const armorExtra = $('[data-loadout-armor-extra]', card);
   const armorRule = $('[data-loadout-armor-rule]', card);
   if (armorName) armorName.textContent = armor?.name || 'Без брони';
-  if (armorMeta) armorMeta.textContent = `КБ ${ac}${armor?.extraHands ? ' · 3 руки' : ''}`;
+  if (armorAc) armorAc.textContent = String(ac);
+  if (armorExtra) {
+    armorExtra.textContent = armor?.extraHands ? '3 руки' : '';
+    armorExtra.hidden = !armor?.extraHands;
+  }
   if (armorRule) {
     const shieldBonus = ac - Number(armor?.ac || 10);
     const parts = [armor ? Arsenal.fullRule(armor) : 'Базовый класс брони: 10.'];
-    if (shieldBonus > 0) parts.push(`Снаряжение повышает КБ ещё на ${shieldBonus}.`);
+    if (shieldBonus > 0) parts.push(`Снаряжение повышает класс брони ещё на ${shieldBonus}.`);
     armorRule.textContent = parts.filter(Boolean).join(' ');
   }
 
@@ -505,7 +510,7 @@ function makeLoadoutChip(kind, item, index, builtIn, card, count = 1) {
   button.dataset.itemIndex = String(index);
   const subtitle = kind === 'weapon'
     ? `${weaponDamageText(item, card)} · ${handsText(item.hands)}`
-    : `${handsText(item.hands)}${item.armorBonus ? ` · КБ +${item.armorBonus}` : ''}`;
+    : `${handsText(item.hands)}${item.armorBonus ? ` · Класс брони +${item.armorBonus}` : ''}`;
   const rule = Arsenal.fullRule(item);
   button.innerHTML = `<b>${escapeForHtml(item.name)}${count > 1 ? ` ×${count}` : ''}</b>`
     + `<small>${escapeForHtml(subtitle)}</small>`
@@ -567,10 +572,10 @@ function renderArsenalList() {
       row.dataset.itemId = item.id;
       row.dataset.reason = reason;
       const primary = arsenalMode === 'armor'
-        ? `КБ ${item.ac}${item.extraHands ? ' · 3 руки' : ''}`
+        ? `Класс брони ${item.ac}${item.extraHands ? ' · 3 руки' : ''}`
         : arsenalMode === 'weapon'
           ? `${weaponDamageText(item)} · ${handsText(item.hands)}`
-          : `${handsText(item.hands)}${item.armorBonus ? ` · КБ +${item.armorBonus}` : ''}`;
+          : `${handsText(item.hands)}${item.armorBonus ? ` · Класс брони +${item.armorBonus}` : ''}`;
       const rule = Arsenal.fullRule(item) || 'Дополнительных правил нет.';
       const icon = arsenalMode === 'weapon' ? Arsenal.iconFor(item) : '';
       if (icon) {
@@ -622,7 +627,7 @@ function openItemDetail(kind, itemId, index = -1) {
     ? `Класс брони: ${item.ac}${item.extraHands ? ' · даёт третью руку' : ''}`
     : kind === 'weapon'
       ? `Урон: ${weaponDamageText(item)} · ${handsText(item.hands)}`
-      : `${handsText(item.hands)}${item.armorBonus ? ` · КБ +${item.armorBonus}` : ''}`;
+      : `${handsText(item.hands)}${item.armorBonus ? ` · Класс брони +${item.armorBonus}` : ''}`;
   $('#item-detail-rule').textContent = Arsenal.fullRule(item) || 'Дополнительных правил нет.';
   const detailVisual = $('#item-detail-visual');
   const detailImage = $('#item-detail-image');
@@ -1107,7 +1112,7 @@ function bindEventsOnce() {
   }));
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js?v=weapon-card-1', { updateViaCache: 'none' }).catch(err =>
+    navigator.serviceWorker.register('sw.js?v=armor-type-1', { updateViaCache: 'none' }).catch(err =>
       console.warn('Service worker не зарегистрирован:', err));
   }
 }

@@ -276,7 +276,7 @@ function openMember(uid) {
       const gear = Array.isArray(equipment.gearNames) && equipment.gearNames.length
         ? equipment.gearNames.join(', ') : 'не выбрано';
       loadout.innerHTML = `<b>Арсенал</b>`
-        + `<p>Броня: ${escapeHtml(equipment.armorName || 'Без брони')} · КБ ${Number(equipment.armorClass || 10)}</p>`
+        + `<p>Броня: ${escapeHtml(equipment.armorName || 'Без брони')} · Класс брони ${Number(equipment.armorClass || 10)}</p>`
         + `<p>Оружие: ${escapeHtml(weapons)}</p>`
         + `<p>Снаряжение: ${escapeHtml(gear)}</p>`
         + `<p>Руки: ${Number(equipment.handsUsed || 0)} / ${Number(equipment.handsMax || 2)}</p>`;

@@ -210,7 +210,7 @@ dict(
 # ─────────────────────────────────────────────────────────── IV. ТЕХНО-ЖРЕЦ
 dict(
     id="techpriest", num="IV",
-    eyebrow="Техно-жрец", title="Техно-жрец", short="Техно-жрец",
+    eyebrow="Техножрец", title="Техножрец", short="Техножрец",
     role="Мастеровой и медик. Улучшает снаряжение, латает себя, поднимает павших.",
     hp=30, armor="Серво броня",
     stats=[("Сила", 1), ("Ловкость", -2), ("Стойкость", 1),
@@ -627,7 +627,11 @@ def render_card(ch):
               data-item-id="{DEFAULT_ARMOR_ID.get(ch['id'], '')}" data-loadout-armor-button>
         <span class="loadout-label">Броня</span>
         <b data-loadout-armor-name>{ch['armor']}</b>
-        <em data-loadout-armor-meta>КБ —</em>
+        <em data-loadout-armor-meta>
+          <span>Класс брони</span>
+          <strong data-loadout-armor-ac>—</strong>
+          <i data-loadout-armor-extra hidden></i>
+        </em>
         <small data-loadout-armor-rule>Нажмите, чтобы посмотреть или сменить броню.</small>
       </button>
 
@@ -695,7 +699,7 @@ HEAD = '''<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=PT+Sans+Narrow:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.css?v=weapon-card-1">
+<link rel="stylesheet" href="app.css?v=armor-type-1">
 </head>
 <body>
 
@@ -941,9 +945,9 @@ FOOT = '''
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="arsenal.js?v=weapon-card-1"></script>
-<script src="app.js?v=weapon-card-1"></script>
-<script type="module" src="auth.js?v=weapon-card-1"></script>
+<script src="arsenal.js?v=armor-type-1"></script>
+<script src="app.js?v=armor-type-1"></script>
+<script type="module" src="auth.js?v=armor-type-1"></script>
 </body>
 </html>
 '''
