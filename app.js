@@ -875,7 +875,7 @@ async function applyDamage(raw) {
     if (fellNow) parts.push('5 за падение');
     const ok = await Team.addCoins(reward, {
       type: fellNow ? 'martyr-fall' : 'martyr',
-      text: `${S.characterName}: Мученица императора приносит команде ${reward} монет (${parts.join(', ')}).`,
+      text: `${S.characterName}: Мученица Императора приносит команде ${reward} монет (${parts.join(', ')}).`,
     });
     if (!ok) {
       S.dmgAcc[id] = previousAcc;
@@ -883,7 +883,7 @@ async function applyDamage(raw) {
       save(); render();
       toast('Монеты Сестры не записались. Накопление урона сохранено для повторной попытки.');
     } else if (!Team.shared) {
-      toast(`Мученица императора: команде +${reward} монет`);
+      toast(`Мученица Императора: команде +${reward} монет`);
     }
   }
 }
