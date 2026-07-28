@@ -3,9 +3,9 @@
    Регистрация, вход, восстановление пароля и выход.
    ================================================================== */
 
-import { auth } from './firebase-config.js?v=arsenal-icons-1';
-import { connectCharacterStore, queueCharacterSave, stopCharacterStore } from './character-store.js?v=arsenal-icons-1';
-import { startLobbySession, stopLobbySession } from './lobby-store.js?v=arsenal-icons-1';
+import { auth } from './firebase-config.js?v=weapon-layout-1';
+import { connectCharacterStore, queueCharacterSave, stopCharacterStore } from './character-store.js?v=weapon-layout-1';
+import { startLobbySession, stopLobbySession } from './lobby-store.js?v=weapon-layout-1';
 import {
   browserLocalPersistence,
   createUserWithEmailAndPassword,

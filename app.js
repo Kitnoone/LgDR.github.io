@@ -573,11 +573,17 @@ function renderArsenalList() {
           : `${handsText(item.hands)}${item.armorBonus ? ` · КБ +${item.armorBonus}` : ''}`;
       const rule = Arsenal.fullRule(item) || 'Дополнительных правил нет.';
       const icon = arsenalMode === 'weapon' ? Arsenal.iconFor(item) : '';
-      if (icon) row.classList.add('has-icon');
+      if (icon) {
+        row.classList.add('has-icon');
+        row.style.display = 'grid';
+        row.style.gridTemplateColumns = 'minmax(0,1fr) clamp(68px,14vw,88px) auto';
+        row.style.alignItems = 'center';
+        row.style.overflow = 'hidden';
+      }
       row.innerHTML = `<span class="arsenal-row-copy"><b>${escapeForHtml(item.name)}</b>`
         + `<small>${escapeForHtml(primary)}</small>`
         + `<span class="arsenal-row-rule">${escapeForHtml(rule)}</span></span>`
-        + (icon ? `<span class="arsenal-row-visual" aria-hidden="true"><img src="${escapeForHtml(icon)}" alt="" loading="lazy" decoding="async"></span>` : '')
+        + (icon ? `<span class="arsenal-row-visual" aria-hidden="true" style="width:100%;height:64px;max-width:88px;overflow:hidden;display:grid;place-items:center;padding:3px;background:#f7f3ea;border-left:1px solid #ded4c1;border-right:1px solid #ded4c1;contain:layout paint;"><img src="${escapeForHtml(icon)}" alt="" loading="lazy" decoding="async" style="display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center;"></span>` : '')
         + `<em>${escapeForHtml(reason || 'Выбрать')}</em>`;
       section.appendChild(row);
     });
@@ -623,6 +629,22 @@ function openItemDetail(kind, itemId, index = -1) {
   const icon = kind === 'weapon' ? Arsenal.iconFor(item) : '';
   if (detailVisual && detailImage) {
     detailVisual.hidden = !icon;
+    detailVisual.style.width = '100%';
+    detailVisual.style.height = 'clamp(112px,22vh,164px)';
+    detailVisual.style.maxHeight = '164px';
+    detailVisual.style.minHeight = '112px';
+    detailVisual.style.overflow = 'hidden';
+    detailVisual.style.display = icon ? 'grid' : 'none';
+    detailVisual.style.placeItems = 'center';
+    detailVisual.style.position = 'relative';
+    detailVisual.style.isolation = 'isolate';
+    detailImage.style.display = 'block';
+    detailImage.style.width = '100%';
+    detailImage.style.height = '100%';
+    detailImage.style.maxWidth = '100%';
+    detailImage.style.maxHeight = '100%';
+    detailImage.style.objectFit = 'contain';
+    detailImage.style.objectPosition = 'center';
     detailImage.src = icon || '';
     detailImage.alt = icon ? item.name : '';
   }
@@ -1101,7 +1123,7 @@ function bindEventsOnce() {
   }));
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js?v=arsenal-icons-1', { updateViaCache: 'none' }).catch(err =>
+    navigator.serviceWorker.register('sw.js?v=weapon-layout-1', { updateViaCache: 'none' }).catch(err =>
       console.warn('Service worker не зарегистрирован:', err));
   }
 }

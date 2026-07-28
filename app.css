@@ -894,3 +894,51 @@ body.has-partybar main{padding-top:calc(var(--topbar-h) + var(--partybar-h) + en
 @media print{
   .item-detail-visual,.arsenal-row-visual{display:none!important;}
 }
+
+
+/* v1.9 · безопасная компоновка изображений оружия */
+.arsenal-panel,.item-detail-panel{overflow-x:hidden;overscroll-behavior:contain;}
+.arsenal-row.has-icon{overflow:hidden;}
+.arsenal-row-visual{
+  position:relative;isolation:isolate;contain:layout paint;
+  min-width:0;max-width:88px;border-radius:2px;
+}
+.arsenal-row-visual img{
+  display:block!important;width:100%!important;height:100%!important;
+  max-width:100%!important;max-height:100%!important;
+  object-fit:contain!important;object-position:center!important;
+  position:relative;z-index:1;pointer-events:none;
+}
+.item-detail-visual{
+  width:100%!important;height:clamp(112px,22vh,164px)!important;
+  min-height:112px!important;max-height:164px!important;
+  overflow:hidden!important;position:relative;isolation:isolate;
+  contain:layout paint;flex:0 0 auto;border-radius:2px;
+  background:
+    linear-gradient(rgba(255,255,255,.84),rgba(255,255,255,.84)),
+    linear-gradient(135deg,rgba(176,138,62,.12),rgba(23,69,74,.08));
+}
+.item-detail-visual img{
+  display:block!important;width:100%!important;height:100%!important;
+  max-width:100%!important;max-height:100%!important;
+  object-fit:contain!important;object-position:center!important;
+  position:relative!important;inset:auto!important;z-index:1!important;
+  transform:none!important;pointer-events:none;
+}
+.item-detail-panel h2,.item-detail-primary,.item-detail-rule,
+.item-detail-note,.item-detail-actions,.item-detail-panel>.menu-close{
+  position:relative;z-index:2;
+}
+@media screen and (max-width:520px){
+  .item-detail-visual{
+    height:118px!important;min-height:118px!important;max-height:118px!important;
+    padding:6px!important;
+  }
+  .arsenal-row.has-icon{
+    grid-template-columns:minmax(0,1fr) 68px auto!important;
+  }
+  .arsenal-row-visual{height:58px!important;max-width:68px!important;padding:2px!important;}
+  .item-detail-panel h2{font-size:23px;line-height:1.05;margin-bottom:9px;}
+  .item-detail-rule{font-size:14px;line-height:1.35;}
+  .item-detail-actions{grid-template-columns:1fr;}
+}

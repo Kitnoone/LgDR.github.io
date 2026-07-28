@@ -1,16 +1,16 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v12-arsenal-icons';
+const V = 'legendy-v13-weapon-layout';
 const ASSETS = [
   './',
   './index.html',
-  './app.css?v=arsenal-icons-1',
-  './arsenal.js?v=arsenal-icons-1',
-  './app.js?v=arsenal-icons-1',
-  './auth.js?v=arsenal-icons-1',
-  './character-store.js?v=arsenal-icons-1',
-  './lobby-store.js?v=arsenal-icons-1',
-  './firebase-config.js?v=arsenal-icons-1',
+  './app.css?v=weapon-layout-1',
+  './arsenal.js?v=weapon-layout-1',
+  './app.js?v=weapon-layout-1',
+  './auth.js?v=weapon-layout-1',
+  './character-store.js?v=weapon-layout-1',
+  './lobby-store.js?v=weapon-layout-1',
+  './firebase-config.js?v=weapon-layout-1',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',

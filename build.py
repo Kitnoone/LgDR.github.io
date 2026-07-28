@@ -695,7 +695,7 @@ HEAD = '''<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=PT+Sans+Narrow:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.css?v=arsenal-icons-1">
+<link rel="stylesheet" href="app.css?v=weapon-layout-1">
 </head>
 <body>
 
@@ -831,8 +831,10 @@ HEAD = '''<!DOCTYPE html>
   <div class="sheetmenu-panel item-detail-panel">
     <span id="item-detail-kicker" class="arsenal-kicker">Предмет</span>
     <h2 id="item-detail-name">—</h2>
-    <div id="item-detail-visual" class="item-detail-visual" hidden>
-      <img id="item-detail-image" alt="" decoding="async">
+    <div id="item-detail-visual" class="item-detail-visual" hidden
+         style="width:100%;height:clamp(112px,22vh,164px);max-height:164px;min-height:112px;overflow:hidden;display:grid;place-items:center;padding:8px;border:1px solid #ded4c1;background:#f7f3ea;position:relative;isolation:isolate;">
+      <img id="item-detail-image" alt="" decoding="async"
+           style="display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center;position:relative;z-index:1;">
     </div>
     <p id="item-detail-primary" class="item-detail-primary">—</p>
     <p id="item-detail-rule" class="item-detail-rule">—</p>
@@ -935,9 +937,9 @@ FOOT = '''
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="arsenal.js?v=arsenal-icons-1"></script>
-<script src="app.js?v=arsenal-icons-1"></script>
-<script type="module" src="auth.js?v=arsenal-icons-1"></script>
+<script src="arsenal.js?v=weapon-layout-1"></script>
+<script src="app.js?v=weapon-layout-1"></script>
+<script type="module" src="auth.js?v=weapon-layout-1"></script>
 </body>
 </html>
 '''
