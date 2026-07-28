@@ -1,16 +1,16 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v15-armor-type';
+const V = 'legendy-v16-damage-cards';
 const ASSETS = [
   './',
   './index.html',
-  './app.css?v=armor-type-1',
-  './arsenal.js?v=armor-type-1',
-  './app.js?v=armor-type-1',
-  './auth.js?v=armor-type-1',
-  './character-store.js?v=armor-type-1',
-  './lobby-store.js?v=armor-type-1',
-  './firebase-config.js?v=armor-type-1',
+  './app.css?v=damage-card-1',
+  './arsenal.js?v=damage-card-1',
+  './app.js?v=damage-card-1',
+  './auth.js?v=damage-card-1',
+  './character-store.js?v=damage-card-1',
+  './lobby-store.js?v=damage-card-1',
+  './firebase-config.js?v=damage-card-1',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',

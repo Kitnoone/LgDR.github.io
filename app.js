@@ -383,6 +383,29 @@ function weaponDamageText(weapon, card = activeCard()) {
   return `${weapon.damage} + ${multiplier}×${label} (${total >= 0 ? '+' : ''}${total})`;
 }
 
+function weaponDamageParts(weapon, card = activeCard()) {
+  if (!weapon) return { dice:'—', modifier:'Урон не указан', total:'' };
+  const dice = String(weapon.damage || '—');
+  if (!weapon.modifier || !card) return { dice, modifier:'', total:dice };
+  const label = Arsenal.STAT_LABELS[weapon.modifier] || weapon.modifier;
+  const value = effectiveStatValue(card, weapon.modifier);
+  const multiplier = Number(weapon.modifierMultiplier || 1);
+  const bonus = value * multiplier;
+  const modifier = multiplier === 1
+    ? `+ ${label} (${bonus >= 0 ? '+' : ''}${bonus})`
+    : `+ ${multiplier}×${label} (${bonus >= 0 ? '+' : ''}${bonus})`;
+  return { dice, modifier, total:`${dice} ${modifier}` };
+}
+
+function weaponDamageMarkup(weapon, card = activeCard(), detail = false) {
+  const parts = weaponDamageParts(weapon, card);
+  const prefix = detail ? 'item-detail-damage' : 'arsenal-damage';
+  return `<span class="${prefix}-label">Урон</span>`
+    + `<strong class="${prefix}-value">${escapeForHtml(parts.dice)}</strong>`
+    + (parts.modifier ? `<span class="${prefix}-modifier">${escapeForHtml(parts.modifier)}</span>` : '')
+    + `<span class="${prefix}-hands">${escapeForHtml(handsText(weapon?.hands))}</span>`;
+}
+
 function handsText(count) {
   count = Number(count || 0);
   if (count === 0) return 'не занимает рук';
@@ -574,7 +597,7 @@ function renderArsenalList() {
       const primary = arsenalMode === 'armor'
         ? `Класс брони ${item.ac}${item.extraHands ? ' · 3 руки' : ''}`
         : arsenalMode === 'weapon'
-          ? `${weaponDamageText(item)} · ${handsText(item.hands)}`
+          ? ''
           : `${handsText(item.hands)}${item.armorBonus ? ` · Класс брони +${item.armorBonus}` : ''}`;
       const rule = Arsenal.fullRule(item) || 'Дополнительных правил нет.';
       const icon = arsenalMode === 'weapon' ? Arsenal.iconFor(item) : '';
@@ -586,8 +609,10 @@ function renderArsenalList() {
         row.style.overflow = 'hidden';
       }
       row.innerHTML = `<span class="arsenal-row-copy"><b>${escapeForHtml(item.name)}</b>`
-        + `<small>${escapeForHtml(primary)}</small>`
-        + `<span class="arsenal-row-rule">${escapeForHtml(rule)}</span></span>`
+        + (arsenalMode === 'weapon'
+          ? `<span class="arsenal-damage-block">${weaponDamageMarkup(item)}</span>`
+          : `<small>${escapeForHtml(primary)}</small>`)
+        + `<span class="arsenal-row-rule"><span class="arsenal-rule-label">Правило</span>${escapeForHtml(rule)}</span></span>`
         + (icon ? `<span class="arsenal-row-visual" aria-hidden="true" style="width:100%;height:64px;max-width:88px;overflow:hidden;display:grid;place-items:center;padding:3px;background:#f7f3ea;border-left:1px solid #ded4c1;border-right:1px solid #ded4c1;contain:layout paint;"><img src="${escapeForHtml(icon)}" alt="" loading="lazy" decoding="async" style="display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center;"></span>` : '')
         + `<em>${escapeForHtml(reason || 'Выбрать')}</em>`;
       section.appendChild(row);
@@ -623,11 +648,15 @@ function openItemDetail(kind, itemId, index = -1) {
   detailContext = { kind, itemId, index:Number(index) };
   $('#item-detail-kicker').textContent = kind === 'armor' ? 'Броня' : kind === 'weapon' ? 'Оружие' : 'Снаряжение';
   $('#item-detail-name').textContent = item.name;
-  $('#item-detail-primary').textContent = kind === 'armor'
-    ? `Класс брони: ${item.ac}${item.extraHands ? ' · даёт третью руку' : ''}`
-    : kind === 'weapon'
-      ? `Урон: ${weaponDamageText(item)} · ${handsText(item.hands)}`
+  const detailPrimary = $('#item-detail-primary');
+  detailPrimary.classList.toggle('is-weapon', kind === 'weapon');
+  if (kind === 'weapon') {
+    detailPrimary.innerHTML = weaponDamageMarkup(item, activeCard(), true);
+  } else {
+    detailPrimary.textContent = kind === 'armor'
+      ? `Класс брони: ${item.ac}${item.extraHands ? ' · даёт третью руку' : ''}`
       : `${handsText(item.hands)}${item.armorBonus ? ` · Класс брони +${item.armorBonus}` : ''}`;
+  }
   $('#item-detail-rule').textContent = Arsenal.fullRule(item) || 'Дополнительных правил нет.';
   const detailVisual = $('#item-detail-visual');
   const detailImage = $('#item-detail-image');
