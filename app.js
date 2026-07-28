@@ -629,22 +629,6 @@ function openItemDetail(kind, itemId, index = -1) {
   const icon = kind === 'weapon' ? Arsenal.iconFor(item) : '';
   if (detailVisual && detailImage) {
     detailVisual.hidden = !icon;
-    detailVisual.style.width = '100%';
-    detailVisual.style.height = 'clamp(112px,22vh,164px)';
-    detailVisual.style.maxHeight = '164px';
-    detailVisual.style.minHeight = '112px';
-    detailVisual.style.overflow = 'hidden';
-    detailVisual.style.display = icon ? 'grid' : 'none';
-    detailVisual.style.placeItems = 'center';
-    detailVisual.style.position = 'relative';
-    detailVisual.style.isolation = 'isolate';
-    detailImage.style.display = 'block';
-    detailImage.style.width = '100%';
-    detailImage.style.height = '100%';
-    detailImage.style.maxWidth = '100%';
-    detailImage.style.maxHeight = '100%';
-    detailImage.style.objectFit = 'contain';
-    detailImage.style.objectPosition = 'center';
     detailImage.src = icon || '';
     detailImage.alt = icon ? item.name : '';
   }
@@ -1123,7 +1107,7 @@ function bindEventsOnce() {
   }));
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js?v=weapon-layout-1', { updateViaCache: 'none' }).catch(err =>
+    navigator.serviceWorker.register('sw.js?v=weapon-card-1', { updateViaCache: 'none' }).catch(err =>
       console.warn('Service worker не зарегистрирован:', err));
   }
 }
