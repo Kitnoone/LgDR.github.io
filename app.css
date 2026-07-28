@@ -508,17 +508,32 @@ main{padding:calc(var(--topbar-h) + env(safe-area-inset-top) + 14px) 14px
   border-bottom:1px solid var(--paper-edge);padding-bottom:5px;
 }
 .arsenal-row{
-  width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;
-  padding:11px 12px;margin-bottom:6px;border:1px solid var(--paper-edge);background:#fff;text-align:left;
+  width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:11px;
+  padding:11px 12px;margin-bottom:7px;border:1px solid var(--paper-edge);background:#fff;text-align:left;
 }
+.arsenal-row.has-icon{grid-template-columns:minmax(0,1fr) 88px auto;}
+.arsenal-row-copy{min-width:0;}
 .arsenal-row b{display:block;font:600 15px var(--display);text-transform:uppercase;color:var(--teal);}
 .arsenal-row small{display:block;margin-top:2px;font:12px var(--util);color:var(--ink-soft);}
+.arsenal-row-rule{
+  display:block;margin-top:6px;padding-top:6px;border-top:1px solid rgba(23,69,74,.12);
+  font:12.5px/1.32 var(--body);color:#3b3933;
+}
+.arsenal-row-visual{
+  width:88px;height:68px;display:grid;place-items:center;padding:3px 4px;
+  border-left:1px solid var(--paper-edge);border-right:1px solid var(--paper-edge);
+  background:linear-gradient(135deg,rgba(176,138,62,.05),rgba(23,69,74,.035));overflow:hidden;
+}
+.arsenal-row-visual img{display:block;width:100%;height:100%;object-fit:contain;}
 .arsenal-row em{max-width:150px;font:700 10.5px/1.25 var(--util);font-style:normal;text-transform:uppercase;letter-spacing:.05em;color:var(--brass-deep);text-align:right;}
 .arsenal-row.is-disabled{opacity:.48;background:rgba(0,0,0,.025);}
 .arsenal-row.is-disabled em{color:var(--blood);}
 .arsenal-empty{margin:0;padding:18px;border:1px dashed var(--paper-edge);text-align:center;color:var(--ink-soft);}
 
 .item-detail-panel h2{font-size:27px;margin:3px 0 11px;color:var(--teal);}
+.item-detail-visual{height:170px;margin:0 0 10px;border:1px solid var(--paper-edge);background:linear-gradient(135deg,#fff,rgba(176,138,62,.07));display:grid;place-items:center;padding:9px;}
+.item-detail-visual[hidden]{display:none!important;}
+.item-detail-visual img{display:block;width:100%;height:100%;object-fit:contain;}
 .item-detail-primary{
   margin:0 0 10px;padding:10px 12px;background:var(--teal-deep);color:#fff;
   font:700 14px var(--util);letter-spacing:.02em;
@@ -865,3 +880,17 @@ body.has-partybar main{padding-top:calc(var(--topbar-h) + var(--partybar-h) + en
 .loadout-hands-row.is-over{border-color:var(--blood);background:rgba(125,31,22,.08);}
 .loadout-hands-row.is-over>b{color:var(--blood);}
 @media print{.loadout-chip p{font-size:7.3pt;line-height:1.25;}}
+
+
+/* v1.8 · иконки и полные правила в каталоге оружия */
+@media screen and (max-width:520px){
+  .arsenal-row{gap:8px;padding:10px;}
+  .arsenal-row.has-icon{grid-template-columns:minmax(0,1fr) 74px auto;}
+  .arsenal-row-visual{width:74px;height:64px;padding:2px;}
+  .arsenal-row-rule{font-size:12px;line-height:1.28;}
+  .arsenal-row em{font-size:9.5px;max-width:64px;}
+  .item-detail-visual{height:145px;}
+}
+@media print{
+  .item-detail-visual,.arsenal-row-visual{display:none!important;}
+}

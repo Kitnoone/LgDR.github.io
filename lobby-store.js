@@ -7,7 +7,7 @@
    разных игроков не перезаписывают друг друга.
    ================================================================== */
 
-import { db } from './firebase-config.js?v=fanatic-weapons-1';
+import { db } from './firebase-config.js?v=arsenal-icons-1';
 import {
   doc,
   getDoc,

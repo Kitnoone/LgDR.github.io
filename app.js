@@ -571,7 +571,13 @@ function renderArsenalList() {
         : arsenalMode === 'weapon'
           ? `${weaponDamageText(item)} · ${handsText(item.hands)}`
           : `${handsText(item.hands)}${item.armorBonus ? ` · КБ +${item.armorBonus}` : ''}`;
-      row.innerHTML = `<span><b>${escapeForHtml(item.name)}</b><small>${escapeForHtml(primary)}</small></span>`
+      const rule = Arsenal.fullRule(item) || 'Дополнительных правил нет.';
+      const icon = arsenalMode === 'weapon' ? Arsenal.iconFor(item) : '';
+      if (icon) row.classList.add('has-icon');
+      row.innerHTML = `<span class="arsenal-row-copy"><b>${escapeForHtml(item.name)}</b>`
+        + `<small>${escapeForHtml(primary)}</small>`
+        + `<span class="arsenal-row-rule">${escapeForHtml(rule)}</span></span>`
+        + (icon ? `<span class="arsenal-row-visual" aria-hidden="true"><img src="${escapeForHtml(icon)}" alt="" loading="lazy" decoding="async"></span>` : '')
         + `<em>${escapeForHtml(reason || 'Выбрать')}</em>`;
       section.appendChild(row);
     });
@@ -612,6 +618,14 @@ function openItemDetail(kind, itemId, index = -1) {
       ? `Урон: ${weaponDamageText(item)} · ${handsText(item.hands)}`
       : `${handsText(item.hands)}${item.armorBonus ? ` · КБ +${item.armorBonus}` : ''}`;
   $('#item-detail-rule').textContent = Arsenal.fullRule(item) || 'Дополнительных правил нет.';
+  const detailVisual = $('#item-detail-visual');
+  const detailImage = $('#item-detail-image');
+  const icon = kind === 'weapon' ? Arsenal.iconFor(item) : '';
+  if (detailVisual && detailImage) {
+    detailVisual.hidden = !icon;
+    detailImage.src = icon || '';
+    detailImage.alt = icon ? item.name : '';
+  }
   const change = $('.item-change', $('#itemdetaildlg'));
   if (change) change.textContent = kind === 'armor' ? 'Выбрать другую броню' : 'Открыть арсенал';
   const remove = $('#item-detail-remove');
@@ -1087,7 +1101,7 @@ function bindEventsOnce() {
   }));
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js?v=fanatic-weapons-1', { updateViaCache: 'none' }).catch(err =>
+    navigator.serviceWorker.register('sw.js?v=arsenal-icons-1', { updateViaCache: 'none' }).catch(err =>
       console.warn('Service worker не зарегистрирован:', err));
   }
 }

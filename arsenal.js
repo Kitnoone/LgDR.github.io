@@ -30,7 +30,7 @@
   };
 
   const WEAPONS = [
-    { id:'las-pistol', family:'las', group:'Лазерное', name:'Лазерный пистолет', damage:'d4', modifier:'dexterity', hands:1 },
+    { id:'las-pistol', family:'las', group:'Лазерное', name:'Лазпистолет', damage:'d4', modifier:'dexterity', hands:1 },
     { id:'lasgun', family:'las', group:'Лазерное', name:'Лазган', damage:'d6', modifier:'dexterity', hands:2 },
     { id:'longlas', family:'las', group:'Лазерное', name:'Лонглаз', damage:'d6', modifier:'dexterity', modifierMultiplier:2, hands:2 },
 
@@ -63,7 +63,7 @@
     { id:'knife', group:'Обычное', name:'Нож', damage:'d4', modifier:'dexterity', hands:1 },
     { id:'improvised', group:'Обычное', name:'Импровизированное оружие', damage:'d4', hands:1, rule:'Любой подходящий предмет может использоваться как импровизированное оружие.' },
 
-    { id:'fanatic-daggers', group:'Оружие Фанатика смерти', name:'Кинжалы фанатика', damage:'2d4', modifier:'strength', hands:2, allowedArchetypes:['cultist'], restriction:'Доступны только Фанатику смерти.', rule:'Парные ритуальные кинжалы Фанатика смерти. Занимают обе руки.' },
+    { id:'fanatic-daggers', group:'Оружие Фанатика смерти', name:'Клинки фанатика', damage:'2d4', modifier:'strength', hands:2, allowedArchetypes:['cultist'], restriction:'Доступны только Фанатику смерти.', rule:'Парные ритуальные клинки Фанатика смерти. Занимают обе руки.' },
     { id:'fanatic-crossbow', group:'Оружие Фанатика смерти', name:'Арбалет фанатика', damage:'d4', modifier:'dexterity', hands:1, allowedArchetypes:['cultist'], restriction:'Доступен только Фанатику смерти.', rule:'Ритуальный арбалет Фанатика смерти. Занимает одну руку.' },
 
     { id:'heretic-claws', group:'Врождённое', name:'Когти Еретика', damage:'2d4', modifier:'dexterity', hands:0, builtIn:true, allowedArchetypes:['heretic'], restriction:'Это врождённое оружие доступно только Еретику.', rule:'Когти являются руками Еретика, не занимают слоты рук и не могут быть сняты.' },
@@ -152,6 +152,11 @@
     return [item.family ? FAMILY_RULES[item.family] : '', item.rule || ''].filter(Boolean).join(' ');
   }
 
+  function iconFor(item) {
+    if (!item || !weaponById[item.id]) return '';
+    return `assets/weapons/${item.id}.webp`;
+  }
+
   window.LegendyArsenal = Object.freeze({
     ARMOR:Object.freeze(ARMOR),
     WEAPONS:Object.freeze(WEAPONS),
@@ -169,5 +174,6 @@
     allowed,
     weaponAllowed,
     fullRule,
+    iconFor,
   });
 })();
