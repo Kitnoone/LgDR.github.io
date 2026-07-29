@@ -1,6 +1,6 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v20-gm-html-reader';
+const V = 'legendy-v21-portraits-tips';
 const ASSETS = [
   './',
   './index.html',
@@ -8,10 +8,10 @@ const ASSETS = [
   './master.css?v=gm-html-reader-1',
   './master-data.js?v=gm-html-reader-1',
   './master.js?v=gm-html-reader-1',
-  './app.css?v=gm-html-reader-1',
-  './arsenal.js?v=gm-html-reader-1',
-  './app.js?v=gm-html-reader-1',
-  './auth.js?v=gm-html-reader-1',
+  './app.css?v=portraits-tips-17',
+  './arsenal.js?v=portraits-tips-17',
+  './app.js?v=portraits-tips-17',
+  './auth.js?v=portraits-tips-17',
   './character-store.js?v=gm-html-reader-1',
   './lobby-store.js?v=gm-html-reader-1',
   './firebase-config.js?v=gm-html-reader-1',
@@ -19,6 +19,14 @@ const ASSETS = [
   './icon-192.png',
   './icon-512.png',
   './assets/scenarios/prolog-verstka.html',
+  './assets/portraits/guardsman.png',
+  './assets/portraits/heretic.png',
+  './assets/portraits/cultist.png',
+  './assets/portraits/techpriest.png',
+  './assets/portraits/priest.png',
+  './assets/portraits/neophyte.png',
+  './assets/portraits/psyker.png',
+  './assets/portraits/sister.png',
   './assets/weapons/autogun.webp',
   './assets/weapons/bolt-pistol.webp',
   './assets/weapons/bolter.webp',
