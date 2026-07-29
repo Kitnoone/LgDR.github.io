@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Пролог — Аркона Прайм</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=PT+Sans+Narrow:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<style>:root{
+  --paper:#efe9dd; --paper-edge:#ded4c1; --ink:#17181a;
+  --teal:#17454a; --teal-deep:#0d2b30; --brass:#b08a3e; --blood:#7d1f16;
+  --display:"Oswald","PT Sans Narrow","Arial Narrow",sans-serif;
+  --body:"PT Serif",Georgia,"Times New Roman",serif;
+  --util:"PT Sans Narrow","Arial Narrow",sans-serif;
+  --m-out:14mm; --m-in:18mm; --m-top:16mm; --m-bot:16mm;
+}
+*{box-sizing:border-box;}
+html{background:#3a3833;}
+body{margin:0;font-family:var(--body);color:var(--ink);font-size:10pt;line-height:1.34;counter-reset:folio;}
+
+/* ---------- лист ---------- */
+.sheet{
+  position:relative;width:210mm;min-height:297mm;margin:20px auto;
+  padding:var(--m-top) var(--m-out) var(--m-bot) var(--m-in);
+  background:var(--paper);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/><feColorMatrix type='saturate' values='0'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.055'/></svg>");
+  box-shadow:0 10px 34px rgba(0,0,0,.5);overflow:hidden;counter-increment:folio;
+}
+.runhead{
+  display:flex;justify-content:flex-end;align-items:baseline;gap:10px;
+  font-family:var(--display);text-transform:uppercase;letter-spacing:.1em;
+  font-size:9pt;color:var(--teal);font-weight:500;
+  border-bottom:1px solid var(--paper-edge);padding-bottom:4px;margin-bottom:8mm;
+}
+.runhead .numeral{font-size:14pt;color:var(--brass);letter-spacing:0;}
+.marginal{
+  position:absolute;right:3mm;top:44mm;font-family:var(--display);font-weight:600;
+  font-size:56pt;line-height:1;color:var(--teal);opacity:.1;letter-spacing:-.04em;pointer-events:none;z-index:0;
+}
+.folio{
+  position:absolute;right:var(--m-out);bottom:8mm;
+  font-family:var(--util);font-size:9pt;letter-spacing:.08em;color:var(--teal);
+}
+.folio::after{content:counter(folio);}
+.folio::before{
+  content:"";display:inline-block;width:15px;height:15px;margin-right:8px;
+  vertical-align:-3px;opacity:.35;transform:rotate(45deg);
+  background:linear-gradient(var(--brass),var(--brass)) center/100% 2px no-repeat,
+             linear-gradient(var(--brass),var(--brass)) center/2px 100% no-repeat;
+}
+
+/* ---------- обложка ---------- */
+.cover{padding:0;display:flex;flex-direction:column;background:var(--teal-deep);color:#efe9dd;}
+.cover .art{
+  flex:1;min-height:150mm;position:relative;overflow:hidden;
+  background:radial-gradient(120% 80% at 22% 34%, rgba(214,168,74,.5) 0%, rgba(214,168,74,0) 58%),
+             linear-gradient(#0a2024 0%, #12363b 46%, #1d1a16 100%);
+}
+.cover .art::after{content:"";position:absolute;inset:auto 0 0 0;height:46%;
+  background:linear-gradient(transparent, rgba(0,0,0,.75));}
+.cover .art .skyline{
+  position:absolute;left:0;right:0;bottom:0;height:44%;
+  background:repeating-linear-gradient(90deg, rgba(0,0,0,.5) 0 5px, transparent 5px 19px),
+             linear-gradient(transparent 40%, rgba(0,0,0,.85));
+  clip-path:polygon(0 70%,6% 70%,6% 52%,10% 52%,10% 74%,17% 74%,17% 40%,21% 40%,21% 66%,30% 66%,30% 58%,35% 58%,35% 78%,42% 78%,42% 34%,46% 34%,46% 64%,55% 64%,55% 48%,61% 48%,61% 72%,69% 72%,69% 42%,73% 42%,73% 68%,82% 68%,82% 54%,88% 54%,88% 76%,95% 76%,95% 60%,100% 60%,100% 100%,0 100%);
+}
+.cover .plate{padding:12mm var(--m-out) 18mm;text-align:center;}
+.cover .eyebrow{font-family:var(--util);text-transform:uppercase;letter-spacing:.24em;
+  font-size:10pt;color:var(--brass);margin-bottom:6mm;}
+.cover h1{font-family:var(--display);font-weight:600;text-transform:uppercase;
+  font-size:42pt;line-height:.98;margin:0;}
+.cover .rule{width:56mm;height:1px;background:var(--brass);margin:7mm auto;position:relative;}
+.cover .rule::after{content:"";position:absolute;left:50%;top:-4px;width:9px;height:9px;
+  transform:translateX(-50%) rotate(45deg);background:var(--brass);}
+.cover .tagline{font-family:var(--util);text-transform:uppercase;letter-spacing:.13em;
+  font-size:9pt;color:#c9c2b1;line-height:1.7;max-width:130mm;margin:0 auto;}
+
+/* ---------- открывающая страница части ---------- */
+.opener .strip{
+  height:78mm;margin:-16mm -14mm 0 -18mm;position:relative;
+  background:radial-gradient(90% 120% at 76% 22%, rgba(214,168,74,.45), transparent 62%),
+             linear-gradient(#0e2a2e,#1b1815);
+}
+.opener .banner{
+  position:absolute;left:0;bottom:11mm;background:#101112;color:#fff;
+  padding:6mm 24mm 6mm 18mm;
+  clip-path:polygon(0 0,100% 0,97% 26%,100% 52%,96% 78%,100% 100%,0 100%);
+}
+.opener .banner .kicker{font-family:var(--util);text-transform:uppercase;letter-spacing:.2em;
+  font-size:9pt;color:var(--brass);display:block;margin-bottom:2mm;}
+.opener .banner h1{font-family:var(--display);font-weight:600;text-transform:uppercase;
+  font-size:28pt;line-height:1;margin:0;}
+.opener .big-numeral{position:absolute;right:7mm;top:5mm;font-family:var(--display);
+  font-weight:600;font-size:64pt;color:#efe9dd;opacity:.9;line-height:1;}
+
+/* ---------- колонки и текст ---------- */
+.cols{column-count:2;column-gap:7mm;position:relative;z-index:1;}
+.cols > *{break-inside:avoid-column;}
+h2.loc{font-family:var(--display);font-weight:600;text-transform:uppercase;
+  font-size:18pt;line-height:1.06;color:var(--teal);margin:0 0 4mm;
+  padding-bottom:2mm;border-bottom:2px solid var(--teal);column-span:all;}
+h3.npc{font-family:var(--display);font-weight:500;text-transform:uppercase;letter-spacing:.04em;
+  font-size:12pt;color:var(--teal);margin:5mm 0 2mm;}
+h4{font-family:var(--body);font-weight:700;font-size:10pt;margin:3.5mm 0 1.5mm;}
+p{margin:0 0 2.6mm;}
+p.meta{font-family:var(--util);text-transform:uppercase;letter-spacing:.08em;
+  font-size:8.5pt;color:var(--teal);border-left:2px solid var(--brass);padding-left:3mm;}
+
+/* строка проверки */
+p.checkline{
+  font-family:var(--util);font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+  font-size:9.5pt;color:var(--teal);border-top:1px solid var(--paper-edge);
+  border-bottom:1px solid var(--paper-edge);padding:1.6mm 0 1.6mm 7mm;margin:3mm 0;position:relative;
+}
+p.checkline::before{content:"";position:absolute;left:1mm;top:2.6mm;width:7px;height:7px;
+  transform:rotate(45deg);background:var(--brass);}
+
+/* уровни успеха */
+p.su{padding-left:6mm;text-indent:-6mm;margin-bottom:1.8mm;}
+.su-key{font-family:var(--util);font-weight:700;color:var(--teal);
+  text-transform:uppercase;letter-spacing:.05em;margin-right:2mm;}
+
+/* списки */
+ul.checks{list-style:none;margin:0 0 3mm;padding:0;}
+ul.checks li{position:relative;padding-left:5.5mm;margin-bottom:1.6mm;}
+ul.checks li::before{content:"";position:absolute;left:1mm;top:1.7mm;width:5px;height:5px;
+  transform:rotate(45deg);background:var(--teal);}
+ol.steps{margin:0 0 3mm;padding-left:6mm;}
+ol.steps li{margin-bottom:1.6mm;}
+ol.steps li::marker{font-family:var(--util);font-weight:700;color:var(--brass);}
+
+/* читать игрокам */
+.readaloud{margin:3.5mm 0;padding:3mm 4mm 2.4mm 5mm;border-left:3px solid var(--brass);
+  background:rgba(176,138,62,.1);font-style:italic;}
+.readaloud .tag{display:block;font-family:var(--util);font-style:normal;text-transform:uppercase;
+  letter-spacing:.16em;font-size:8pt;color:var(--brass);margin-bottom:2mm;}
+.readaloud p{margin-bottom:2mm;}
+
+/* закрытая информация */
+.gm{margin:3.5mm 0;}
+.gm .tag{display:block;font-family:var(--util);text-transform:uppercase;letter-spacing:.16em;
+  font-size:8pt;color:var(--teal);border-bottom:1px solid var(--paper-edge);
+  padding-bottom:1mm;margin-bottom:2mm;}
+
+/* раздаточный материал и машинные записи */
+.handout{margin:3.5mm 0;padding:3mm 4mm;background:var(--teal-deep);color:#dfe6e2;
+  border:1px solid var(--brass);position:relative;}
+.handout::before,.handout::after{content:"";position:absolute;width:8px;height:8px;
+  border:2px solid var(--brass);}
+.handout::before{left:3px;top:3px;border-right:0;border-bottom:0;}
+.handout::after{right:3px;bottom:3px;border-left:0;border-top:0;}
+.handout p{font-family:var(--util);font-size:9pt;letter-spacing:.02em;line-height:1.45;margin-bottom:2mm;}
+.handout p:last-child{margin-bottom:0;}
+
+/* содержание */
+.toc .cols{column-count:2;}
+.toc-part{font-family:var(--display);text-transform:uppercase;font-size:11.5pt;color:var(--teal);
+  font-weight:600;margin:5mm 0 2mm;border-bottom:1px solid var(--paper-edge);padding-bottom:1mm;
+  break-inside:avoid;}
+.toc-part span{display:block;font-family:var(--util);font-size:8pt;letter-spacing:.2em;
+  color:var(--brass);font-weight:400;}
+.toc-line{display:block;text-decoration:none;color:var(--ink);font-size:9.5pt;
+  padding:.9mm 0;border-bottom:1px dotted var(--paper-edge);break-inside:avoid;}
+.toc-line:hover{color:var(--teal);}
+
+/* печать */
+@page{size:A4;margin:0;}
+@media print{
+  html{background:#fff;}
+  .sheet{margin:0;box-shadow:none;page-break-after:always;}
+  .sheet:last-child{page-break-after:auto;}
+  a{color:inherit;text-decoration:none;}
+}
+@media screen and (max-width:820px){
+  .sheet{width:100%;min-height:auto;padding:16px;}
+  .cols{column-count:1;}
+  .marginal{display:none;}
+}
+
+/* разделитель разделов внутри одного листа */
+.secbreak{column-span:all;height:0;margin:6mm 0 0;}
+.secbreak + h2.loc{margin-top:0;}
+
+/* --- дополнения под «Пролог» --- */
+.cue-badge{
+  display:inline-block;font-family:var(--display);font-weight:600;font-size:12pt;
+  color:var(--paper);background:var(--brass);padding:0 2.4mm;margin-right:3mm;
+  vertical-align:.4mm;letter-spacing:0;
+}
+.cue-n{
+  display:inline-block;min-width:6mm;font-family:var(--util);font-weight:700;
+  font-size:8.5pt;color:var(--brass);letter-spacing:.04em;margin-right:2mm;
+}
+.test{
+  font-family:var(--util);font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  font-size:9pt;color:var(--teal);white-space:nowrap;
+  border-bottom:1px solid var(--brass);padding-bottom:.3mm;
+}
+.narration{
+  margin:3.5mm 0;padding:3mm 4mm 2.4mm 5mm;border-left:3px solid var(--brass);
+  background:rgba(176,138,62,.1);font-style:italic;
+}
+.narration p{margin:0;}
+.attrib{text-align:right;font-style:italic;color:var(--teal);margin-top:-1mm;}
+.speech{padding-left:5mm;text-indent:-5mm;margin-bottom:1.6mm;}
+.gmnote{
+  font-family:var(--util);font-size:9pt;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--teal);border:1px solid var(--teal);padding:2mm 3mm;margin:3mm 0;
+  background:rgba(23,69,74,.06);
+}
+.profile{
+  margin:3.5mm 0;padding:3mm 4mm;border:1px solid var(--teal);
+  background:rgba(23,69,74,.07);
+}
+.profile p{font-family:var(--util);font-size:9.5pt;line-height:1.4;margin:0 0 1.4mm;}
+.profile p:first-child{font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--teal);font-size:10pt;}
+.profile p:last-child{margin-bottom:0;}
+.toc-line .cue-n{color:var(--brass);}
+</style></head><body>
+
+<section class="sheet cover">
+  <div class="art"><div class="skyline"></div></div>
+  <div class="plate">
+    <div class="eyebrow">Аркона Прайм · улей Мёртвые Реки</div>
+    <h1>Пролог</h1>
+    <div class="rule"></div>
+    <p class="tagline">Дом Спайр · Ордо Еретикус</p>
+  </div>
+</section>
+
+<section class="sheet toc">
+  <h2 class="loc">Содержание</h2>
+  <div class="cols"><a class="toc-line" href="#s1"><span class="cue-n">1</span>Начало</a><a class="toc-line" href="#s2"><span class="cue-n">2</span>Вступление</a><div class="toc-part"><span>Часть</span>Вид с вершины</div><a class="toc-line" href="#s4"><span class="cue-n">3</span>Шпили начало</a><a class="toc-line" href="#s5"><span class="cue-n">4</span>Мажордом</a><div class="toc-part"><span>Часть</span>Внутри</div><a class="toc-line" href="#s7"><span class="cue-n">5</span>Трон Династии</a><div class="toc-part"><span>Часть</span>Бар «Адептус Амасекус»</div><a class="toc-line" href="#s9"><span class="cue-n">6</span>Адептус Амасекус снаружи</a><a class="toc-line" href="#s10"><span class="cue-n">7</span>Астрид</a><a class="toc-line" href="#s11"><span class="cue-n">8</span>Бой с Астрид</a><a class="toc-line" href="#s12"><span class="cue-n">9</span>В тонели</a><a class="toc-line" href="#s13"><span class="cue-n">10</span>Катарина</a><a class="toc-line" href="#s14"><span class="cue-n">11</span>Логово Культа</a><a class="toc-line" href="#s15"><span class="cue-n">12</span>Бой с культом</a><a class="toc-line" href="#s16"><span class="cue-n">13</span>Смерть предателя</a><div class="toc-part"><span>Часть</span>В шпилях</div><a class="toc-line" href="#s18"><span class="cue-n">14</span>В шпиль обратно</a><a class="toc-line" href="#s19"><span class="cue-n">9</span>В тонели</a><a class="toc-line" href="#s20"><span class="cue-n">15</span>Истина</a><a class="toc-line" href="#s21"><span class="cue-n">17</span>Бой с герольдом</a><a class="toc-line" href="#s22"><span class="cue-n">18</span>Эпилог</a><div class="toc-part"><span>Часть</span>Эпилог</div></div>
+  <div class="folio"></div>
+</section>
+
+<section class="sheet">
+<div class="runhead"><span>Пролог</span></div>
+<div class="cols">
+<p></p>
+<div class="secbreak" id="s1"></div>
+<h2 class="loc"><span class="cue-badge">1</span>Начало</h2>
+<p>Наши предки были людьми, которые смогли пройти через варп-штормы в один из самых тёмных периодов истории человечества. Они пошли вперёд не из страха, а следуя вере в Императора. Они преодолели опасности и нестабильность варпа, стремясь найти новое место, которое можно было бы назвать домом. И в конце концов они нашли его — жёсткий, дикий мир, полный опасностей и следов прежних катастроф.</p>
+<p>Он был враждебным. Его обиталища таили в себе чудовищ, и сама земля не желала быть укрощённой. Но наши предки не отступили. Они сражались, победили и выжили. Благодаря этому они стали защитой для тех, кто последовал за ними. Эти новые поселенцы поклялись в верности своим спасителям и начали строить общество, основанное на преданности, долге и силе.</p>
+<p>С тех пор мы, их потомки, помним эту историю. Мы знаем: если чудовища появятся вновь, мы будем готовы. Если снова наступит тьма, мы не отступим. Защищать друг друга и наш мир, пока мы живы, — это наш долг!</p>
+<p><strong><em>Вольный торговец Константин Спайр</strong></em></p>
+</div>
+<div class="folio"></div>
+</section>
+<section class="sheet" id="s2">
+<div class="runhead"><span>Пролог</span><span class="numeral">2</span></div>
+<div class="marginal">2</div>
+<div class="cols">
+<h2 class="loc"><span class="cue-badge">2</span>Вступление</h2>
+<div class="narration"><p>«Несметные миры поглощены омрачающим покрывалом — войной, деградацией, догматическим мракобесием. Эта тьма не есть пустота: она проникает в самые тонкие ткани Имперской цивилизации, словно гной, просачивающийся сквозь трещины разлагающегося тела. Однако даже в этой непроглядной бездне продолжает пульсировать Свет Императора. Человечество — это не слабое пламя, а бушующее пекло, закалённое болью, дисциплиной и верой. Вы — его инструмент. Его неизбежная кара. Его символ очищения.»</p></div>
+<p>На индустриальном мире Аркона Прайм, в недрах улья Мёртвые Реки, разворачивается прецедент, значение которого потенциально выходит за пределы локального сектора. Предварительный анализ указывает на активность несанкционированных культов и рост девиантных проявлений. Но подлинная угроза — не в формах, а в сущности: что, если истина — это грех?</p>
+<p>Вы — оперативное звено Инквизиции. Агентура, предназначенная для ведения когнитивной и идеологической войны в условиях тотальной энтропии. Вам поручено осуществить контакт с лордом-губернатором Сектора Катариной Спайр — наследницей дома Спайр и вольного торговца Константина Спайра, и установить подлинность её мотивов, а также верность трону Императора.</p>
+<p>Челнок с символом Святого подразделения Ордо Еретикус приземляется на посадочной платформе шпиля вольного торговца, и, когда с рёвом серво-поршней аппарель опускается, свет падает на шестерых слуг Императора — <strong>но кто они? Представьтесь!</strong></p>
+<p class="gmnote">Вручаем монеты — 4 шт.</p>
+</div>
+<div class="folio"></div>
+</section>
+<section class="sheet opener">
+<div class="strip"><div class="big-numeral">2</div><div class="banner"><span class="kicker">Пролог</span><h1>Вид с вершины</h1></div></div>
+<div class="cols lead"><p class="meta">Метки этой части</p><ul class="checks"><li><span class="cue-n">3</span>Шпили начало</li><li><span class="cue-n">4</span>Мажордом</li></ul></div>
+<div class="folio"></div></section>
+<span id="s3"></span>
+<section class="sheet" id="s4">
+<div class="runhead"><span>Пролог · Вид с вершины</span><span class="numeral">3</span></div>
+<div class="marginal">3</div>
+<div class="cols">
+<h2 class="loc"><span class="cue-badge">3</span>Шпили начало</h2>
+<p>С верхней посадочной платформы улья Мёртвые Реки открывается величественная панорама: небо цвета ауромитовой пыли, разорванное следами ионных струй, и горизонт, вечно затянутый гарью от дюжин горящих промышленных ярусов. Выше, среди завихрений атмосферы, возвышается шпиль дома Спайр — изящный, как клинок церемониального воина, окутанный сетью золотых энергоканалов и реликтовых куполов.</p>
+<p><strong><span class="test">Тест мудрости — 12</span></strong><br>Его фасад украшен эмблемой дома: чёрный геральдический трезубец, пронизывающий звезду, на фоне изумрудного поля с девизом на Высоком Готике: «Officium est omnia» — «Долг есть всё».</p>
+<p><strong>Если спрашивают</strong>, кто такие вольные торговцы (тест интеллекта — 12)</p>
+<p><strong>О Вольных Торговцах:</strong> Вольные торговцы — это уполномоченные Империумом индивидуумы, наделённые правом исследовать, торговать и действовать за пределами известных рубежей, зачастую обладая почти абсолютной автономией в своих миссиях. Когда Бог-Император ходил среди людей, он лично даровал каждому первому вольному торговцу это право, пактом, скреплённым божественной кровью Императора.</p>
+<p><strong>Вас встречает делегация</strong>, состоящая из множества слуг, и мажордом дома — статный мужчина с флотской выправкой. Не теряя времени, он делает лишь формальные жесты этикета и быстро переходит к делу.</p>
+</div>
+<div class="folio"></div>
+</section>
+<section class="sheet" id="s5">
+<div class="runhead"><span>Пролог · Вид с вершины</span><span class="numeral">4</span></div>
+<div class="marginal">4</div>
+<div class="cols">
+<h2 class="loc"><span class="cue-badge">4</span>Мажордом</h2>
+<p>Мажордом Эмиль</p>
+<p class="speech">— Добро пожаловать на Аркону Прайм, сомневающиеся. Я — мажордом дома</p>
+<p>Спайр, Эмиль Арьегард. Волей, данной мне наследницей династии Спайр — все возлюбленной Катариной Спайр, покорительницей ксеносов и защитницей слабых, десницей воли Императора, — я рад исполнить клятвы верности трону и провести вас в зал трона династии для аудиенции.</p>
+<p><strong><span class="test">Тест мудрости — 15</span></strong> Вы замечаете, что Эмиль немного заминается, будто чем-то сильно обеспокоен.</p>
+<p><strong>Если пройти <span class="test">тест Харизмы — 15</span>,</strong> можно узнать, что леди Катарина, увы, отсутствует, и в шпиле нет информации о её местонахождении. Она пропала несколько йот (месяцев) назад, и наместник её воли — её родной дядя Антуан Спайр – отец Эмиля, регент династии — поднял на уши всех, кого можно, и именно по этой причине обратился к ордосу Инквизиции.</p>
+</div>
+<div class="folio"></div>
+</section>
+<section class="sheet opener">
+<div class="strip"><div class="big-numeral">4</div><div class="banner"><span class="kicker">Пролог</span><h1>Внутри</h1></div></div>
+<div class="cols lead"><p class="meta">Метки этой части</p><ul class="checks"><li><span class="cue-n">5</span>Трон Династии</li></ul></div>
+<div class="folio"></div></section>
+<span id="s6"></span>
+<section class="sheet" id="s7">
+<div class="runhead"><span>Пролог · Внутри</span><span class="numeral">5</span></div>
+<div class="marginal">5</div>
+<div class="cols">
+<h2 class="loc"><span class="cue-badge">5</span>Трон Династии</h2>
+<p>В самом сердце шпиля, за вратами из чернённого адамантия, возвышается Тронный зал — святилище власти и символ непоколебимой воли. Потолок куполообразный, украшен витражами с изображениями звёздных карт и подвига основателя рода — Аркадия Спайра, склонившегося перед самим Императором. В центре — трон на возвышении, вырезанный из сердцевины погибшей кометы и инкрустированный позолоченными реликвиями экспедиций. Зал охраняют сервиторы-турели, вмонтированные в стены, и глашатаи в броне-скафандрах с инкрустированными черепами предков..</p>
+<p>Когда вы подходите к самому трону, вы видите старого и дряблого человека, по виду напоминающего не славного воина, а скорее иссохшую мумию. К его телу подключены системы жизнеобеспечения, и, судя по всему, это то, что поддерживает его и не даёт погрузиться в холодные объятия смерти.</p>
+<p>Когда вы подходите ближе, слуги и советники, вьющиеся вокруг регента как мухи вокруг трупа, нашёптывают ему что-то и непрерывно поддерживают работу механизмов трона, дабы даже малейшее движение не оборвало его жизнь. Он смотрит на вас бледными глазами, а после обращается тихим и сиплым голосом.</p>
+<p class="speech">— Свет Трона! Вы прибыли раньше, чем я надеялся, значит, не всё</p>
+<p>потеряно. Думаю, нет смысла представлять меня — вы, как агенты Инквизиции, давно всё знаете.<br>Если говорят «нет» или не узнали от Эмиля, что происходит, то он представится:</p>
+<p class="speech">— Я Антуан Спайр, регент и держатель замка Десницы Императора. Я</p>
+<p>восседаю на этом троне, но не правлю. Я тот, кто ожидает, что великая кровь в теле юной девы Катарины Спайр пробудит древний пакт и подарит нашим мирам достойную правительницу. И это мой долг!</p>
+<p>Я бы с радостью принял вас в гостях династии, как полагается, но дела нашего дома мрачны, и я уже потерял надежду. Дочь моего брата Константина, кровного держателя патента вольного торговца... — он кашляет. — Катарина... о дитя... Она была воспитана отцом как воин и так похожа на него... Она ещё юна и не может вступить в права наследия патента, и пока этот час не наступит, я помогаю ей и наставляю её, но две йоты назад она пропала! О Трон! Она отправилась в путь Мёртвых Рек, будь проклята эта традиция.</p>
+<p><strong>Если игроки начинают спрашивать</strong>, то Антуан расскажет (важно: если в пачке есть псионик, его попросят надеть ноктилитовый ошейник — что блокирует его силы, ибо это может повредить Антуану). Эта традиция — древний пережиток истории. Первый Вольный торговец их дома отправился в одиночку в тёмные глубины Улья Святой Терры и выполнил волю самого Императора. А после это стало традицией: когда член дома и наследник патента спускался в Подулье и приносил оттуда трофей, он становился достоин воли Бога-Императора и нарекался новым Вольным торговцем.</p>
+<p><strong>Если спросят про Подулье</strong> — это опасное место, и эта выходка может стоить госпоже жизни; а если так произойдёт, род Спайр оборвётся, ведь, увы, Константин был слишком занятым человеком для того, чтобы оставить больше наследников.</p>
+<p>Здесь обитают не только отбросы общества, но и создания, чья форма давно отвергнута генетической нормой. Рабы-изгои, техномутанты, прокажённые культисты и предатели Империума — все они находят прибежище в чреве Подулья.</p>
+<p>Вонь там густая, как масло, воздух режет лёгкие, а тьма будто дышит. Каждый шаг в Подулье — вызов самому существованию.</p>
+<p><strong>Если спросят про ересь и культы</strong>: Антуан скажет, что их мир не святая Терра, но уровень преступности и ереси минимален. (Бросок мудрости — 15.) Если прошли, поймут, что он не договаривает что-то, но если начнут настаивать, то он скажет, что действительно есть слухи о культе Седьмой заповеди, и что этот культ мал, но пара столкновений с блюстителями действительно были.</p>
+<p><strong>Если попросят помощи: тест харизмы</strong></p>
+<p class="speech">— Можно дать болтер; 20+ бросок</p>
+<p class="speech">— Литания гнева; 12+ бросок</p>
+<p class="speech">— Литания защиты; 15+ бросок</p>
+<p class="speech">— Литания моментума; 18+ бросок</p>
+<p class="speech">— Стим — до двух доз. Автомамтом</p>
+<p><strong>Тут можно дать 3 монеты</strong></p>
+<p class="gmnote">Либо что-то на выбор ГМ.</p>
+</div>
+<div class="folio"></div>
+</section>
+<section class="sheet opener">
+<div class="strip"><div class="big-numeral">5</div><div class="banner"><span class="kicker">Пролог</span><h1>Бар «Адептус Амасекус»</h1></div></div>
+<div class="cols lead"><p class="meta">Метки этой части</p><ul class="checks"><li><span class="cue-n">6</span>Адептус Амасекус снаружи</li><li><span class="cue-n">7</span>Астрид</li><li><span class="cue-n">8</span>Бой с Астрид</li><li><span class="cue-n">9</span>В тонели</li><li><span class="cue-n">10</span>Катарина</li><li><span class="cue-n">11</span>Логово Культа</li><li><span class="cue-n">12</span>Бой с культом</li><li><span class="cue-n">13</span>Смерть предателя</li></ul></div>
+<div class="folio"></div></section>
+<span id="s8"></span>
+<section class="sheet" id="s9">
+<div class="runhead"><span>Пролог · Бар «Адептус Амасекус»</span><span class="numeral">6</span></div>
+<div class="marginal">6</div>
+<div class="cols">
+<h2 class="loc"><span class="cue-badge">6</span>Адептус Амасекус снаружи</h2>
+<p><strong>Расположение:</strong> бар находится на среднем уровне улья Мёртвые Реки, между технической зоной 17-G и воксовой станцией «Химера-9». Его разместили в старом ангаре, рядом с изношенными вентиляционными шахтами и трубами, из которых постоянно выходит горячий пар.</p>
+<p>По пути можно собрать слухи или осмотреться<br><br><strong>(Харизма -12) Контингент:</strong> посетители — обычные жители среднего уровня: работники гильдий, инженеры, связисты, торговцы, осведомители и путешественники. В баре также можно встретить контрабандистов, провидцев с кибернетическими имплантатами и бывших солдат, которые приходят сюда, чтобы отдохнуть, выпить и вспомнить старые времена.</p>
+<p><strong>(Мудрость – 12) Внешний вид:</strong> снаружи здание выглядит как смесь старинной кузницы и индустриального готического стиля. Над дверью установлена неоновая вывеска «ADEPTUS AMASECUS», на высоком готике. Под ней — изображение черепа, обвитого виноградной лозой и факелами. Тяжёлая дверь с сервоприводом украшена рельефами с изображениями подношений Императору.</p>
+<p><strong>Интерьер:</strong> внутри приглушённое освещение и уютная атмосфера. Помещение освещают тёплые лампы и мерцающие голограммы. Потолки низкие, а стены покрыты тёмным металлом и тканью, которая впитала в себя следы времени. В центре зала — круглые столы, сделанная из крепкого сплава.</p>
+<p><strong>Бармен</strong> — это автоматизированный сервитор, способный приготовить 99 различных видов амасека, включая редкие и запрещённые варианты вроде «Трансултанского кровавого дистиллата» или «Литании Распада».</p>
+</div>
+<div class="folio"></div>
+</section>
+<section class="sheet" id="s10">
+<div class="runhead"><span>Пролог · Бар «Адептус Амасекус»</span><span class="numeral">7</span></div>
+<div class="marginal">7</div>
+<div class="cols">
+<h2 class="loc"><span class="cue-badge">7</span>Астрид</h2>
+<p><strong>Но сегодня здесь не особо людно:</strong> у входа внури стоят несколько блюстителей в панцирной броне и с тяжёлыми дробовиками модели «Вокс-леги» на перевес, а внутри вы становитесь свидетелями того, как крупная женщина с выбритой головой и ужасным ожогом на половину лица, облачённая в тяжёлую броню, давит сапогом одного из контрабандистов.</p>
+<p class="speech">— Императором клянусь, я ничего не знаю!</p>
+<p class="speech">— Невинность ничего не доказывает, мразь! Именем «Лекс Империалис»</p>
+<p>Арконы я приговариваю тебя к смерти!</p>
+<p class="speech">— За что? Я же ничего не сделал!</p>
+<p class="speech">— Бездействие — такая же ересь, как и пособничество!</p>
+<p><strong>Что вы будете делать?</strong></p>
+<p><strong>Если смотрят и ничего не делают</strong>: женщина тяжёлой пятой давит череп человека, и тот лопается, как перезрелый фрукт. Она вытирает ногу о его тело и рявкает остальным блюстителям оцепить тут всё. После чего чеканной походкой марширует к вам и, выровнявшись как струна, рапортует:</p>
+<p class="speech">— Астрид Синклер! Маршал 17-G, хвала Императору Всевышнему! Все</p>
+<p>преступные элементы схвачены и допрошены! Готова предоставить все улики для слуг Трона!</p>
+<p><strong>Если вмешиваются:</strong> женщина переводит взгляд, и её пята ослабевает; красная пелена гнева будто сходит с её глаз, и она секунду замешкавшись будто ждёт вашего приказа. <strong>(Харизма — 12),</strong> чтобы отвлечь её от преступника. Или она казнит его.<br><strong>Если успех,</strong> то Астрид командует блюстителям увести ублюдка в камеры.<br><strong>Если провал</strong>, то она бьёт его сапогом по лицу, оставляя месиво из крови и костей; его бездыханное тело выносят.<br><strong>После чего</strong> чеканной походкой марширует к вам и, выровнявшись как струна, рапортует:</p>
+<p class="speech">— Астрид Синклер! Маршал 17-G, хвала Императору Всевышнему! Все</p>
+<p>преступные элементы схвачены и допрошены! Прошу простить, что застали эту картину, — немного растерянно говорит она.</p>
+<p>Далее Астрид расскажет, что допрошенные с разных уровней блока дали показания, и их данные и карта улья, а также знаки символов культа находятся в папке с делом, порученным ей регентом. Тут даём игрокам раздатку для расследования. Суть в том, чтобы выявить три главных улики и провести линию маркером на карте; сопоставив с символом культа, получится такой же треугольник, а капля в центре — символ того, что культ находится на водоочистительной станции. Сама Астрид скажет, что Катарина явно отправилась по следам культа; по данным допроса, она много пыталась выяснить о культе и, видимо, не первую йоту охотится за ними. Один из допрошенных видел, как она говорила с человеком по имени Ганс о людях в белых масках.</p>
+<p>Если напали на Астрид, то будет бой: Астрид и два блюстителя.</p>
+</div>
+<div class="folio"></div>
+</section>
+<section class="sheet" id="s11">
+<div class="runhead"><span>Пролог · Бар «Адептус Амасекус»</span><span class="numeral">8</span></div>
+<div class="marginal">8</div>
+<div class="cols">
+<h2 class="loc"><span class="cue-badge">8</span>Бой с Астрид</h2>
+<div class="profile"><p><strong>Астрид: КД — 15, здоровье 40.</strong></p><p>Шоковая булава — 5 урона и тест стойкости или пропуск хода.</p></div>
+<div class="profile"><p><strong>Блюстители: КД — 15, здоровье 30.</strong></p><p>«Вокс-леги» — 10 урона.</p></div>
+<p class="gmnote">Если убили Астрид и блюстителей — +3 порчи.</p>
+<p>Выяснив, где ваша цель, вы отправляетесь в логово культистов. Блюстители прочешут всю округу, а группа аколитов попытается скрытно пробраться внутрь станции, пока блюстители прикроют их. Астрид с своим отрядом направится к регенту что бы доложить о вас.</p>
+<p><strong>Если попросить помощь</strong>, блюстители могут дать мельта-гель — специальная вязкая жидкость, способная разогреться до температуры плазмы, но за несколько десятков минут.</p>
+<div class="secbreak" id="s12"></div>
+<h2 class="loc"><span class="cue-badge">9</span>В тонели</h2>
+<p><strong>Вход и маскировка:</strong> доступ к логову возможен через один из аварийных люков под старым резервуаром. Массивный люк обвешан обломками, зарос проржавевшими цепями и исписан символами «служебного запрета». Подобраться к нему можно только по коридору, где вода поднимается по щиколотку, а стены обросли слизью.</p>
+<p><strong><span class="test">Тест силы — 15</span>,</strong> чтобы открыть люк, или использовать мельта-гель.</p>
+<p><strong>Внутри:</strong> помещения бывшего насосного комплекса переоборудованы в культовые залы. Главный зал — широкая чаша, бывший распределительный узел, с потолком, уходящим в тень. Его центр занимает чёрный алтариум из переплавленного металлолома, увенчанный символом треугольной капли — знаком гниения и язв. По кругу расположены остатки машин — насосы, фильтры и катушки, покрытые свечами, костями и жертвенными лоскутами ткани.</p>
+<p><strong>Если осматриваются:</strong>В воздухе — запах сырого мяса, протухшей воды и ароматизированных благовоний. Сквозняки порой несут шёпот, который невозможно понять, но который все чувствуют. С потолка свисают канаты и обрывки молитв, написанных кровью. Свет исходит от самодельных фонарей с мутными линзами и странных фосфоресцирующих грибов, выращенных в сточных шахтах.</p>
+</div>
+<div class="folio"></div>
+</section>
+<section class="sheet" id="s13">
+<div class="runhead"><span>Пролог · Бар «Адептус Амасекус»</span><span class="numeral">10</span></div>
+<div class="marginal">10</div>
+<div class="cols">
+<h2 class="loc"><span class="cue-badge">10</span>Катарина</h2>
+<p>Вы пробираетесь всё глубже, пока в какой-то момент не становитесь свидетелями того, как фигура девушки, не старше двадцати, вонзает клинок в сердце культиста; она делает это быстро и грациозно. А завидев вас <strong>(если заметит)</strong> направляет клинок в вашу сторону!</p>
+<p class="speech">— Именем династии Спайр! Я, Катарина Спайр, призываю вас, чернь, к</p>
+<p>ответу! Назовитесь и восславьте Императора или умрите!</p>
+<p>Представившись, вы доказываете свои слова, доставая символ Инквизиции</p>
+<p class="speech">— розету аколита. Активировав это древнее устройство ген-кодом, она</p>
+<p>вспыхивает, и вы видите, как девушка удивляется, но старается не подать вида.</p>
+<p class="speech">— Вы... слуги Трона... Что ж, тогда я, как Вольный торговец,</p>
+<p>реквизирую вас для задания.</p>
+<p><span class="test">Тест интеллекта — 12</span> Она не Вольный торговец, пока ещё...<br><span class="test">Тест мудрости — 15</span> Видно, что она ранена, однако крепко держится, а также собрала множество трофеев в виде амулетов культа. Это символы самых страшных врагов Империума — слуг тёмных богов!</p>
+<p><strong>Если игроки попросят рассказать подробнее,</strong> что тут происходит: Катарина расскажет, что выслеживала сама культ. Это долг Спайр — защита слабых. Культ планирует что-то ужасное; они собираются в очистительном канале, что подаёт питьевую воду во весь улей; если она правильно понимает, культисты хотят отравить жителей этого города.</p>
+<p><strong>Если игроки попросят вернуться</strong>: вы видите, как девушка сомневается мгновение, но после её глаза вспыхивают ненавистью!</p>
+<p class="speech">— Отступить? Мои предки не отступили перед лицом чудовищ! Не дрогнули,</p>
+<p>когда их рвали и терзали в мрачные годы! Я не посрамлю их!</p>
+<p><strong>Она шагает в тьму туннеля.</strong></p>
+<p class="speech">— Раньше я думала, что монстры — это мифические твари... но,</p>
+<p>кажется, у них лица людей! Именем Бога-Императора, мы должны очистить это место от порождения кошмара, что поселилось тут!</p>
+</div>
+<div class="folio"></div>
+</section>
+<section class="sheet" id="s14">
+<div class="runhead"><span>Пролог · Бар «Адептус Амасекус»</span><span class="numeral">11</span></div>
+<div class="marginal">11</div>
+<div class="cols">
+<h2 class="loc"><span class="cue-badge">11</span>Логово Культа</h2>
+<p>Вдохновившись её примером, вы ступаете вперёд и в какой-то момент слышите голоса, проповеди — в центральном зале собрались отступники и культисты! Они обложили трупами центральный фильтр и бормочут молитвы на незнакомом вам языке. Что вы будете делать?</p>
+<p><strong>Можно понять:</strong><br><strong><span class="test">Тест интеллекта — 12</span></strong> Это культ Нургла — Бога чумы и распада; он один из четырёх великих богов Хаоса, что дарит оспу и нарывы своим слугам, делая их подобием ходячих мертвецов. Это даст +1 порчи.</p>
+<p><strong><span class="test">Тест мудрости — 15</span></strong> Среди культистов вы видите главного; его скрывает капюшон, но вы точно подмечаете флотскую выправку.</p>
+<p><strong><span class="test">Тест стойкости — 15</span></strong> Пробравшись ближе, вы находите пару бочек с прометием! Взорвать их — и часть культистов погибнет в очищающем огне! (Нанести бочке 10 урона.)</p>
+<div class="secbreak" id="s15"></div>
+<h2 class="loc"><span class="cue-badge">12</span>Бой с культом</h2>
+<p><strong>Перед боем, вне зависимости</strong> от того, что делают игроки, Эмиль, увидев Катарину и игроков, вскинет капюшон и с отчаяньем крикнет:</p>
+<p class="speech">— Что? Вы не должны были видеть! Леди Катарина! Это во благо нашего</p>
+<p>народа! Долг должен быть выплачен, или мы все умрём! Все!!! Не обрекайте нас!</p>
+<p>Окинув вас недобрым взглядом, он потянется к голове и вскрикнет:</p>
+<p class="speech">— Да! Да, мастер... я не... но они... Я понял... Убить их! А леди</p>
+<p>уйдёт со мной!</p>
+<p><strong>Катарина: 15 КД, 50 ХП.</strong><br>Силовой меч: 10 урона.<br>Силовое поле — 1 раз в ход игнорирует урон одной атаки.</p>
+<p><strong>Эмиль: 13 КД, 25 ХП.</strong><br>Атака саблей +2; если попал — 5 урона.<br>Выстрел из пистоля — 3 урона, если попал.</p>
+<p><strong>Культисты: 12 КД, 15 ХП.</strong><br>Атака автоганом — 5 ХП.<br>Атака оружием ближнего боя — 3 ХП.</p>
+<p>На локации действует правило порчи (за каждое очко порчи персонаж получает −1 к броне, минимум до 10).</p>
+</div>
+<div class="folio"></div>
+</section>
+<section class="sheet" id="s16">
+<div class="runhead"><span>Пролог · Бар «Адептус Амасекус»</span><span class="numeral">13</span></div>
+<div class="marginal">13</div>
+<div class="cols">
+<h2 class="loc"><span class="cue-badge">13</span>Смерть предателя</h2>
+<p>Падая на землю, Эмиль захлебывается в своих слезах и крови. Он тянется к Катарине и произносит перед смертью:</p>
+<p class="speech">— Все жители Арконы умрут... он не простит вас...</p>
+<p><span class="test">тест мудрости — 12</span> Обыскивая логово культа, вы обнаруживаете записи Эмиля. Он — сын Антуана и двоюродный брат Катарины. Он пишет в них, что отец не понимает. Он слеп и стар и не способен ничего изменить. Как когда-то Антуан убил Константина за его глупость, так и Эмиль убьёт того, в чьей тени жил всю жизнь! А потом он убьёт чернь, что живёт в стенах городов Арконы — расходный материал. Династия превыше всего; если отплатить долг душами жителей городов... владыка простит их слабость... он обещал дар, свободу, истину! Разве истина — это грех?</p>
+</div>
+<div class="folio"></div>
+</section>
+<section class="sheet opener">
+<div class="strip"><div class="big-numeral">13</div><div class="banner"><span class="kicker">Пролог</span><h1>В шпилях</h1></div></div>
+<div class="cols lead"><p class="meta">Метки этой части</p><ul class="checks"><li><span class="cue-n">14</span>В шпиль обратно</li><li><span class="cue-n">9</span>В тонели</li><li><span class="cue-n">15</span>Истина</li><li><span class="cue-n">17</span>Бой с герольдом</li><li><span class="cue-n">18</span>Эпилог</li></ul></div>
+<div class="folio"></div></section>
+<span id="s17"></span>
+<section class="sheet" id="s18">
+<div class="runhead"><span>Пролог · В шпилях</span><span class="numeral">14</span></div>
+<div class="marginal">14</div>
+<div class="cols">
+<h2 class="loc"><span class="cue-badge">14</span>В шпиль обратно</h2>
+<p>Понимая это, вы мчитесь вместе с Катариной обратно в шпиль, и, когда достигаете его залов, вы видите заваленные трупами коридоры. Ещё сегодня тут кипела жизнь, а теперь мёртвые очи слуг с масками безмятежности, в руке каждого — кубок.<br><strong><span class="test">Тест мудрости — 12</span></strong> В кубках яд, которым культисты хотели отравить воду улья.<br>Чем дальше вы пробираетесь, тем более жуткие тела вы встречаете: некоторые срослись с полом и стенами, взбухли и превратились в амальгаму плоти и костей. Пройдя ещё дальше, вы видите картину бойни в центральном зале дома: тела блюстителей и охраны дома усыпаны по полу, как лепестки цветов на поляне.<br><span class="test">Тест интеллекта — 12</span> Блюстителей застали врасплох; они явно пришли с рапортом. Посреди горы трупов тела срослись в нечто ужасное, напоминающее древо: сухое, с острыми костями, проросшими из плоти нескольких тел. С обратной стороны вы слышите какой-то хрип...<br>Обойдя, вы видите мутировавшее и обезображенное тело Астрид, вросшее в трупы; в её правой щеке, теперь напоминающей улей инсектоидов, роятся личинки, а глаза выдавлены, и из них течёт гной.</p>
+<p class="speech">— Убей... меня...</p>
+<p>Она шепчет это из последних сил.</p>
+<p>Если убить — −1 порчи.<br>Если оставить — +1 порчи.</p>
+<div class="secbreak" id="s19"></div>
+<h2 class="loc"><span class="cue-badge">9</span>В тонели</h2>
+<p>С её смертью вы слышите из Тронного зала звук колокола... там не было никакого колокола, а звон его подобен погребальному реквиему. Когда за витражами окон вспыхивает молния, вы видите, что Тронный зал полон трупов, мерзких и гнилых... Это все слуги, те, кого вы видели сегодня... На троне восседает Антуан — сухой труп, но уже не подключённый к системам трона. Он выглядит как живая мумия с короной из костей, проросшей у него на голове, и когда вы входите, вы слышите, как его бормотания заставляют трупы пульсировать.</p>
+<p class="speech">— Во имя Императора... что ты наделал?</p>
+<p>Антуан реагирует на слова Катарины.</p>
+<p class="speech">— Госпожа, не сердитесь... всё не должно было пойти таким путём...</p>
+<p class="speech">— Ты убил моего отца!</p>
+<p class="speech">— Потому что он был слеп! Он не хотел исполнять свой долг!</p>
+<p class="speech">— Он защищал нас! Это наш долг!</p>
+</div>
+<div class="folio"></div>
+</section>
+<section class="sheet" id="s20">
+<div class="runhead"><span>Пролог · В шпилях</span><span class="numeral">15</span></div>
+<div class="marginal">15</div>
+<div class="cols">
+<h2 class="loc"><span class="cue-badge">15</span>Истина</h2>
+<p class="speech">— Наши предки были людьми, которые смогли пройти через варп-штормы в</p>
+<p>один из самых тёмных периодов истории человечества, стремясь найти новое место, которое можно было бы назвать домом. Но мир был враждебным. Его обиталища таили в себе чудовищ и монстров...</p>
+<p class="speech">— Да! И мои предки победили их! Они построили общество верности, чести</p>
+<p>и долга! Они не дрогнули перед опасностью и выжили! Я слышала эту историю тысячи раз от отца!</p>
+<p class="speech">— Она ложь! Наши предки не победили! Их всех перебили! А потом их</p>
+<p>сыновья заключили договор с тем, что жило под гнилой плотью этого мира, его мёртвой кожей! Оно манило нас, жаждало нас, оно было голодно! И тогда оно попросило власть над каждым, кто сядет на этот трон, и понесёт дары Нургла в новые, покорённые нашей династией миры в обмен на спокойствие этого, или монстры вернутся! Это наш долг, долг, за которым оно пришло! Улицы Арконы утонут в мертвецах, и всё потому, что ты была слишком слаба! Слишком слаба, чтобы заплатить свой долг!</p>
+</div>
+<div class="folio"></div>
+</section>
+<section class="sheet" id="s21">
+<div class="runhead"><span>Пролог · В шпилях</span><span class="numeral">17</span></div>
+<div class="marginal">17</div>
+<div class="cols">
+<h2 class="loc"><span class="cue-badge">17</span>Бой с герольдом</h2>
+<p>Тело Антуана вздувается, как пузырь, и лопается! Существо, некогда имевшее очертания человека, ныне утратило всё, кроме пародии на форму. Его силуэт — как мешок гниющих внутренностей, обтянутых тонкой, трескающейся кожей болотного цвета, из которой сочится слизь и течёт густой чёрный гной. На спине — гротескные наросты в виде открытых язв и скользких псевдощупалец, что извиваются в такт с его хриплым дыханием.</p>
+<p>Вместо рта — зияющее отверстие, обрамлённое рваными лепестками гнилой плоти, из которых он изрыгает не только слова на нечеловеческом языке, но и болезнетворные испарения, разъедающие металл.</p>
+<p>Начинается бой.</p>
+<div class="profile"><p><strong>Герольд Чумы (бывший Антуан)</strong></p><p>КД — 15, 50 ХП.</p><p>Правила — не чувствуя боль: после каждой атаки по себе Герольд кидает</p><p>d6, и, если выпадет 6, он игнорирует урон атаки.</p></div>
+<p>Чумной меч: 7 урона за атаку.<br>Герольд каждый ход бонусным действием поднимает 10 зомби на локации.</p>
+<div class="profile"><p><strong>Зомби:</strong></p><p>10 КД — 10 ХП.</p><p>Когти и зубы: 3 урона +1 за каждую порчу группы.</p></div>
+<p>На карте действует правило порчи: все персонажи получают +1 к результату критического провала на бросок d20 при любой проверке характеристики за очко порчи команды.</p>
+<p><strong>После того</strong> как тело Герольда падает на землю, его плоть пузырится, и пиявки, сколопендры и опарыши расползаются из его струпьев, а он сдувается и превращается в лужу гноя. Катарина, еле стоящая на ногах, хватает факел на стене и бросает его в трон, и в этот момент необъяснимым образом трон вспыхивает зелёным пламенем, а в его языках вы видите силуэт гиганта в огромном и древнем доспехе. Его опухшее и искривлённое улыбкой лицо смотрит на вас, и он произносит булькающим, грубым голосом:</p>
+<p class="speech">— Какая встреча! Госпожа Катарина, да и ещё и с новыми друзьями...</p>
+<p>значит, Антуан мёртв?</p>
+<p class="speech">— Досадно... он мог вознести вас, дорогуша, но теперь, увы, ваши миры</p>
+<p>обречены! Я — Фестос Гнилой, первый чемпион из семи. Когда-то, тысячи лет назад, ваш предок молил меня о милости, и теперь, дрянная девчонка, ты будешь умолять меня! А пока... наслаждайся своей короткой жизнью, ибо моя поступь, как смерть, неотвратима!</p>
+</div>
+<div class="folio"></div>
+</section>
+<section class="sheet" id="s22">
+<div class="runhead"><span>Пролог · В шпилях</span><span class="numeral">18</span></div>
+<div class="marginal">18</div>
+<div class="cols">
+<h2 class="loc"><span class="cue-badge">18</span>Эпилог</h2>
+</div>
+<div class="folio"></div>
+</section>
+<section class="sheet opener">
+<div class="strip"><div class="big-numeral">18</div><div class="banner"><span class="kicker">Пролог</span><h1>Эпилог</h1></div></div>
+<div class="cols lead"></div>
+<div class="folio"></div></section>
+<span id="s23"></span>
+<section class="sheet">
+<div class="runhead"><span>Пролог · Эпилог</span><span class="numeral">18</span></div>
+<div class="marginal">18</div>
+<div class="cols">
+<p>Шагая в бесконечность пустоты, наши герои бросают вызов лорду Чумы Фестосу и его тёмным планам. Я, Вольный торговец Катарина Спайр, говорю: передача всем верным Императору слугам: если вы готовы сразиться с тьмой, если в ваших сердцах горит огонь и ваша душа кипит праведностью... добро пожаловать в Аркону!</p>
+<p>Звёзды тухнут в пустоте, и новый узор складывается в мрачные очертания. Какой путь лежит дальше перед леди Спайр и её новой командой? Об этом я расскажу вам в следующий раз, а сегодня я поздравляю вас, герои! Сегодня вы победили!</p>
+</div>
+<div class="folio"></div>
+</section>
+</body></html>

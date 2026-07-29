@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=PT+Sans+Narrow:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="master.css?v=gm-manual-1">
+<link rel="stylesheet" href="master.css?v=gm-html-reader-1">
 </head>
 <body>
 <section id="gm-auth" class="gm-gate">
@@ -65,9 +65,9 @@
       </div>
       <form id="gm-scenario-upload" class="gm-upload-card">
         <label><span>Название сценария</span><input id="gm-scenario-title" type="text" maxlength="100" placeholder="Возьмётся из имени файла, если оставить пустым"></label>
-        <label><span>Текстовый файл</span><input id="gm-scenario-file" type="file" accept=".txt,.md,text/plain,text/markdown" required></label>
+        <label><span>Файл сценария</span><input id="gm-scenario-file" type="file" accept=".txt,.md,.html,.htm,text/plain,text/markdown,text/html" required></label>
         <button class="gm-primary" type="submit">Добавить сценарий</button>
-        <small>Поддерживаются TXT и Markdown размером до 700 КБ.</small>
+        <small>Поддерживаются TXT, Markdown и готовые HTML-сценарии размером до 700 КБ. HTML открывается в защищённой области чтения.</small>
       </form>
       <div class="gm-search"><label>Поиск <input id="gm-scenario-search" type="search" placeholder="Название или текст"></label></div>
       <p id="gm-scenario-message" class="gm-message"></p>
@@ -94,18 +94,33 @@
   </div>
 </div>
 
-<div id="gm-scenario-modal" class="gm-modal" hidden>
+<div id="gm-scenario-modal" class="gm-modal gm-scenario-modal" hidden>
   <div class="gm-modal-panel gm-scenario-panel">
-    <button class="gm-modal-x" type="button" data-gm-action="close-scenario" aria-label="Закрыть">×</button>
-    <span class="gm-kicker">Сценарий</span>
-    <h2 id="gm-scenario-view-title">—</h2>
-    <div id="gm-scenario-view-content" class="gm-scenario-content"></div>
+    <header class="gm-reader-toolbar">
+      <div class="gm-reader-heading">
+        <span class="gm-kicker">Сценарий</span>
+        <h2 id="gm-scenario-view-title">—</h2>
+      </div>
+      <div class="gm-reader-actions">
+        <button id="gm-reader-lobbies-button" class="gm-reader-lobbies-button" type="button" data-gm-action="toggle-reader-lobbies" aria-expanded="false">
+          Лобби <b id="gm-reader-lobby-count">0</b>
+        </button>
+        <button class="gm-reader-close" type="button" data-gm-action="close-scenario">Закрыть</button>
+      </div>
+    </header>
+    <div class="gm-reader-layout">
+      <aside id="gm-reader-lobby-drawer" class="gm-reader-lobby-drawer" hidden>
+        <div class="gm-reader-drawer-head"><span class="gm-kicker">Быстрый доступ</span><h3>Лобби игроков</h3></div>
+        <div id="gm-reader-lobby-list" class="gm-reader-lobby-list"></div>
+      </aside>
+      <div id="gm-scenario-view-content" class="gm-scenario-content"></div>
+    </div>
   </div>
 </div>
 
 <div id="gm-toast" class="gm-toast" hidden></div>
-<script src="arsenal.js?v=gm-manual-1"></script>
-<script src="master-data.js?v=gm-manual-1"></script>
-<script type="module" src="master.js?v=gm-manual-1"></script>
+<script src="arsenal.js?v=gm-html-reader-1"></script>
+<script src="master-data.js?v=gm-html-reader-1"></script>
+<script type="module" src="master.js?v=gm-html-reader-1"></script>
 </body>
 </html>

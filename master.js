@@ -1,4 +1,4 @@
-import { auth, db } from './firebase-config.js?v=gm-manual-1';
+import { auth, db } from './firebase-config.js?v=gm-html-reader-1';
 import {
   browserLocalPersistence,
   onAuthStateChanged,
@@ -33,6 +33,7 @@ const ui = {
   scenarioUpload: $('#gm-scenario-upload'), scenarioTitle: $('#gm-scenario-title'), scenarioFile: $('#gm-scenario-file'), scenarioSearch: $('#gm-scenario-search'),
   teamModal: $('#gm-team-modal'), teamCode: $('#gm-team-code'), teamName: $('#gm-team-name'), teamMembers: $('#gm-team-members'), teamTaint: $('#gm-team-taint'), teamCoins: $('#gm-team-coins'), playerList: $('#gm-player-list'), dissolve: $('#gm-dissolve-team'),
   scenarioModal: $('#gm-scenario-modal'), scenarioViewTitle: $('#gm-scenario-view-title'), scenarioViewContent: $('#gm-scenario-view-content'),
+  readerLobbiesButton: $('#gm-reader-lobbies-button'), readerLobbyCount: $('#gm-reader-lobby-count'), readerLobbyDrawer: $('#gm-reader-lobby-drawer'), readerLobbyList: $('#gm-reader-lobby-list'),
   toast: $('#gm-toast'),
 };
 
@@ -44,6 +45,7 @@ const characterUnsubs = new Map();
 const characterStates = new Map();
 let teams = [];
 let scenarios = [];
+let bundledScenarios = [];
 let openTeamCode = '';
 let openTeamData = null;
 let toastTimer = null;
@@ -69,15 +71,41 @@ function stopDataListeners() {
 function startDashboard() {
   ui.accountEmail.textContent=activeUser?.email || 'Аккаунт мастера';
   showGate('dashboard');
+  void loadBundledScenarios();
   subscribeTeams();
   subscribeScenarios();
+}
+
+async function loadBundledScenarios() {
+  try {
+    const response = await fetch('./assets/scenarios/prolog-verstka.html?v=gm-html-reader-1', { cache: 'no-cache' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const content = await response.text();
+    bundledScenarios = [{
+      id: 'bundled-prolog-arkona-prime',
+      title: 'Пролог — Аркона Прайм',
+      fileName: 'prolog-verstka.html',
+      format: 'html',
+      content,
+      bundled: true,
+      updatedAt: null,
+    }];
+    renderScenarios();
+  } catch (error) {
+    console.warn('Не удалось загрузить встроенный сценарий:', error);
+  }
+}
+
+function allScenarios() {
+  const uploadedIds = new Set(scenarios.map(item => item.id));
+  return [...scenarios, ...bundledScenarios.filter(item => !uploadedIds.has(item.id))];
 }
 
 function subscribeTeams() {
   setMessage(ui.lobbyMessage,'Загружаем лобби…');
   unsubscribeTeams=onSnapshot(query(collection(db,'teams'),orderBy('updatedAt','desc')), snap=>{
     teams=snap.docs.map(d=>({id:d.id,...d.data()}));
-    renderLobbies(); setMessage(ui.lobbyMessage,'');
+    renderLobbies(); renderReaderLobbies(); setMessage(ui.lobbyMessage,'');
   },error=>setMessage(ui.lobbyMessage,humanError(error),'error'));
 }
 
@@ -186,23 +214,64 @@ async function dissolveTeam() {
   finally { ui.dissolve.disabled=false; }
 }
 
+function scenarioFormat(scenario) {
+  const explicit=String(scenario?.format||'').toLowerCase();
+  if (['html','markdown','text'].includes(explicit)) return explicit;
+  const name=String(scenario?.fileName||'').toLowerCase();
+  if (/\.html?$/.test(name)) return 'html';
+  if (/\.md$/.test(name)) return 'markdown';
+  return 'text';
+}
+
+function scenarioPlainText(scenario) {
+  const content=String(scenario?.content||'');
+  if (scenarioFormat(scenario)!=='html') return content;
+  try {
+    return new DOMParser().parseFromString(content,'text/html').body?.textContent || '';
+  } catch {
+    return content.replace(/<[^>]+>/g,' ');
+  }
+}
+
+function scenarioExtent(scenario) {
+  if (scenarioFormat(scenario)==='html') {
+    try {
+      const parsed=new DOMParser().parseFromString(String(scenario.content||''),'text/html');
+      const sheets=parsed.querySelectorAll('.sheet').length;
+      if (sheets) return `${sheets} стр.`;
+    } catch {}
+  }
+  return `${Math.max(1,Math.round(scenarioPlainText(scenario).length/1800))} стр. текста`;
+}
+
 function renderScenarios() {
   const needle=ui.scenarioSearch.value.trim().toLowerCase();
-  const filtered=scenarios.filter(s=>!needle||`${s.title||''}\n${s.content||''}`.toLowerCase().includes(needle));
-  ui.scenarioCount.textContent=String(scenarios.length);
+  const source=allScenarios();
+  const filtered=source.filter(s=>!needle||`${s.title||''}\n${scenarioPlainText(s)}`.toLowerCase().includes(needle));
+  ui.scenarioCount.textContent=String(source.length);
   if (!filtered.length) { ui.scenarioList.innerHTML='<div class="gm-empty">Сценарии не найдены.</div>'; return; }
-  ui.scenarioList.innerHTML=filtered.map(s=>`<article class="gm-scenario-card"><div><span class="gm-kicker">${escapeHtml(s.fileName||'Текстовый сценарий')}</span><h3>${escapeHtml(s.title||'Без названия')}</h3><div class="gm-scenario-meta"><span>Обновлено: ${escapeHtml(formatDate(s.updatedAt))}</span><span>${Math.max(1,Math.round(String(s.content||'').length/1800))} стр. текста</span></div></div><div class="gm-card-actions"><button class="gm-card-button" type="button" data-open-scenario="${escapeHtml(s.id)}">Открыть</button><button class="gm-danger" type="button" data-delete-scenario="${escapeHtml(s.id)}">Удалить</button></div></article>`).join('');
+  ui.scenarioList.innerHTML=filtered.map(s=>{
+    const typeLabel=scenarioFormat(s)==='html'?'Готовая HTML-вёрстка':scenarioFormat(s)==='markdown'?'Markdown':'Текстовый сценарий';
+    const deleteButton=s.bundled?'':`<button class="gm-danger" type="button" data-delete-scenario="${escapeHtml(s.id)}">Удалить</button>`;
+    const sourceLabel=s.bundled?'<span>Встроенный пример</span>':'';
+    return `<article class="gm-scenario-card"><div><span class="gm-kicker">${escapeHtml(s.fileName||typeLabel)}</span><h3>${escapeHtml(s.title||'Без названия')}</h3><div class="gm-scenario-meta"><span>${typeLabel}</span><span>${escapeHtml(scenarioExtent(s))}</span>${sourceLabel}${s.updatedAt?`<span>Обновлено: ${escapeHtml(formatDate(s.updatedAt))}</span>`:''}</div></div><div class="gm-card-actions"><button class="gm-card-button" type="button" data-open-scenario="${escapeHtml(s.id)}">Читать</button>${deleteButton}</div></article>`;
+  }).join('');
 }
 
 async function uploadScenario(event) {
   event.preventDefault(); const file=ui.scenarioFile.files?.[0]; if (!file) return;
   if (file.size>700*1024) { setMessage(ui.scenarioMessage,'Файл больше 700 КБ. Разделите его на несколько частей.','error'); return; }
+  const extension=(file.name.split('.').pop()||'').toLowerCase();
+  const format=['html','htm'].includes(extension)||file.type==='text/html'?'html':extension==='md'||file.type==='text/markdown'?'markdown':'text';
+  if (!['txt','md','html','htm'].includes(extension) && !['text/plain','text/markdown','text/html'].includes(file.type)) {
+    setMessage(ui.scenarioMessage,'Поддерживаются только TXT, MD, HTML и HTM.','error'); return;
+  }
   const button=$('button[type="submit"]',ui.scenarioUpload); button.disabled=true; setMessage(ui.scenarioMessage,'Читаем файл…');
   try {
-    const content=await file.text(); const fallback=file.name.replace(/\.(txt|md)$/i,'').replace(/[_-]+/g,' ');
+    const content=await file.text(); const fallback=file.name.replace(/\.(txt|md|html?)$/i,'').replace(/[_-]+/g,' ');
     const title=cleanText(ui.scenarioTitle.value||fallback,100)||'Без названия';
-    await addDoc(collection(db,'scenarios'),{title,fileName:file.name,content,createdBy:activeUser.uid,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
-    ui.scenarioUpload.reset(); setMessage(ui.scenarioMessage,'Сценарий добавлен.','ok');
+    await addDoc(collection(db,'scenarios'),{title,fileName:file.name,format,content,createdBy:activeUser.uid,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+    ui.scenarioUpload.reset(); setMessage(ui.scenarioMessage,format==='html'?'HTML-сценарий добавлен.':'Сценарий добавлен.','ok');
   } catch(error){ setMessage(ui.scenarioMessage,humanError(error),'error'); }
   finally { button.disabled=false; }
 }
@@ -223,7 +292,54 @@ function renderMarkdown(text='') {
   closeList(); if(inCode) html+='</code></pre>'; return html;
 }
 
-function openScenario(id) { const s=scenarios.find(x=>x.id===id); if(!s)return; ui.scenarioViewTitle.textContent=s.title||'Сценарий'; ui.scenarioViewContent.innerHTML=renderMarkdown(s.content||''); ui.scenarioModal.hidden=false; }
+function closeReaderLobbyDrawer() {
+  ui.readerLobbyDrawer.hidden=true;
+  ui.readerLobbiesButton.setAttribute('aria-expanded','false');
+}
+
+function toggleReaderLobbyDrawer() {
+  const willOpen=ui.readerLobbyDrawer.hidden;
+  ui.readerLobbyDrawer.hidden=!willOpen;
+  ui.readerLobbiesButton.setAttribute('aria-expanded',String(willOpen));
+  if (willOpen) renderReaderLobbies();
+}
+
+function renderReaderLobbies() {
+  if (!ui.readerLobbyList) return;
+  ui.readerLobbyCount.textContent=String(teams.length);
+  if (!teams.length) { ui.readerLobbyList.innerHTML='<div class="gm-empty">Нет активных лобби.</div>'; return; }
+  ui.readerLobbyList.innerHTML=teams.map(team=>{
+    const count=Number(team.memberCount ?? team.memberIds?.length ?? 0);
+    return `<article class="gm-reader-lobby-card"><div><span class="gm-kicker">Код ${escapeHtml(team.code||team.id)}</span><h4>${escapeHtml(team.name||'Без названия')}</h4><div class="gm-reader-lobby-stats"><span>Игроки <b>${count}/8</b></span><span>Порча <b>${Number(team.taint||0)}</b></span><span>Монеты <b>${Number(team.coins||0)}</b></span></div></div><button class="gm-card-button" type="button" data-open-team="${escapeHtml(team.id)}">Состав и снаряжение</button></article>`;
+  }).join('');
+}
+
+function openScenario(id) {
+  const scenario=allScenarios().find(item=>item.id===id); if(!scenario)return;
+  ui.scenarioViewTitle.textContent=scenario.title||'Сценарий';
+  ui.scenarioViewContent.replaceChildren();
+  ui.scenarioViewContent.classList.toggle('is-html',scenarioFormat(scenario)==='html');
+  if (scenarioFormat(scenario)==='html') {
+    const frame=document.createElement('iframe');
+    frame.className='gm-scenario-frame';
+    frame.title=`Сценарий: ${scenario.title||'Без названия'}`;
+    frame.setAttribute('sandbox','');
+    frame.setAttribute('referrerpolicy','no-referrer');
+    frame.srcdoc=String(scenario.content||'');
+    ui.scenarioViewContent.append(frame);
+  } else {
+    ui.scenarioViewContent.innerHTML=renderMarkdown(scenario.content||'');
+  }
+  closeReaderLobbyDrawer(); renderReaderLobbies(); ui.scenarioModal.hidden=false;
+}
+
+function closeScenario() {
+  ui.scenarioModal.hidden=true;
+  closeReaderLobbyDrawer();
+  ui.scenarioViewContent.replaceChildren();
+  ui.scenarioViewContent.classList.remove('is-html');
+}
+
 async function deleteScenario(id) { const s=scenarios.find(x=>x.id===id); if(!s||!confirm(`Удалить сценарий «${s.title}»?`))return; try{await deleteDoc(doc(db,'scenarios',id));toast('Сценарий удалён.');}catch(error){toast(humanError(error));} }
 
 function switchTab(tab) { $$('[data-gm-tab]').forEach(b=>b.classList.toggle('is-active',b.dataset.gmTab===tab)); $('#gm-tab-lobbies').hidden=tab!=='lobbies'; $('#gm-tab-scenarios').hidden=tab!=='scenarios'; }
@@ -240,10 +356,11 @@ document.addEventListener('click',event=>{
   const action=event.target.closest('[data-gm-action]')?.dataset.gmAction;
   if(action==='logout') void signOut(auth);
   if(action==='close-team') closeTeam();
-  if(action==='close-scenario') ui.scenarioModal.hidden=true;
+  if(action==='close-scenario') closeScenario();
+  if(action==='toggle-reader-lobbies') toggleReaderLobbyDrawer();
 });
 ui.teamModal.addEventListener('click',e=>{if(e.target===ui.teamModal)closeTeam();});
-ui.scenarioModal.addEventListener('click',e=>{if(e.target===ui.scenarioModal)ui.scenarioModal.hidden=true;});
+ui.scenarioModal.addEventListener('click',e=>{if(e.target===ui.scenarioModal)closeScenario();});
 $('#gm-copy-uid').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(ui.deniedUid.textContent);toast('UID скопирован.');}catch{toast('Не удалось скопировать UID.');}});
 
 await setPersistence(auth,browserLocalPersistence);

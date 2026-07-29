@@ -159,7 +159,7 @@ service cloud.firestore {
             && resource.data.memberCount == 1);
     }
 
-    /* Текстовые сценарии доступны только мастерам. */
+    /* Сценарии доступны только мастерам. */
     match /scenarios/{scenarioId} {
       allow read, create, update, delete: if isGameMaster();
     }
