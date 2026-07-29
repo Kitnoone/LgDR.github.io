@@ -29,7 +29,8 @@ const BLANK = () => ({
   hp: {},        // charId -> текущее здоровье
   spent: {},     // "charId:abilId" -> сколько зарядов потрачено
   choice: {},    // "charId:group" -> id выбранного пункта
-  tips: {},      // charId -> индекс текущей подсказки
+  tips: {},      // устаревшее поле, оставлено для совместимости
+  tipDeck: { order: [], position: 0 },
   dmgAcc: {},    // charId -> накопленный урон (для сестры)
   flags: { sisterFallReward: false },
   teamCode: '',
@@ -45,6 +46,10 @@ function normalizeState(raw) {
   next.spent = Object.assign({}, raw?.spent || {});
   next.choice = Object.assign({}, raw?.choice || {});
   next.tips = Object.assign({}, raw?.tips || {});
+  next.tipDeck = {
+    order: Array.isArray(raw?.tipDeck?.order) ? raw.tipDeck.order.map(Number).filter(Number.isInteger) : [],
+    position: Number.isInteger(raw?.tipDeck?.position) ? raw.tipDeck.position : 0,
+  };
   next.dmgAcc = Object.assign({}, raw?.dmgAcc || {});
   next.flags = Object.assign({ sisterFallReward: false }, raw?.flags || {});
   next.teamCode = String(raw?.teamCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
@@ -325,6 +330,27 @@ const CLASS_HINTS = Object.freeze({
   ],
 });
 
+const CLASS_HINT_LABELS = Object.freeze({
+  guardsman: 'Имперский гвардеец',
+  heretic: 'Кающийся еретик',
+  cultist: 'Фанатик смерти',
+  techpriest: 'Техножрец',
+  priest: 'Жрец Императора',
+  neophyte: 'Неофит Астартес',
+  psyker: 'Псионик',
+  sister: 'Сестра милитант',
+});
+
+const ALL_HINTS = Object.freeze([
+  ...GENERAL_HINTS.map(entry => Object.freeze({ ...entry, category: 'Общее правило', classId: '' })),
+  ...Object.entries(CLASS_HINTS).flatMap(([classId, entries]) =>
+    entries.map(entry => Object.freeze({
+      ...entry,
+      category: CLASS_HINT_LABELS[classId] || 'Совет класса',
+      classId,
+    }))),
+]);
+
 function ensurePortraitDecor() {
   $$('.card').forEach(card => {
     const portrait = PORTRAITS[card.dataset.char];
@@ -333,70 +359,122 @@ function ensurePortraitDecor() {
     if ($('.hintdeck', card)) return;
     const hpbox = $('.hpbox', card);
     if (!hpbox) return;
-    const tip = document.createElement('div');
+    const tip = document.createElement('section');
     tip.className = 'hintdeck';
+    tip.setAttribute('aria-live', 'polite');
     tip.innerHTML = `
       <div class="hintdeck-top">
         <div>
-          <span class="hintdeck-kicker">Подсказка хода</span>
+          <span class="hintdeck-kicker">Подсказка</span>
           <span class="hintdeck-title">—</span>
         </div>
         <span class="hintdeck-count">—</span>
       </div>
       <p class="hintdeck-text">—</p>
-      <button type="button" class="hintdeck-next" data-act="next-tip">Ещё подсказка</button>`;
+      <div class="hintdeck-footer">
+        <span class="hintdeck-auto">Новая подсказка через несколько секунд</span>
+        <div class="hintdeck-actions">
+          <button type="button" class="hintdeck-prev" data-act="prev-tip" aria-label="Предыдущая подсказка">‹</button>
+          <button type="button" class="hintdeck-next" data-act="next-tip">Следующая</button>
+        </div>
+      </div>`;
     hpbox.insertAdjacentElement('afterend', tip);
   });
 }
 
-function hintPool(charId) {
-  return GENERAL_HINTS.concat(CLASS_HINTS[charId] || []);
-}
-
-function ensureTipIndex(charId) {
-  if (!S.tips) S.tips = {};
-  const pool = hintPool(charId);
-  if (!pool.length) return -1;
-  let idx = Number.parseInt(S.tips[charId], 10);
-  if (!Number.isFinite(idx) || idx < 0 || idx >= pool.length) {
-    idx = Math.floor(Math.random() * pool.length);
-    S.tips[charId] = idx;
+function shuffledTipOrder(avoidFirst = -1) {
+  const order = Array.from({ length: ALL_HINTS.length }, (_, index) => index);
+  for (let i = order.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
   }
-  return idx;
-}
-
-function currentHint(charId) {
-  const pool = hintPool(charId);
-  if (!pool.length) return null;
-  const idx = ensureTipIndex(charId);
-  return { entry: pool[idx], index: idx, total: pool.length };
-}
-
-function rotateHint(charId) {
-  const pool = hintPool(charId);
-  if (!pool.length) return;
-  const prev = ensureTipIndex(charId);
-  let next = prev;
-  if (pool.length > 1) {
-    while (next === prev) next = Math.floor(Math.random() * pool.length);
+  if (order.length > 1 && order[0] === avoidFirst) {
+    [order[0], order[1]] = [order[1], order[0]];
   }
-  S.tips[charId] = next;
-  save();
+  return order;
+}
+
+function ensureTipDeck() {
+  if (!S.tipDeck || typeof S.tipDeck !== 'object') S.tipDeck = { order: [], position: 0 };
+  const valid = Array.isArray(S.tipDeck.order)
+    && S.tipDeck.order.length === ALL_HINTS.length
+    && new Set(S.tipDeck.order).size === ALL_HINTS.length
+    && S.tipDeck.order.every(index => Number.isInteger(index) && index >= 0 && index < ALL_HINTS.length);
+  if (!valid) {
+    S.tipDeck.order = shuffledTipOrder();
+    S.tipDeck.position = 0;
+  }
+  S.tipDeck.position = Math.min(
+    Math.max(Number.parseInt(S.tipDeck.position, 10) || 0, 0),
+    Math.max(ALL_HINTS.length - 1, 0),
+  );
+  return S.tipDeck;
+}
+
+function currentHint() {
+  const deck = ensureTipDeck();
+  const hintIndex = deck.order[deck.position] ?? 0;
+  return {
+    entry: ALL_HINTS[hintIndex],
+    position: deck.position,
+    total: ALL_HINTS.length,
+    hintIndex,
+  };
+}
+
+function moveHint(direction = 1, { cloud = true } = {}) {
+  if (!ALL_HINTS.length) return;
+  const deck = ensureTipDeck();
+  if (direction < 0) {
+    deck.position = Math.max(0, deck.position - 1);
+  } else if (deck.position < deck.order.length - 1) {
+    deck.position += 1;
+  } else {
+    const previous = deck.order[deck.position];
+    deck.order = shuffledTipOrder(previous);
+    deck.position = 0;
+  }
+  if (cloud) save(); else saveLocal();
   render();
 }
 
 function renderHint(card) {
   const box = $('.hintdeck', card);
   if (!box) return;
-  const current = currentHint(card.dataset.char);
-  if (!current) return;
-  const { entry, index, total } = current;
+  const current = currentHint();
+  if (!current?.entry) return;
+  const { entry, position, total, hintIndex } = current;
   const title = $('.hintdeck-title', box);
   const text = $('.hintdeck-text', box);
   const count = $('.hintdeck-count', box);
+  const kicker = $('.hintdeck-kicker', box);
+  const prev = $('.hintdeck-prev', box);
+  const nextKey = `${hintIndex}:${position}`;
+  if (box.dataset.tipKey !== nextKey) {
+    box.dataset.tipKey = nextKey;
+    box.classList.remove('is-changing');
+    void box.offsetWidth;
+    box.classList.add('is-changing');
+  }
+  if (kicker) {
+    const ownClass = entry.classId && entry.classId === card.dataset.char;
+    kicker.textContent = ownClass ? `Совет твоего класса · ${entry.category}` : entry.category;
+  }
   if (title) title.textContent = entry.title;
   if (text) text.textContent = entry.text;
-  if (count) count.textContent = `${index + 1}/${total}`;
+  if (count) count.textContent = `${position + 1} / ${total}`;
+  if (prev) prev.disabled = position <= 0;
+}
+
+let tipAutoTimer = null;
+function startTipAutoRotation() {
+  if (tipAutoTimer) return;
+  tipAutoTimer = window.setInterval(() => {
+    const app = $('#app');
+    if (!app || app.hidden || document.hidden) return;
+    if ($$('.sheetmenu').some(dialog => !dialog.hidden)) return;
+    moveHint(1, { cloud: false });
+  }, 18000);
 }
 
 /* ─────────────────────── выбор персонажа ─────────────────────── */
@@ -1258,7 +1336,8 @@ async function onClick(e) {
     case 'reset':       $('#menu').hidden = true; resetAll(); break;
     case 'print':       $('#menu').hidden = true; setTimeout(() => window.print(), 60); break;
 
-    case 'next-tip':    if (card) rotateHint(card.dataset.char); break;
+    case 'prev-tip':    if (card) moveHint(-1); break;
+    case 'next-tip':    if (card) moveHint(1); break;
     case 'hp':          openHp(); break;
     case 'close-hp':    $('#hpdlg').hidden = true; break;
     case 'damage': {
@@ -1331,6 +1410,8 @@ let activeUserId = null;
 function bindEventsOnce() {
   if (eventsBound) return;
   eventsBound = true;
+  ensurePortraitDecor();
+  startTipAutoRotation();
 
   document.addEventListener('click', onClick);
 
@@ -1351,7 +1432,7 @@ function bindEventsOnce() {
   }));
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js?v=gm-html-reader-1', { updateViaCache: 'none' }).catch(err =>
+    navigator.serviceWorker.register('sw.js?v=dynamic-tips-19', { updateViaCache: 'none' }).catch(err =>
       console.warn('Service worker не зарегистрирован:', err));
   }
 }
