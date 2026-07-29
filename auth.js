@@ -3,9 +3,9 @@
    Регистрация, вход, восстановление пароля и выход.
    ================================================================== */
 
-import { auth } from './firebase-config.js?v=reset-fix-1';
-import { connectCharacterStore, queueCharacterSave, stopCharacterStore } from './character-store.js?v=reset-fix-1';
-import { startLobbySession, stopLobbySession } from './lobby-store.js?v=reset-fix-1';
+import { auth, db } from './firebase-config.js?v=gm-manual-1';
+import { connectCharacterStore, queueCharacterSave, stopCharacterStore } from './character-store.js?v=gm-manual-1';
+import { startLobbySession, stopLobbySession } from './lobby-store.js?v=gm-manual-1';
 import {
   browserLocalPersistence,
   createUserWithEmailAndPassword,
@@ -15,6 +15,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js';
+import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -30,6 +31,7 @@ const ui = {
   message: $('#auth-message'),
   tabs: Array.from(document.querySelectorAll('[data-auth-mode]')),
   accountEmail: $('#auth-user-email'),
+  gmLink: $('#gm-dashboard-link'),
 };
 
 let mode = 'login';
@@ -151,7 +153,21 @@ async function logout() {
   }
 }
 
+
+async function refreshGmLink(user) {
+  if (!ui.gmLink) return;
+  ui.gmLink.hidden = true;
+  if (!user) return;
+  try {
+    const role = await getDoc(doc(db, 'roles', user.uid));
+    ui.gmLink.hidden = !(role.exists() && role.data()?.role === 'gm');
+  } catch (error) {
+    console.warn('GM role check:', error);
+  }
+}
+
 function showSignedOut() {
+  void refreshGmLink(null);
   stopLobbySession();
   stopCharacterStore();
   window.LegendyApp?.setCloudSaver(null);
@@ -164,6 +180,7 @@ function showSignedOut() {
 }
 
 async function showSignedIn(user) {
+  void refreshGmLink(user);
   ui.accountEmail.textContent = user.email || 'Пользователь Firebase';
   ui.screen.hidden = false;
   setMessage('Загружаем персонажа из хроники…');

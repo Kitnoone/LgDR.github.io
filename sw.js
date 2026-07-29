@@ -1,16 +1,20 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v18-reset-fix';
+const V = 'legendy-v19-gm-manual';
 const ASSETS = [
   './',
   './index.html',
-  './app.css?v=reset-fix-1',
-  './arsenal.js?v=reset-fix-1',
-  './app.js?v=reset-fix-1',
-  './auth.js?v=reset-fix-1',
-  './character-store.js?v=reset-fix-1',
-  './lobby-store.js?v=reset-fix-1',
-  './firebase-config.js?v=reset-fix-1',
+  './master.html',
+  './master.css?v=gm-manual-1',
+  './master-data.js?v=gm-manual-1',
+  './master.js?v=gm-manual-1',
+  './app.css?v=gm-manual-1',
+  './arsenal.js?v=gm-manual-1',
+  './app.js?v=gm-manual-1',
+  './auth.js?v=gm-manual-1',
+  './character-store.js?v=gm-manual-1',
+  './lobby-store.js?v=gm-manual-1',
+  './firebase-config.js?v=gm-manual-1',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
@@ -70,16 +74,17 @@ self.addEventListener('fetch', event => {
 
   /* Для переходов по страницам сначала просим свежую версию из сети. */
   if (request.mode === 'navigate') {
+    const pageKey = url.pathname.endsWith('/master.html') ? './master.html' : './index.html';
     event.respondWith(
       fetch(request)
         .then(response => {
           if (response.ok) {
             const copy = response.clone();
-            caches.open(V).then(cache => cache.put('./index.html', copy));
+            caches.open(V).then(cache => cache.put(pageKey, copy));
           }
           return response;
         })
-        .catch(() => caches.match('./index.html'))
+        .catch(() => caches.match(pageKey))
     );
     return;
   }

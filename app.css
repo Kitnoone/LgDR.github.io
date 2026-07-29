@@ -1327,3 +1327,5 @@ body.has-partybar main{padding-top:calc(var(--topbar-h) + var(--partybar-h) + en
   .item-detail-damage-label,
   .item-detail-damage-modifier{color:var(--teal)!important;}
 }
+
+.gm-dashboard-link{text-decoration:none;color:inherit;width:100%;}

@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=PT+Sans+Narrow:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.css?v=reset-fix-1">
+<link rel="stylesheet" href="app.css?v=gm-manual-1">
 </head>
 <body>
 
@@ -90,6 +90,7 @@
     <button class="menu-item" data-act="print"><b>Печать всех карточек</b><span>Восемь листов A4, как раньше</span></button>
     <button class="menu-item menu-item--warn" data-act="reset"><b>Сбросить всё</b><span>Здоровье, заряды, порча и монеты обнулятся</span></button>
     <div class="auth-account"><span>Аккаунт</span><b id="auth-user-email">—</b><small id="cloud-status">Облако: —</small></div>
+    <a id="gm-dashboard-link" class="menu-item gm-dashboard-link" href="master.html" hidden><b>Кабинет мастера</b><span>Просмотр всех лобби, игроков и сценариев</span></a>
     <button class="menu-item menu-item--warn" type="button" data-auth-action="logout"><b>Выйти из аккаунта</b><span>Локальное состояние этого пользователя останется на устройстве</span></button>
     <button class="menu-close" data-act="close-menu">Закрыть</button>
   </div>
@@ -1421,8 +1422,8 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="arsenal.js?v=reset-fix-1"></script>
-<script src="app.js?v=reset-fix-1"></script>
-<script type="module" src="auth.js?v=reset-fix-1"></script>
+<script src="arsenal.js?v=gm-manual-1"></script>
+<script src="app.js?v=gm-manual-1"></script>
+<script type="module" src="auth.js?v=gm-manual-1"></script>
 </body>
 </html>

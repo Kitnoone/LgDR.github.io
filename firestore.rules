@@ -10,8 +10,21 @@ service cloud.firestore {
       return request.auth.uid;
     }
 
+    function isGameMaster() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/roles/$(request.auth.uid))
+        && get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.role == 'gm';
+    }
+
     function memberOf(data) {
       return signedIn() && currentUid() in data.memberIds;
+    }
+
+    /* Роли назначаются только вручную через Firebase Console.
+       Клиент не может создать, изменить или удалить роль. */
+    match /roles/{userId} {
+      allow get: if signedIn() && currentUid() == userId;
+      allow list, create, update, delete: if false;
     }
 
     match /characters/{userId} {
@@ -19,7 +32,8 @@ service cloud.firestore {
         return signedIn() && currentUid() == userId;
       }
 
-      allow read, delete: if signedInAsOwner();
+      allow read: if signedInAsOwner() || isGameMaster();
+      allow delete: if signedInAsOwner();
 
       allow create: if signedInAsOwner()
         && request.resource.data.keys().hasOnly([
@@ -36,9 +50,10 @@ service cloud.firestore {
     }
 
     match /teams/{teamCode} {
-      /* По коду можно открыть только один документ. Получать список всех лобби нельзя. */
+      /* Игрок получает только конкретное лобби по коду.
+         Мастер может получить список всех существующих лобби. */
       allow get: if signedIn();
-      allow list: if false;
+      allow list: if isGameMaster();
 
       allow create: if signedIn()
         && request.resource.data.keys().hasOnly([
@@ -137,9 +152,16 @@ service cloud.firestore {
                     || leaveTeam()
                     || ownerRename();
 
-      allow delete: if memberOf(resource.data)
-        && resource.data.ownerId == currentUid()
-        && resource.data.memberCount == 1;
+      /* Удаление документа распускает лобби. */
+      allow delete: if isGameMaster()
+        || (memberOf(resource.data)
+            && resource.data.ownerId == currentUid()
+            && resource.data.memberCount == 1);
+    }
+
+    /* Текстовые сценарии доступны только мастерам. */
+    match /scenarios/{scenarioId} {
+      allow read, create, update, delete: if isGameMaster();
     }
   }
 }

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d2b30">
+<title>Кабинет мастера · Легенды подземелий</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=PT+Sans+Narrow:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="master.css?v=gm-manual-1">
+</head>
+<body>
+<section id="gm-auth" class="gm-gate">
+  <div class="gm-gate-card">
+    <span class="gm-kicker">Легенды подземелий</span>
+    <h1>Кабинет мастера</h1>
+    <p>Войдите в аккаунт, которому вручную назначена роль мастера.</p>
+    <form id="gm-login-form" class="gm-login-form">
+      <label><span>Электронная почта</span><input id="gm-email" type="email" autocomplete="email" required></label>
+      <label><span>Пароль</span><input id="gm-password" type="password" autocomplete="current-password" minlength="6" required></label>
+      <button id="gm-login-button" class="gm-primary" type="submit">Войти</button>
+    </form>
+    <p id="gm-auth-message" class="gm-message">Проверяем вход…</p>
+    <a class="gm-text-link" href="index.html">Вернуться к карточкам</a>
+  </div>
+</section>
+
+<section id="gm-denied" class="gm-gate" hidden>
+  <div class="gm-gate-card">
+    <span class="gm-kicker">Доступ ограничен</span>
+    <h1>Роль мастера не найдена</h1>
+    <p>Этот аккаунт вошёл успешно, но в Firestore ему не назначена роль <b>gm</b>.</p>
+    <div class="gm-uid-box"><span>UID аккаунта</span><code id="gm-denied-uid">—</code><button id="gm-copy-uid" type="button">Копировать UID</button></div>
+    <button class="gm-secondary" type="button" data-gm-action="logout">Выйти</button>
+    <a class="gm-text-link" href="index.html">Вернуться к карточкам</a>
+  </div>
+</section>
+
+<div id="gm-dashboard" hidden>
+  <header class="gm-topbar">
+    <div><span class="gm-kicker">Легенды подземелий</span><h1>Кабинет мастера</h1></div>
+    <div class="gm-account"><span id="gm-account-email">—</span><a href="index.html">Карточки</a><button type="button" data-gm-action="logout">Выйти</button></div>
+  </header>
+
+  <nav class="gm-tabs" aria-label="Разделы кабинета">
+    <button class="is-active" type="button" data-gm-tab="lobbies">Лобби</button>
+    <button type="button" data-gm-tab="scenarios">Сценарии</button>
+  </nav>
+
+  <main>
+    <section id="gm-tab-lobbies" class="gm-tab-panel">
+      <div class="gm-section-head">
+        <div><span class="gm-kicker">Общая хроника</span><h2>Все существующие лобби</h2></div>
+        <div class="gm-counter"><span>Лобби</span><b id="gm-lobby-count">0</b></div>
+      </div>
+      <p id="gm-lobby-message" class="gm-message"></p>
+      <div id="gm-lobby-list" class="gm-lobby-list"></div>
+    </section>
+
+    <section id="gm-tab-scenarios" class="gm-tab-panel" hidden>
+      <div class="gm-section-head">
+        <div><span class="gm-kicker">Библиотека мастера</span><h2>Сценарии</h2></div>
+        <div class="gm-counter"><span>Файлы</span><b id="gm-scenario-count">0</b></div>
+      </div>
+      <form id="gm-scenario-upload" class="gm-upload-card">
+        <label><span>Название сценария</span><input id="gm-scenario-title" type="text" maxlength="100" placeholder="Возьмётся из имени файла, если оставить пустым"></label>
+        <label><span>Текстовый файл</span><input id="gm-scenario-file" type="file" accept=".txt,.md,text/plain,text/markdown" required></label>
+        <button class="gm-primary" type="submit">Добавить сценарий</button>
+        <small>Поддерживаются TXT и Markdown размером до 700 КБ.</small>
+      </form>
+      <div class="gm-search"><label>Поиск <input id="gm-scenario-search" type="search" placeholder="Название или текст"></label></div>
+      <p id="gm-scenario-message" class="gm-message"></p>
+      <div id="gm-scenario-list" class="gm-scenario-list"></div>
+    </section>
+  </main>
+</div>
+
+<div id="gm-team-modal" class="gm-modal" hidden>
+  <div class="gm-modal-panel gm-team-panel">
+    <button class="gm-modal-x" type="button" data-gm-action="close-team" aria-label="Закрыть">×</button>
+    <span class="gm-kicker">Лобби <b id="gm-team-code">—</b></span>
+    <h2 id="gm-team-name">—</h2>
+    <div class="gm-resource-grid">
+      <div><span>Игроки</span><b id="gm-team-members">0 / 8</b></div>
+      <div><span>Порча</span><b id="gm-team-taint">0</b></div>
+      <div><span>Монеты</span><b id="gm-team-coins">0</b></div>
+    </div>
+    <div id="gm-player-list" class="gm-player-list"></div>
+    <div class="gm-danger-zone">
+      <div><b>Распустить лобби</b><span>Игроки будут отключены, но их личные персонажи сохранятся.</span></div>
+      <button id="gm-dissolve-team" class="gm-danger" type="button">Распустить</button>
+    </div>
+  </div>
+</div>
+
+<div id="gm-scenario-modal" class="gm-modal" hidden>
+  <div class="gm-modal-panel gm-scenario-panel">
+    <button class="gm-modal-x" type="button" data-gm-action="close-scenario" aria-label="Закрыть">×</button>
+    <span class="gm-kicker">Сценарий</span>
+    <h2 id="gm-scenario-view-title">—</h2>
+    <div id="gm-scenario-view-content" class="gm-scenario-content"></div>
+  </div>
+</div>
+
+<div id="gm-toast" class="gm-toast" hidden></div>
+<script src="arsenal.js?v=gm-manual-1"></script>
+<script src="master-data.js?v=gm-manual-1"></script>
+<script type="module" src="master.js?v=gm-manual-1"></script>
+</body>
+</html>
