@@ -7,7 +7,7 @@
    разных игроков не перезаписывают друг друга.
    ================================================================== */
 
-import { db } from './firebase-config.js?v=weapon-layout-1';
+import { db } from './firebase-config.js?v=reset-fix-1';
 import {
   doc,
   getDoc,

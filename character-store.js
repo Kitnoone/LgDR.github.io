@@ -3,7 +3,7 @@
    Один документ Firestore на один Firebase UID: characters/{uid}
    ================================================================== */
 
-import { db } from './firebase-config.js?v=weapon-layout-1';
+import { db } from './firebase-config.js?v=reset-fix-1';
 import {
   doc,
   getDoc,
@@ -41,13 +41,24 @@ async function writeNow(state) {
   statusHandler('synced');
 }
 
-export function queueCharacterSave(state) {
+export function queueCharacterSave(state, options = {}) {
   if (!activeRef || !activeUid) return;
   const serialized = serialize(state);
   if (serialized === lastSerialized) return;
+
   clearTimeout(saveTimer);
+  saveTimer = null;
+
+  if (options.immediate) {
+    return writeNow(state).catch((error) => {
+      console.error('Firestore immediate save:', error);
+      statusHandler('error', error);
+    });
+  }
+
   statusHandler('waiting');
   saveTimer = setTimeout(() => {
+    saveTimer = null;
     writeNow(state).catch((error) => {
       console.error('Firestore save:', error);
       statusHandler('error', error);

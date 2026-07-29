@@ -1,16 +1,16 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v17-proofreading';
+const V = 'legendy-v18-reset-fix';
 const ASSETS = [
   './',
   './index.html',
-  './app.css?v=proofreading-1',
-  './arsenal.js?v=proofreading-1',
-  './app.js?v=proofreading-1',
-  './auth.js?v=proofreading-1',
-  './character-store.js?v=proofreading-1',
-  './lobby-store.js?v=proofreading-1',
-  './firebase-config.js?v=proofreading-1',
+  './app.css?v=reset-fix-1',
+  './arsenal.js?v=reset-fix-1',
+  './app.js?v=reset-fix-1',
+  './auth.js?v=reset-fix-1',
+  './character-store.js?v=reset-fix-1',
+  './lobby-store.js?v=reset-fix-1',
+  './firebase-config.js?v=reset-fix-1',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',

@@ -138,9 +138,11 @@ function saveLocal() {
   }
 }
 
-function save() {
+function save(immediate = false) {
   saveLocal();
-  if (!suppressCloudSave && cloudSaver) cloudSaver(cloneState());
+  if (!suppressCloudSave && cloudSaver) {
+    cloudSaver(cloneState(), { immediate: !!immediate });
+  }
   stateListeners.forEach(listener => {
     try { listener(cloneState()); } catch (error) { console.warn('State listener:', error); }
   });
@@ -919,38 +921,72 @@ function saveProfile() {
 
 /* ─────────────────────── сбросы ─────────────────────── */
 
-function resetCharges(scope) {
+function deleteStateKeysByPrefix(bucket, prefix, allowKey = null) {
+  Object.keys(bucket || {}).forEach(key => {
+    if (!key.startsWith(prefix)) return;
+    if (!allowKey || allowKey(key)) delete bucket[key];
+  });
+}
+
+function resetCharacterForPeriod(scope) {
   const card = activeCard();
-  if (!card) return;
+  if (!card) return false;
+
   const id = card.dataset.char;
-  $$('.abil[data-uses]', card).forEach(a => {
-    if (scope === 'day' || a.dataset.reset === 'battle') {
-      delete S.spent[`${id}:${a.dataset.abil}`];
-    }
-  });
-  $$('.pick--choice', card).forEach(p => {
-    const reset = card.dataset.choiceReset;
-    if (reset && (scope === 'day' || reset === 'battle')) {
-      delete S.choice[`${id}:${p.dataset.group}`];
-    }
-  });
+  const prefix = `${id}:`;
+
+  /* Не полагаемся только на текущие отметки в DOM: старые сохранения
+     могут содержать способности, которых уже нет в актуальной вёрстке. */
+  if (scope === 'day') {
+    deleteStateKeysByPrefix(S.spent, prefix);
+  } else {
+    const battleAbilities = new Set(
+      $$('.abil[data-reset="battle"][data-abil]', card).map(a => a.dataset.abil)
+    );
+    deleteStateKeysByPrefix(S.spent, prefix, key => {
+      const abilityId = key.slice(prefix.length);
+      return battleAbilities.has(abilityId);
+    });
+  }
+
+  const choiceReset = card.dataset.choiceReset || '';
+  if (choiceReset && (scope === 'day' || choiceReset === 'battle')) {
+    deleteStateKeysByPrefix(S.choice, prefix);
+  }
+
+  /* Новый бой и новый день начинают персонажа с полным здоровьем. */
+  S.hp[id] = hpMax(card);
+  S.dmgAcc[id] = 0;
+
+  /* Награда Сестры за первое падение действует заново в каждом бою. */
+  if (id === 'sister') S.flags.sisterFallReward = false;
+
+  return true;
+}
+
+function commitPeriodReset(message) {
+  /* Сброс сразу отправляется в Firestore, без обычной задержки сохранения. */
+  save(true);
+  render();
+
+  /* На случай, если окно здоровья было открыто в момент сброса. */
+  const card = activeCard();
+  if (card && $('#hpdlg') && !$('#hpdlg').hidden) {
+    $('#hpdlg-num').textContent = hpCur(card);
+    $('#hpdlg-max').textContent = `/ ${hpMax(card)}`;
+  }
+
+  toast(message);
 }
 
 function newBattle() {
-  resetCharges('battle');
-  save(); render();
-  toast('Новый бой: заряды «за бой» восстановлены');
+  if (!resetCharacterForPeriod('battle')) return;
+  commitPeriodReset('Новый бой: здоровье и отметки «за бой» восстановлены');
 }
 
 function newDay() {
-  const card = activeCard();
-  resetCharges('day');
-  if (card) {
-    S.hp[card.dataset.char] = hpMax(card);
-    S.dmgAcc[card.dataset.char] = 0;
-  }
-  save(); render();
-  toast('Новый день: здоровье и все заряды восстановлены');
+  if (!resetCharacterForPeriod('day')) return;
+  commitPeriodReset('Новый день: здоровье и все отметки восстановлены');
 }
 
 function resetAll() {
@@ -1141,7 +1177,7 @@ function bindEventsOnce() {
   }));
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js?v=armor-type-1', { updateViaCache: 'none' }).catch(err =>
+    navigator.serviceWorker.register('sw.js?v=reset-fix-1', { updateViaCache: 'none' }).catch(err =>
       console.warn('Service worker не зарегистрирован:', err));
   }
 }
