@@ -1,6 +1,6 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v21-portraits-tips';
+const V = 'legendy-v22-portrait-fade-fix';
 const ASSETS = [
   './',
   './index.html',
@@ -8,10 +8,10 @@ const ASSETS = [
   './master.css?v=gm-html-reader-1',
   './master-data.js?v=gm-html-reader-1',
   './master.js?v=gm-html-reader-1',
-  './app.css?v=portraits-tips-17',
-  './arsenal.js?v=portraits-tips-17',
-  './app.js?v=portraits-tips-17',
-  './auth.js?v=portraits-tips-17',
+  './app.css?v=portrait-fade-18',
+  './arsenal.js?v=portrait-fade-18',
+  './app.js?v=portrait-fade-18',
+  './auth.js?v=portrait-fade-18',
   './character-store.js?v=gm-html-reader-1',
   './lobby-store.js?v=gm-html-reader-1',
   './firebase-config.js?v=gm-html-reader-1',
