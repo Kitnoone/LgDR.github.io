@@ -1,19 +1,19 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v36-slow-corruption-theme';
+const V = 'legendy-v37-slow-corruption-smoothing';
 const ASSETS = [
   './',
   './index.html',
   './master.html',
   './master.css?v=gm-html-reader-1',
   './master-data.js?v=gm-html-reader-1',
-  './master.js?v=slow-corruption-theme-32',
-  './app.css?v=slow-corruption-theme-32',
-  './arsenal.js?v=slow-corruption-theme-32',
-  './app.js?v=slow-corruption-theme-32',
-  './auth.js?v=slow-corruption-theme-32',
+  './master.js?v=slow-corruption-theme-33',
+  './app.css?v=slow-corruption-theme-33',
+  './arsenal.js?v=slow-corruption-theme-33',
+  './app.js?v=slow-corruption-theme-33',
+  './auth.js?v=slow-corruption-theme-33',
   './character-store.js?v=gm-html-reader-1',
-  './lobby-store.js?v=slow-corruption-theme-32',
+  './lobby-store.js?v=slow-corruption-theme-33',
   './firebase-config.js?v=gm-html-reader-1',
   './manifest.webmanifest',
   './icon-192.png',

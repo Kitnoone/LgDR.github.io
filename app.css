@@ -1446,13 +1446,16 @@ body.has-partybar main{padding-top:calc(var(--topbar-h) + var(--partybar-h) + en
   content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
   background:
     linear-gradient(90deg,
-      rgba(13,43,48,.98) 0%,
-      rgba(13,43,48,.97) 24%,
-      rgba(13,43,48,.91) 38%,
-      rgba(13,43,48,.6) 56%,
-      rgba(13,43,48,.16) 74%,
-      rgba(13,43,48,0) 90%),
-    linear-gradient(180deg, rgba(6,20,23,.18), rgba(6,20,23,0) 36%, rgba(6,20,23,.08) 100%);
+      rgba(13,43,48,.985) 0%,
+      rgba(13,43,48,.975) 18%,
+      rgba(13,43,48,.94) 32%,
+      rgba(13,43,48,.82) 45%,
+      rgba(13,43,48,.56) 58%,
+      rgba(13,43,48,.28) 70%,
+      rgba(13,43,48,.08) 82%,
+      rgba(13,43,48,0) 94%),
+    radial-gradient(circle at 86% 22%, rgba(255,255,255,.04), rgba(255,255,255,0) 22%),
+    linear-gradient(180deg, rgba(6,20,23,.15), rgba(6,20,23,0) 34%, rgba(6,20,23,.06) 100%);
 }
 .ch-btn > *{position:relative;z-index:1;}
 .ch-btn b{max-width:300px;padding-right:10px;font-size:21px;line-height:1.02;letter-spacing:.025em;text-wrap:balance;}
@@ -1470,13 +1473,16 @@ body.has-partybar main{padding-top:calc(var(--topbar-h) + var(--partybar-h) + en
   content:"";position:absolute;top:0;left:0;right:0;height:206px;z-index:0;pointer-events:none;
   background:
     linear-gradient(90deg,
-      rgba(239,233,221,1) 0%,
-      rgba(239,233,221,.99) 28%,
-      rgba(239,233,221,.93) 42%,
-      rgba(239,233,221,.62) 56%,
-      rgba(239,233,221,.16) 74%,
-      rgba(239,233,221,0) 90%),
-    radial-gradient(circle at 86% 18%, rgba(0,0,0,.12), rgba(0,0,0,0) 34%);
+      rgba(239,233,221,.998) 0%,
+      rgba(239,233,221,.992) 20%,
+      rgba(239,233,221,.968) 34%,
+      rgba(239,233,221,.89) 46%,
+      rgba(239,233,221,.72) 58%,
+      rgba(239,233,221,.46) 70%,
+      rgba(239,233,221,.18) 82%,
+      rgba(239,233,221,.04) 92%,
+      rgba(239,233,221,0) 100%),
+    radial-gradient(circle at 84% 20%, rgba(0,0,0,.08), rgba(0,0,0,0) 36%);
 }
 .head .titles,.head .hpbox,.head .hintdeck{position:relative;z-index:1;}
 .head .titles{
@@ -1973,7 +1979,7 @@ body::after{
   transition:opacity .35s ease,box-shadow .35s ease;
 }
 body:not([data-taint-level="0"])::after{opacity:1;}
-body[data-taint-level="1"]::after,body[data-taint-level="2"]::after{background:radial-gradient(ellipse at center,transparent 70%,var(--corruption-glow) 100%);}
+body[data-taint-level="1"]::after,body[data-taint-level="2"]::after{background:radial-gradient(ellipse at center,transparent 73%,var(--corruption-glow) 100%);}
 body[data-taint-level="3"]::after,body[data-taint-level="4"]::after{opacity:.72;}
 body[data-taint-level="5"]::after,body[data-taint-level="6"]::after{opacity:.88;}
 body[data-taint-level="7"]::after,body[data-taint-level="8"]::after{opacity:1;}
@@ -1996,7 +2002,7 @@ body[data-taint-level="5"] .teambar,body[data-taint-level="6"] .teambar{
 body[data-taint-level="7"] .topbar,body[data-taint-level="8"] .topbar,
 body[data-taint-level="7"] .teambar,body[data-taint-level="8"] .teambar{
   background:
-    linear-gradient(115deg,transparent 0 47%,rgba(160,35,28,.14) 48%,transparent 49%) 0 0/74px 56px,
+    radial-gradient(circle at 88% 18%, rgba(167,38,28,.12), transparent 24%),
     linear-gradient(90deg,#08191d 0%,#231116 48%,#3b0d12 100%);
   border-color:var(--corruption-line);
 }
@@ -2007,7 +2013,7 @@ body:not([data-taint-level="0"]) .tb-lab{color:color-mix(in srgb,var(--brass) 74
 /* Главный лист: заражаются края и акцентные блоки, но светлая область остаётся читаемой. */
 body:not([data-taint-level="0"]) main{
   background:
-    linear-gradient(90deg,var(--corruption-paper),transparent 11%,transparent 89%,var(--corruption-paper));
+    linear-gradient(90deg,var(--corruption-paper),transparent 14%,transparent 86%,var(--corruption-paper));
 }
 body:not([data-taint-level="0"]) .card.is-active{
   filter:drop-shadow(0 0 8px var(--corruption-glow));
@@ -2015,6 +2021,14 @@ body:not([data-taint-level="0"]) .card.is-active{
 }
 body:not([data-taint-level="0"]) .head{
   box-shadow:inset 0 -1px 0 var(--corruption-edge);
+  background:
+    linear-gradient(90deg,
+      rgba(239,233,221,.14) 0%,
+      rgba(239,233,221,.09) 18%,
+      rgba(239,233,221,.04) 34%,
+      rgba(239,233,221,0) 56%,
+      rgba(239,233,221,.02) 78%,
+      rgba(239,233,221,.06) 100%);
 }
 body:not([data-taint-level="0"]) .head::before{
   opacity:var(--corruption-portrait);
@@ -2097,10 +2111,8 @@ body[data-taint-level="8"] .teambar{animation:corruptionEdgeBreath 2.4s ease-in-
 @media screen and (max-width:560px){
   body::after{
     background:
-      linear-gradient(122deg,transparent 0 48%,var(--corruption-line) 48.35%,transparent 48.7%) top right/94px 84px no-repeat,
-      linear-gradient(58deg,transparent 0 48%,var(--corruption-line) 48.35%,transparent 48.7%) bottom left/90px 80px no-repeat,
-      radial-gradient(ellipse at center,transparent 64%,var(--corruption-warp) 86%,var(--corruption-glow) 100%);
-    box-shadow:inset 0 0 0 1px var(--corruption-edge),inset 0 0 24px var(--corruption-glow);
+      radial-gradient(ellipse at center,transparent 66%,var(--corruption-warp) 88%,var(--corruption-glow) 100%);
+    box-shadow:inset 0 0 0 1px var(--corruption-edge),inset 0 0 20px var(--corruption-glow);
   }
   body:not([data-taint-level="0"]) main{background:linear-gradient(90deg,var(--corruption-paper),transparent 8%,transparent 92%,var(--corruption-paper));}
   body[data-taint-level="7"] .head h1,body[data-taint-level="8"] .head h1{color:#163d42;text-shadow:0 0 10px var(--corruption-glow);}

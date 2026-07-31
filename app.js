@@ -1739,7 +1739,7 @@ function bindEventsOnce() {
   }));
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js?v=slow-corruption-theme-32', { updateViaCache: 'none' }).catch(err =>
+    navigator.serviceWorker.register('sw.js?v=slow-corruption-theme-33', { updateViaCache: 'none' }).catch(err =>
       console.warn('Service worker не зарегистрирован:', err));
   }
 }
