@@ -1,6 +1,6 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v23-dynamic-tips';
+const V = 'legendy-v24-scroll-position-fix';
 const ASSETS = [
   './',
   './index.html',
@@ -8,10 +8,10 @@ const ASSETS = [
   './master.css?v=gm-html-reader-1',
   './master-data.js?v=gm-html-reader-1',
   './master.js?v=gm-html-reader-1',
-  './app.css?v=dynamic-tips-19',
-  './arsenal.js?v=dynamic-tips-19',
-  './app.js?v=dynamic-tips-19',
-  './auth.js?v=dynamic-tips-19',
+  './app.css?v=scroll-fix-20',
+  './arsenal.js?v=scroll-fix-20',
+  './app.js?v=scroll-fix-20',
+  './auth.js?v=scroll-fix-20',
   './character-store.js?v=gm-html-reader-1',
   './lobby-store.js?v=gm-html-reader-1',
   './firebase-config.js?v=gm-html-reader-1',

@@ -538,13 +538,13 @@ function showChooser() {
   $('#app').hidden = true;
 }
 
-function showApp() {
+function showApp({ resetScroll = true } = {}) {
   $('#chooser').hidden = true;
   $('#topbar').hidden = false;
   $('#teambar').hidden = false;
   $('#app').hidden = false;
   render();
-  window.scrollTo(0, 0);
+  if (resetScroll) window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 }
 
 /* ─────────────────────────── арсенал ─────────────────────────── */
@@ -1432,7 +1432,7 @@ function bindEventsOnce() {
   }));
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js?v=dynamic-tips-19', { updateViaCache: 'none' }).catch(err =>
+    navigator.serviceWorker.register('sw.js?v=scroll-fix-20', { updateViaCache: 'none' }).catch(err =>
       console.warn('Service worker не зарегистрирован:', err));
   }
 }
@@ -1453,6 +1453,15 @@ function presentForUser() {
 
 function applyCloudState(nextState) {
   if (!nextState) return;
+
+  /* Firestore присылает обновление после почти каждого изменения карточки.
+     Раньше здесь снова вызывался showApp(), а он намеренно прокручивал лист
+     к началу. Поэтому любое лечение, заряд, выбор или смена снаряжения
+     через долю секунды отправляли игрока наверх страницы. */
+  const appWasVisible = !$('#app').hidden;
+  const scrollX = window.scrollX;
+  const scrollY = window.scrollY;
+
   suppressCloudSave = true;
   S = normalizeState(nextState);
   saveLocal();
@@ -1461,8 +1470,20 @@ function applyCloudState(nextState) {
     try { listener(cloneState()); } catch (error) { console.warn('State listener:', error); }
   });
   buildChooser();
-  if (S.char && S.characterName) showApp();
-  else showChooser();
+
+  if (S.char && S.characterName) {
+    if (appWasVisible) {
+      /* Обновляем лист на месте, не переключая экран и не трогая прокрутку. */
+      render();
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: scrollY, left: scrollX, behavior: 'auto' });
+      });
+    } else {
+      showApp();
+    }
+  } else {
+    showChooser();
+  }
 }
 
 function setCloudSaver(fn) {
