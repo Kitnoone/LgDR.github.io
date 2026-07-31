@@ -134,7 +134,7 @@ function statValue(state, team, stat) {
     if (pact==='pride') value+=1;
     if (pact==='strength' && stat==='strength') value=(value+2)*2;
   }
-  return value;
+  return Math.min(5,value);
 }
 
 function damageText(weapon,state,team) {

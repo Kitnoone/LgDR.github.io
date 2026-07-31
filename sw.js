@@ -1,6 +1,6 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v25-mobile-portrait-fix';
+const V = 'legendy-v26-stat-cap';
 const ASSETS = [
   './',
   './index.html',
@@ -8,10 +8,10 @@ const ASSETS = [
   './master.css?v=gm-html-reader-1',
   './master-data.js?v=gm-html-reader-1',
   './master.js?v=gm-html-reader-1',
-  './app.css?v=mobile-portraits-21',
-  './arsenal.js?v=mobile-portraits-21',
-  './app.js?v=mobile-portraits-21',
-  './auth.js?v=mobile-portraits-21',
+  './app.css?v=stat-cap-22',
+  './arsenal.js?v=stat-cap-22',
+  './app.js?v=stat-cap-22',
+  './auth.js?v=stat-cap-22',
   './character-store.js?v=gm-html-reader-1',
   './lobby-store.js?v=gm-html-reader-1',
   './firebase-config.js?v=gm-html-reader-1',
