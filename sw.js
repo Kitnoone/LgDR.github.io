@@ -1,6 +1,6 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v27-starting-loadout';
+const V = 'legendy-v28-prolog-update';
 const ASSETS = [
   './',
   './index.html',

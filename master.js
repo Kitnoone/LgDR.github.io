@@ -78,7 +78,7 @@ function startDashboard() {
 
 async function loadBundledScenarios() {
   try {
-    const response = await fetch('./assets/scenarios/prolog-verstka.html?v=gm-html-reader-1', { cache: 'no-cache' });
+    const response = await fetch('./assets/scenarios/prolog-verstka.html?v=prolog-24', { cache: 'no-cache' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const content = await response.text();
     bundledScenarios = [{
