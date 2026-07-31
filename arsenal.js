@@ -94,8 +94,54 @@
     techpriest:'servo-armor',
     priest:'carapace',
     neophyte:'carapace',
-    psyker:'robes',
+    psyker:'',
     sister:'sister-armor',
+  };
+
+
+  /* Стартовое снаряжение архетипов. Врождённые Когти Еретика не лежат
+     в weaponIds: они всегда выводятся отдельно и не занимают руки. */
+  const STARTING_LOADOUT = {
+    guardsman: {
+      armorId:'flak',
+      weaponIds:['lasgun'],
+      gearIds:[],
+    },
+    heretic: {
+      armorId:'robes',
+      weaponIds:[],
+      gearIds:[],
+    },
+    cultist: {
+      armorId:'synthsuit',
+      weaponIds:['fanatic-daggers'],
+      gearIds:[],
+    },
+    techpriest: {
+      armorId:'servo-armor',
+      weaponIds:['las-pistol'],
+      gearIds:['omnis-axe'],
+    },
+    priest: {
+      armorId:'carapace',
+      weaponIds:['power-mace'],
+      gearIds:['combat-servo-skull', 'holy-scripture'],
+    },
+    neophyte: {
+      armorId:'carapace',
+      weaponIds:['chain-axe', 'bolt-pistol'],
+      gearIds:[],
+    },
+    psyker: {
+      armorId:'',
+      weaponIds:['las-pistol'],
+      gearIds:['psyker-staff'],
+    },
+    sister: {
+      armorId:'sister-armor',
+      weaponIds:['bolt-pistol'],
+      gearIds:['loudspeaker'],
+    },
   };
 
   const STAT_LABELS = {
@@ -162,6 +208,13 @@
     WEAPONS:Object.freeze(WEAPONS),
     GEAR:Object.freeze(GEAR),
     DEFAULT_ARMOR:Object.freeze(DEFAULT_ARMOR),
+    STARTING_LOADOUT:Object.freeze(Object.fromEntries(
+      Object.entries(STARTING_LOADOUT).map(([id, loadout]) => [id, Object.freeze({
+        armorId:loadout.armorId,
+        weaponIds:Object.freeze([...loadout.weaponIds]),
+        gearIds:Object.freeze([...loadout.gearIds]),
+      })]),
+    )),
     STAT_LABELS:Object.freeze(STAT_LABELS),
     FAMILY_RULES:Object.freeze(FAMILY_RULES),
     FANATIC_WEAPON_IDS,

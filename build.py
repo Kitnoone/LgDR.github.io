@@ -28,7 +28,7 @@ DEFAULT_ARMOR_ID = {
     "techpriest": "servo-armor",
     "priest": "carapace",
     "neophyte": "carapace",
-    "psyker": "robes",
+    "psyker": "",
     "sister": "sister-armor",
 }
 
@@ -447,7 +447,7 @@ CHARS = [{'id': 'guardsman',
   'short': 'Псионик',
   'role': 'Самый сильный урон и самый хрупкий в отряде. Провал на психосиле зовёт демона.',
   'hp': 20,
-  'armor': 'Робы',
+  'armor': 'Без брони',
   'stats': [('Сила', -2), ('Ловкость', 1), ('Стойкость', -2), ('Интеллект', 5), ('Мудрость', 1), ('Харизма', 1)],
   'sec1': 'Психосилы',
   'sec1sub': 'Не более одной за ход. Сначала проверка Интеллекта, затем эффект.',
@@ -776,7 +776,7 @@ HEAD = '''<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=PT+Sans+Narrow:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.css?v=mobile-portraits-21">
+<link rel="stylesheet" href="app.css?v=starting-loadout-23">
 </head>
 <body>
 
@@ -1023,9 +1023,9 @@ FOOT = '''
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="arsenal.js?v=mobile-portraits-21"></script>
-<script src="app.js?v=mobile-portraits-21"></script>
-<script type="module" src="auth.js?v=mobile-portraits-21"></script>
+<script src="arsenal.js?v=starting-loadout-23"></script>
+<script src="app.js?v=starting-loadout-23"></script>
+<script type="module" src="auth.js?v=starting-loadout-23"></script>
 </body>
 </html>
 '''

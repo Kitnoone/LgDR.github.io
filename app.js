@@ -29,6 +29,7 @@ const BLANK = () => ({
   hp: {},        // charId -> текущее здоровье
   spent: {},     // "charId:abilId" -> сколько зарядов потрачено
   choice: {},    // "charId:group" -> id выбранного пункта
+  loadoutInit: { archetype:'', version:0 },
   tips: {},      // устаревшее поле, оставлено для совместимости
   tipDeck: { order: [], position: 0 },
   dmgAcc: {},    // charId -> накопленный урон (для сестры)
@@ -39,12 +40,60 @@ const BLANK = () => ({
 
 let S = BLANK();
 
+const STARTING_LOADOUT_VERSION = 1;
+
+function blankInventory() {
+  return {
+    armorId:'', weaponIds:[], gearIds:[],
+    armor:'', weapon:'', damage:'', items:[],
+  };
+}
+
+function startingInventory(archetype) {
+  const preset = Arsenal.STARTING_LOADOUT?.[archetype];
+  if (!preset) return blankInventory();
+  return {
+    ...blankInventory(),
+    armorId:String(
+      Object.prototype.hasOwnProperty.call(preset, 'armorId')
+        ? (preset.armorId || '')
+        : (Arsenal.DEFAULT_ARMOR?.[archetype] || ''),
+    ),
+    weaponIds:[...(preset.weaponIds || [])],
+    gearIds:[...(preset.gearIds || [])],
+  };
+}
+
+function inventoryHasSelections(inv) {
+  return !!(
+    String(inv?.armorId || '').trim()
+    || (Array.isArray(inv?.weaponIds) && inv.weaponIds.length)
+    || (Array.isArray(inv?.gearIds) && inv.gearIds.length)
+    || String(inv?.armor || '').trim()
+    || String(inv?.weapon || '').trim()
+    || (Array.isArray(inv?.items) && inv.items.length)
+  );
+}
+
+function markStartingLoadout(state, archetype) {
+  state.loadoutInit = { archetype:String(archetype || ''), version:STARTING_LOADOUT_VERSION };
+}
+
+function applyStartingLoadout(state, archetype) {
+  state.inventory = startingInventory(archetype);
+  markStartingLoadout(state, archetype);
+}
+
 function normalizeState(raw) {
   const base = BLANK();
   const next = Object.assign(base, raw || {});
   next.hp = Object.assign({}, raw?.hp || {});
   next.spent = Object.assign({}, raw?.spent || {});
   next.choice = Object.assign({}, raw?.choice || {});
+  next.loadoutInit = {
+    archetype:String(raw?.loadoutInit?.archetype || ''),
+    version:Number.parseInt(raw?.loadoutInit?.version, 10) || 0,
+  };
   next.tips = Object.assign({}, raw?.tips || {});
   next.tipDeck = {
     order: Array.isArray(raw?.tipDeck?.order) ? raw.tipDeck.order.map(Number).filter(Number.isInteger) : [],
@@ -54,10 +103,7 @@ function normalizeState(raw) {
   next.flags = Object.assign({ sisterFallReward: false }, raw?.flags || {});
   next.teamCode = String(raw?.teamCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
   next.team = Object.assign({ taint: 0, coins: 0 }, raw?.team || {});
-  next.inventory = Object.assign({
-    armorId: '', weaponIds: [], gearIds: [],
-    armor: '', weapon: '', damage: '', items: [],
-  }, raw?.inventory || {});
+  next.inventory = Object.assign(blankInventory(), raw?.inventory || {});
   if (!Array.isArray(next.inventory.weaponIds)) next.inventory.weaponIds = [];
   if (!Array.isArray(next.inventory.gearIds)) next.inventory.gearIds = [];
   if (!Array.isArray(next.inventory.items)) next.inventory.items = [];
@@ -74,6 +120,19 @@ function normalizeState(raw) {
     next.inventory.gearIds = next.inventory.items
       .map(name => Arsenal.findGearByName(name)?.id)
       .filter(Boolean);
+  }
+
+  /* Старые персонажи без выбранного оружия и снаряжения получают
+     стартовый комплект один раз. Пользовательские комплекты не перезаписываются. */
+  const loadoutIsCurrent = next.loadoutInit.version >= STARTING_LOADOUT_VERSION
+    && next.loadoutInit.archetype === next.char;
+  if (next.char && !loadoutIsCurrent) {
+    const defaultArmorId = Arsenal.DEFAULT_ARMOR?.[next.char] || '';
+    const hasCustomSelections = next.inventory.weaponIds.length > 0
+      || next.inventory.gearIds.length > 0
+      || (!!next.inventory.armorId && next.inventory.armorId !== defaultArmorId);
+    if (!hasCustomSelections) applyStartingLoadout(next, next.char);
+    else markStartingLoadout(next, next.char);
   }
 
   next.inventory.weaponIds = next.inventory.weaponIds
@@ -510,16 +569,27 @@ function pickChar(id) {
   }
 
   S.characterName = name.slice(0, 40);
+  const previousArchetype = S.char;
   S.char = id;
   const card = $(`.card[data-char="${id}"]`);
   if (S.hp[id] === undefined) S.hp[id] = hpMax(card);
+
+  const loadoutIsCurrent = S.loadoutInit?.version >= STARTING_LOADOUT_VERSION
+    && S.loadoutInit?.archetype === id;
+
+  /* Новый архетип всегда начинает с собственного комплекта. Повторный выбор
+     того же архетипа не стирает снаряжение, которое игрок уже изменил. */
+  if (previousArchetype !== id) {
+    applyStartingLoadout(S, id);
+  } else if (!loadoutIsCurrent) {
+    if (!inventoryHasSelections(S.inventory)) applyStartingLoadout(S, id);
+    else markStartingLoadout(S, id);
+  }
+
   const currentArmor = Arsenal.armorById[S.inventory.armorId];
   if (!currentArmor || !Arsenal.allowed(currentArmor, id)) {
-    S.inventory.armorId = card?.dataset.defaultArmorId || Arsenal.DEFAULT_ARMOR[id] || '';
+    S.inventory.armorId = Arsenal.DEFAULT_ARMOR[id] || '';
   }
-  /* При смене архетипа сразу удаляем несовместимое оружие. В частности,
-     Фанатик смерти не может сохранить оружие предыдущего персонажа, а
-     его культовые кинжалы и арбалет не переходят к другим архетипам. */
   S.inventory.weaponIds = S.inventory.weaponIds
     .filter(itemId => Arsenal.weaponAllowed(Arsenal.weaponById[itemId], id))
     .slice(0, id === 'cultist' ? 1 : 12);
