@@ -164,7 +164,7 @@ function playerSnapshot(uid,member) {
   const spent=state?.spent || {};
   const abilities=(data.abilities||[]).filter(a=>a.uses!==null).map(a=>({ ...a, used:Number(spent[prefix+a.id]||0) }));
   const usedTotal=abilities.reduce((sum,a)=>sum+a.used,0);
-  return {uid,state,charId,data,name:state?.characterName||member?.name||'Без имени',armor,armorClass:Number(armor?.ac||member?.loadout?.armorClass||0)+armorBonus,weapons,gear,hp,hpMax,abilities,usedTotal};
+  return {uid,state,charId,data,name:state?.characterName||member?.name||'Без имени',armor,armorClass:Number(armor?.ac||member?.loadout?.armorClass||10)+armorBonus,weapons,gear,hp,hpMax,abilities,usedTotal};
 }
 
 function syncCharacterListeners(team) {

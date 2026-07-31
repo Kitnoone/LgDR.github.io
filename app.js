@@ -155,13 +155,13 @@ function normalizeState(raw) {
       return true;
     })
     .slice(0, 40);
-  if (!next.inventory.armorId && next.char) {
-    next.inventory.armorId = Arsenal.DEFAULT_ARMOR[next.char] || '';
-  }
+  /* Пустой armorId после первичной выдачи стартового комплекта означает
+     осознанное состояние «Без брони». Оно не должно автоматически
+     заменяться стартовой бронёй при загрузке или синхронизации. */
   if (next.inventory.armorId && next.char) {
     const armor = Arsenal.armorById[next.inventory.armorId];
     if (!armor || !Arsenal.allowed(armor, next.char)) {
-      next.inventory.armorId = Arsenal.DEFAULT_ARMOR[next.char] || '';
+      next.inventory.armorId = '';
     }
   }
   next.characterName = String(next.characterName || '').trim();
@@ -415,29 +415,35 @@ function ensurePortraitDecor() {
     const portrait = PORTRAITS[card.dataset.char];
     const head = $('.head', card);
     if (portrait && head) head.style.setProperty('--head-portrait', `url("${portrait}")`);
-    if ($('.hintdeck', card)) return;
-    const hpbox = $('.hpbox', card);
-    if (!hpbox) return;
-    const tip = document.createElement('section');
-    tip.className = 'hintdeck';
-    tip.setAttribute('aria-live', 'polite');
-    tip.innerHTML = `
-      <div class="hintdeck-top">
-        <div>
-          <span class="hintdeck-kicker">Подсказка</span>
-          <span class="hintdeck-title">—</span>
+
+    const classTips = $('.tips', card);
+    let tip = $('.hintdeck', card);
+    if (!tip) {
+      tip = document.createElement('section');
+      tip.className = 'hintdeck';
+      tip.setAttribute('aria-live', 'polite');
+      tip.innerHTML = `
+        <div class="hintdeck-top">
+          <div>
+            <span class="hintdeck-kicker">Подсказка</span>
+            <span class="hintdeck-title">—</span>
+          </div>
+          <span class="hintdeck-count">—</span>
         </div>
-        <span class="hintdeck-count">—</span>
-      </div>
-      <p class="hintdeck-text">—</p>
-      <div class="hintdeck-footer">
-        <span class="hintdeck-auto">Новая подсказка через несколько секунд</span>
-        <div class="hintdeck-actions">
-          <button type="button" class="hintdeck-prev" data-act="prev-tip" aria-label="Предыдущая подсказка">‹</button>
-          <button type="button" class="hintdeck-next" data-act="next-tip">Следующая</button>
-        </div>
-      </div>`;
-    hpbox.insertAdjacentElement('afterend', tip);
+        <p class="hintdeck-text">—</p>
+        <div class="hintdeck-footer">
+          <span class="hintdeck-auto">Новая подсказка через несколько секунд</span>
+          <div class="hintdeck-actions">
+            <button type="button" class="hintdeck-prev" data-act="prev-tip" aria-label="Предыдущая подсказка">‹</button>
+            <button type="button" class="hintdeck-next" data-act="next-tip">Следующая</button>
+          </div>
+        </div>`;
+    }
+
+    /* Динамическая подсказка теперь находится в самом низу карточки —
+       сразу после четырёх постоянных советов выбранного архетипа. */
+    if (classTips) classTips.insertAdjacentElement('afterend', tip);
+    else card.appendChild(tip);
   });
 }
 
@@ -586,9 +592,14 @@ function pickChar(id) {
     else markStartingLoadout(S, id);
   }
 
-  const currentArmor = Arsenal.armorById[S.inventory.armorId];
-  if (!currentArmor || !Arsenal.allowed(currentArmor, id)) {
-    S.inventory.armorId = Arsenal.DEFAULT_ARMOR[id] || '';
+  /* При первом переходе на новый архетип стартовая броня уже выдана
+     через applyStartingLoadout(). Пустой слот у текущего архетипа — это
+     намеренное состояние «Без брони», поэтому не восстанавливаем броню. */
+  if (S.inventory.armorId) {
+    const currentArmor = Arsenal.armorById[S.inventory.armorId];
+    if (!currentArmor || !Arsenal.allowed(currentArmor, id)) {
+      S.inventory.armorId = '';
+    }
   }
   S.inventory.weaponIds = S.inventory.weaponIds
     .filter(itemId => Arsenal.weaponAllowed(Arsenal.weaponById[itemId], id))
@@ -1334,6 +1345,76 @@ function resetAll() {
   toast(Team.shared ? 'Личный персонаж сброшен. Ресурсы лобби не изменены.' : 'Всё сброшено');
 }
 
+/* ───────────────── мобильная отметка зарядов способности ───────────────── */
+
+let abilityUseContext = null;
+
+function mobileAbilityControlsEnabled() {
+  return window.matchMedia('(max-width: 720px)').matches;
+}
+
+function ensureAbilityUseDialog() {
+  let dialog = $('#ability-usedlg');
+  if (dialog) return dialog;
+
+  dialog = document.createElement('div');
+  dialog.id = 'ability-usedlg';
+  dialog.className = 'sheetmenu';
+  dialog.hidden = true;
+  dialog.innerHTML = `
+    <div class="sheetmenu-panel ability-use-panel" role="dialog" aria-modal="true" aria-labelledby="ability-use-title">
+      <span class="ability-use-kicker">Использование способности</span>
+      <h2 id="ability-use-title">—</h2>
+      <p id="ability-use-status" class="ability-use-status">—</p>
+      <div class="ability-use-actions">
+        <button type="button" class="ability-use-add" data-ability-use-action="add">Добавить использование</button>
+        <button type="button" class="ability-use-remove" data-ability-use-action="remove">Убрать использование</button>
+      </div>
+      <button type="button" class="menu-close" data-ability-use-action="close">Отмена</button>
+    </div>`;
+  document.body.appendChild(dialog);
+  return dialog;
+}
+
+function openAbilityUseDialog(ability, card) {
+  if (!ability || !card) return;
+  const total = Number.parseInt(ability.dataset.uses, 10) || 0;
+  if (total <= 0) return;
+
+  const key = `${card.dataset.char}:${ability.dataset.abil}`;
+  const used = Math.max(0, Math.min(total, Number(S.spent[key] || 0)));
+  abilityUseContext = { key, total, name: $('h3', ability)?.textContent?.trim() || 'Способность' };
+
+  const dialog = ensureAbilityUseDialog();
+  $('#ability-use-title', dialog).textContent = abilityUseContext.name;
+  $('#ability-use-status', dialog).textContent = `Использовано ${used} из ${total}`;
+  const add = $('[data-ability-use-action="add"]', dialog);
+  const remove = $('[data-ability-use-action="remove"]', dialog);
+  add.disabled = used >= total;
+  remove.disabled = used <= 0;
+  dialog.hidden = false;
+}
+
+function closeAbilityUseDialog() {
+  const dialog = $('#ability-usedlg');
+  if (dialog) dialog.hidden = true;
+  abilityUseContext = null;
+}
+
+function changeAbilityUse(delta) {
+  if (!abilityUseContext) return;
+  const { key, total, name } = abilityUseContext;
+  const current = Math.max(0, Math.min(total, Number(S.spent[key] || 0)));
+  const next = Math.max(0, Math.min(total, current + delta));
+  if (next === current) return;
+  if (next > 0) S.spent[key] = next;
+  else delete S.spent[key];
+  save();
+  render();
+  closeAbilityUseDialog();
+  toast(delta > 0 ? `«${name}»: использование добавлено` : `«${name}»: использование убрано`);
+}
+
 /* ─────────────────────── обработчики ─────────────────────── */
 
 async function onClick(e) {
@@ -1356,7 +1437,29 @@ async function onClick(e) {
     return;
   }
 
-  /* заряды */
+  const abilityUseAction = e.target.closest('[data-ability-use-action]');
+  if (abilityUseAction) {
+    const action = abilityUseAction.dataset.abilityUseAction;
+    if (action === 'add') changeAbilityUse(1);
+    else if (action === 'remove') changeAbilityUse(-1);
+    else closeAbilityUseDialog();
+    return;
+  }
+
+  /* На телефоне нажатие на саму способность открывает простой выбор:
+     добавить одно использование или убрать одно использование. Кнопки,
+     ссылки и другие интерактивные элементы внутри способности сохраняют
+     своё обычное действие. */
+  const tappedAbility = e.target.closest('.abil[data-uses]');
+  const tappedInteractive = e.target.closest('button, a, input, select, textarea, label');
+  if (card && tappedAbility && mobileAbilityControlsEnabled()
+      && (!tappedInteractive || e.target.closest('.uses'))) {
+    openAbilityUseDialog(tappedAbility, card);
+    return;
+  }
+
+  /* На компьютере отдельные квадратики зарядов по-прежнему можно отмечать
+     прямым нажатием без дополнительного окна. */
   const box = e.target.closest('.uses i');
   if (box && card) {
     const abil = box.closest('.abil');
@@ -1484,6 +1587,7 @@ function bindEventsOnce() {
   if (eventsBound) return;
   eventsBound = true;
   ensurePortraitDecor();
+  ensureAbilityUseDialog();
   startTipAutoRotation();
 
   document.addEventListener('click', onClick);
@@ -1501,11 +1605,14 @@ function bindEventsOnce() {
   });
 
   $$('.sheetmenu').forEach(sm => sm.addEventListener('click', e => {
-    if (e.target === sm) sm.hidden = true;
+    if (e.target === sm) {
+      sm.hidden = true;
+      if (sm.id === 'ability-usedlg') abilityUseContext = null;
+    }
   }));
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js?v=scroll-fix-20', { updateViaCache: 'none' }).catch(err =>
+    navigator.serviceWorker.register('sw.js?v=interface-fixes-25', { updateViaCache: 'none' }).catch(err =>
       console.warn('Service worker не зарегистрирован:', err));
   }
 }

@@ -1,17 +1,17 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v28-prolog-update';
+const V = 'legendy-v29-interface-fixes';
 const ASSETS = [
   './',
   './index.html',
   './master.html',
   './master.css?v=gm-html-reader-1',
   './master-data.js?v=gm-html-reader-1',
-  './master.js?v=gm-html-reader-1',
-  './app.css?v=starting-loadout-23',
-  './arsenal.js?v=starting-loadout-23',
-  './app.js?v=starting-loadout-23',
-  './auth.js?v=starting-loadout-23',
+  './master.js?v=interface-fixes-25',
+  './app.css?v=interface-fixes-25',
+  './arsenal.js?v=interface-fixes-25',
+  './app.js?v=interface-fixes-25',
+  './auth.js?v=interface-fixes-25',
   './character-store.js?v=gm-html-reader-1',
   './lobby-store.js?v=gm-html-reader-1',
   './firebase-config.js?v=gm-html-reader-1',
