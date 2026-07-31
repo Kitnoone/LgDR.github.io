@@ -365,7 +365,10 @@ function renderTaintInfo() {
 function openTaintInfo() {
   renderTaintInfo();
   const dialog = $('#taintdlg');
-  if (dialog) dialog.hidden = false;
+  if (!dialog) return;
+  dialog.hidden = false;
+  const scrollArea = $('.taint-panel-scroll', dialog);
+  if (scrollArea) scrollArea.scrollTop = 0;
 }
 
 function closeTaintInfo() {
@@ -1732,7 +1735,7 @@ function bindEventsOnce() {
   }));
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js?v=taint-distortion-29', { updateViaCache: 'none' }).catch(err =>
+    navigator.serviceWorker.register('sw.js?v=taint-mobile-fix-30', { updateViaCache: 'none' }).catch(err =>
       console.warn('Service worker не зарегистрирован:', err));
   }
 }

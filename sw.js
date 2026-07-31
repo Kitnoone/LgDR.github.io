@@ -1,19 +1,19 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v33-taint-distortion';
+const V = 'legendy-v34-taint-mobile-layout-fix';
 const ASSETS = [
   './',
   './index.html',
   './master.html',
   './master.css?v=gm-html-reader-1',
   './master-data.js?v=gm-html-reader-1',
-  './master.js?v=taint-distortion-29',
-  './app.css?v=taint-distortion-29',
-  './arsenal.js?v=taint-distortion-29',
-  './app.js?v=taint-distortion-29',
-  './auth.js?v=taint-distortion-29',
+  './master.js?v=taint-mobile-fix-30',
+  './app.css?v=taint-mobile-fix-30',
+  './arsenal.js?v=taint-mobile-fix-30',
+  './app.js?v=taint-mobile-fix-30',
+  './auth.js?v=taint-mobile-fix-30',
   './character-store.js?v=gm-html-reader-1',
-  './lobby-store.js?v=taint-distortion-29',
+  './lobby-store.js?v=taint-mobile-fix-30',
   './firebase-config.js?v=gm-html-reader-1',
   './manifest.webmanifest',
   './icon-192.png',

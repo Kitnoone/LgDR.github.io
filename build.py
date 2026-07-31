@@ -775,7 +775,7 @@ HEAD = '''<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=PT+Sans+Narrow:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.css?v=taint-distortion-29">
+<link rel="stylesheet" href="app.css?v=taint-mobile-fix-30">
 </head>
 <body>
 
@@ -885,22 +885,25 @@ HEAD = '''<!DOCTYPE html>
 <!-- ═══════════════ описание порчи команды ═══════════════ -->
 <div class="sheetmenu taint-dialog" id="taintdlg" data-level="0" hidden>
   <div class="sheetmenu-panel taint-panel" role="dialog" aria-modal="true" aria-labelledby="taint-dialog-title">
-    <div class="taint-dialog-head">
-      <span class="taint-dialog-sigil" aria-hidden="true"></span>
-      <div>
-        <span class="taint-dialog-kicker">Воздействие Хаоса</span>
-        <h2 id="taint-dialog-title">Искажение команды</h2>
+    <div class="taint-panel-scroll">
+      <div class="taint-dialog-head">
+        <span class="taint-dialog-sigil" aria-hidden="true"></span>
+        <div class="taint-dialog-heading">
+          <span class="taint-dialog-kicker">Воздействие Хаоса</span>
+          <h2 id="taint-dialog-title">Искажение команды</h2>
+        </div>
+        <button class="taint-dialog-x" type="button" data-act="close-taint" aria-label="Закрыть описание Порчи">×</button>
       </div>
+      <div class="taint-stage-meta">
+        <span>Порча команды</span>
+        <b id="taint-stage-level">0 из 8</b>
+      </div>
+      <div class="taint-track" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <h3 id="taint-stage-title">Чисты перед Троном</h3>
+      <p id="taint-stage-text">В вашем облике нет ничего противоестественного. Вы выглядите усталыми, потрёпанными и вооружёнными людьми Империума.</p>
+      <p class="taint-stage-note">Проявления зависят от текущего значения Порчи и отступают, когда команда очищается.</p>
     </div>
-    <div class="taint-stage-meta">
-      <span>Порча команды</span>
-      <b id="taint-stage-level">0 из 8</b>
-    </div>
-    <div class="taint-track" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-    <h3 id="taint-stage-title">Чисты перед Троном</h3>
-    <p id="taint-stage-text">В вашем облике нет ничего противоестественного. Вы выглядите усталыми, потрёпанными и вооружёнными людьми Империума.</p>
-    <p class="taint-stage-note">Проявления зависят от текущего значения Порчи и отступают, когда команда очищается.</p>
-    <button class="menu-close" type="button" data-act="close-taint">Закрыть</button>
+    <button class="menu-close taint-dialog-close" type="button" data-act="close-taint">Закрыть</button>
   </div>
 </div>
 
@@ -1049,9 +1052,9 @@ FOOT = '''
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="arsenal.js?v=taint-distortion-29"></script>
-<script src="app.js?v=taint-distortion-29"></script>
-<script type="module" src="auth.js?v=taint-distortion-29"></script>
+<script src="arsenal.js?v=taint-mobile-fix-30"></script>
+<script src="app.js?v=taint-mobile-fix-30"></script>
+<script type="module" src="auth.js?v=taint-mobile-fix-30"></script>
 </body>
 </html>
 '''

@@ -1772,3 +1772,110 @@ body.has-partybar main{padding-top:calc(var(--topbar-h) + var(--partybar-h) + en
   .tb-step button:not(.taint-mark){width:30px;height:32px;}
   .taint-panel #taint-stage-text{font-size:15px;}
 }
+
+
+/* ═══════════════ v1.30 · мобильная компоновка Порчи ═══════════════ */
+/* Подпись и звезда занимают разные строки и больше не накладываются друг на друга. */
+.tb-cell--taint{
+  display:grid;
+  grid-template-rows:14px 48px;
+  align-content:center;
+  justify-items:center;
+  row-gap:2px;
+  padding:3px 0 2px;
+  overflow:visible;
+}
+.tb-cell--taint > .tb-lab{
+  position:relative;
+  z-index:4;
+  display:block;
+  min-width:max-content;
+  line-height:14px;
+  margin:0;
+  padding:0 5px;
+  background:var(--teal-deep);
+}
+.tb-cell--taint > .tb-step{
+  position:relative;
+  z-index:2;
+  height:48px;
+  align-self:center;
+}
+.tb-cell--taint .taint-mark{
+  width:44px;
+  height:44px;
+}
+
+/* Окно искажения: отдельно прокручиваемый текст и всегда видимая кнопка закрытия. */
+.taint-panel{
+  width:100%;
+  max-height:min(88dvh, 760px);
+  padding:0;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  overscroll-behavior:contain;
+}
+.taint-panel-scroll{
+  min-height:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  padding:18px 16px 14px;
+  scrollbar-gutter:stable;
+}
+.taint-dialog-head{
+  position:relative;
+  padding-right:40px;
+}
+.taint-dialog-heading{min-width:0;}
+.taint-dialog-x{
+  position:absolute;
+  top:-4px;
+  right:0;
+  z-index:5;
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--paper-edge);
+  background:rgba(255,255,255,.35);
+  color:var(--blood);
+  font:400 28px/1 var(--display);
+}
+.taint-dialog-x:active{background:rgba(125,31,22,.1);}
+.taint-dialog-close{
+  flex:0 0 auto;
+  width:auto;
+  margin:0 16px calc(12px + env(safe-area-inset-bottom));
+  padding:12px;
+  background:var(--paper);
+  box-shadow:0 -10px 18px rgba(239,233,221,.96);
+}
+
+@media screen and (max-width:560px){
+  .taint-dialog{align-items:flex-end;}
+  .taint-panel{
+    max-height:calc(100dvh - max(8px, env(safe-area-inset-top)));
+    border-radius:14px 14px 0 0;
+  }
+  .taint-panel-scroll{padding:14px 14px 10px;}
+  .taint-dialog-head{gap:10px;margin-bottom:10px;padding-right:38px;}
+  .taint-dialog-sigil{flex-basis:44px;width:44px;height:44px;}
+  .taint-dialog-head h2{font-size:19px;line-height:1.05;}
+  .taint-dialog-kicker{font-size:9px;}
+  .taint-stage-meta{padding:8px 0 6px;}
+  .taint-stage-meta b{font-size:20px;}
+  .taint-track{margin-bottom:13px;gap:3px;}
+  .taint-panel h3{font-size:21px;margin-bottom:7px;}
+  .taint-panel #taint-stage-text{font-size:15px;line-height:1.42;}
+  .taint-stage-note{margin-top:12px;padding:8px 9px;font-size:12px;}
+  .taint-dialog-close{margin:0 14px calc(10px + env(safe-area-inset-bottom));}
+}
+
+@media screen and (max-width:380px){
+  .tb-cell--taint{grid-template-rows:13px 45px;row-gap:1px;}
+  .tb-cell--taint > .tb-lab{line-height:13px;font-size:9px;letter-spacing:.07em;}
+  .tb-cell--taint > .tb-step{height:45px;gap:6px;}
+  .tb-cell--taint .taint-mark{width:40px;height:40px;}
+}
