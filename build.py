@@ -1024,7 +1024,6 @@ FOOT = '''
 <!-- ═══════════════ нижняя панель команды ═══════════════ -->
 <footer class="teambar" id="teambar" hidden>
   <div class="tb-cell">
-    <span id="team-resource-mode" class="team-resource-mode">локально</span>
     <span class="tb-lab">Здоровье</span>
     <button class="tb-val tb-hp" data-act="hp"><b data-hp-mirror>—</b></button>
   </div>

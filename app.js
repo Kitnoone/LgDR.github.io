@@ -1252,10 +1252,6 @@ function render() {
     taintPlus.setAttribute('aria-label', taint >= MAX_TAINT ? 'Достигнут предел Порчи' : 'Добавить Порчу');
   }
   renderTaintInfo();
-  const mode = $('#team-resource-mode');
-  if (mode) mode.textContent = Team.shared
-    ? (Team.ready ? `лобби · ${Team.memberCount}/8` : `ждём 3 игроков · ${Team.memberCount}/3`)
-    : 'локально';
 }
 
 /* ─────────────────────── здоровье: урон и лечение ─────────────────────── */

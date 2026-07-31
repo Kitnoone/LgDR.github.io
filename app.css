@@ -777,11 +777,6 @@ main{padding:calc(var(--topbar-h) + env(safe-area-inset-top) + 14px) 14px
 .party-chip.is-self{border-color:var(--brass);background:rgba(176,138,62,.14);}
 body.has-partybar main{padding-top:calc(var(--topbar-h) + var(--partybar-h) + env(safe-area-inset-top) + 14px);}
 
-.team-resource-mode{
-  position:absolute;left:50%;top:3px;transform:translateX(-50%);z-index:2;
-  font:9px var(--util);text-transform:uppercase;letter-spacing:.1em;color:#83999b;white-space:nowrap;pointer-events:none;
-}
-.teambar.is-shared .team-resource-mode{color:var(--brass);}
 .teambar.is-forming .tb-cell--team{opacity:.55;}
 .tb-step button:disabled{opacity:.35;cursor:not-allowed;background:none;}
 
@@ -1879,3 +1874,11 @@ body.has-partybar main{padding-top:calc(var(--topbar-h) + var(--partybar-h) + en
   .tb-cell--taint > .tb-step{height:45px;gap:6px;}
   .tb-cell--taint .taint-mark{width:40px;height:40px;}
 }
+
+
+/* ═══════════════ v1.31 · только подпись «Порча команды» ═══════════════ */
+.teambar .tb-cell--taint .tb-lab{
+  position:static;display:block;width:100%;margin:0 0 5px;
+  text-align:center;white-space:nowrap;line-height:1.05;
+}
+.teambar .tb-cell:first-child .tb-lab{position:static;}
