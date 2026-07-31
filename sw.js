@@ -1,19 +1,19 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v35-taint-label-cleanup';
+const V = 'legendy-v36-slow-corruption-theme';
 const ASSETS = [
   './',
   './index.html',
   './master.html',
   './master.css?v=gm-html-reader-1',
   './master-data.js?v=gm-html-reader-1',
-  './master.js?v=taint-label-cleanup-31',
-  './app.css?v=taint-label-cleanup-31',
-  './arsenal.js?v=taint-label-cleanup-31',
-  './app.js?v=taint-label-cleanup-31',
-  './auth.js?v=taint-label-cleanup-31',
+  './master.js?v=slow-corruption-theme-32',
+  './app.css?v=slow-corruption-theme-32',
+  './arsenal.js?v=slow-corruption-theme-32',
+  './app.js?v=slow-corruption-theme-32',
+  './auth.js?v=slow-corruption-theme-32',
   './character-store.js?v=gm-html-reader-1',
-  './lobby-store.js?v=taint-label-cleanup-31',
+  './lobby-store.js?v=slow-corruption-theme-32',
   './firebase-config.js?v=gm-html-reader-1',
   './manifest.webmanifest',
   './icon-192.png',

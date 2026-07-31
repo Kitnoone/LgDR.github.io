@@ -775,7 +775,7 @@ HEAD = '''<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=PT+Sans+Narrow:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.css?v=taint-mobile-fix-30">
+<link rel="stylesheet" href="app.css?v=slow-corruption-theme-32">
 </head>
 <body>
 
@@ -1051,9 +1051,9 @@ FOOT = '''
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="arsenal.js?v=taint-mobile-fix-30"></script>
-<script src="app.js?v=taint-mobile-fix-30"></script>
-<script type="module" src="auth.js?v=taint-mobile-fix-30"></script>
+<script src="arsenal.js?v=slow-corruption-theme-32"></script>
+<script src="app.js?v=slow-corruption-theme-32"></script>
+<script type="module" src="auth.js?v=slow-corruption-theme-32"></script>
 </body>
 </html>
 '''

@@ -1882,3 +1882,239 @@ body.has-partybar main{padding-top:calc(var(--topbar-h) + var(--partybar-h) + en
   text-align:center;white-space:nowrap;line-height:1.05;
 }
 .teambar .tb-cell:first-child .tb-lab{position:static;}
+
+
+/* ═══════════════ v1.32 · «Медленное заражение» интерфейса ═══════════════ */
+body{
+  --corruption-rgb:125,31,22;
+  --warp-rgb:104,38,101;
+  --corruption-edge:rgba(var(--corruption-rgb),0);
+  --corruption-glow:rgba(var(--corruption-rgb),0);
+  --corruption-warp:rgba(var(--warp-rgb),0);
+  --corruption-paper:rgba(var(--corruption-rgb),0);
+  --corruption-line:rgba(var(--corruption-rgb),0);
+  --corruption-portrait:1;
+  --corruption-saturate:1;
+  --corruption-contrast:1;
+  transition:background-color .35s ease,color .35s ease;
+}
+body[data-taint-level="1"]{
+  --corruption-edge:rgba(var(--corruption-rgb),.12);
+  --corruption-glow:rgba(var(--corruption-rgb),.08);
+  --corruption-paper:rgba(var(--corruption-rgb),.018);
+  --corruption-line:rgba(var(--corruption-rgb),.18);
+  --corruption-portrait:.98;--corruption-saturate:1.02;--corruption-contrast:1.01;
+}
+body[data-taint-level="2"]{
+  --corruption-edge:rgba(var(--corruption-rgb),.2);
+  --corruption-glow:rgba(var(--corruption-rgb),.13);
+  --corruption-warp:rgba(var(--warp-rgb),.025);
+  --corruption-paper:rgba(var(--corruption-rgb),.028);
+  --corruption-line:rgba(var(--corruption-rgb),.28);
+  --corruption-portrait:.97;--corruption-saturate:1.05;--corruption-contrast:1.02;
+}
+body[data-taint-level="3"]{
+  --corruption-edge:rgba(var(--corruption-rgb),.3);
+  --corruption-glow:rgba(var(--corruption-rgb),.2);
+  --corruption-warp:rgba(var(--warp-rgb),.045);
+  --corruption-paper:rgba(var(--corruption-rgb),.045);
+  --corruption-line:rgba(var(--corruption-rgb),.4);
+  --corruption-portrait:.95;--corruption-saturate:1.09;--corruption-contrast:1.035;
+}
+body[data-taint-level="4"]{
+  --corruption-edge:rgba(var(--corruption-rgb),.42);
+  --corruption-glow:rgba(var(--corruption-rgb),.28);
+  --corruption-warp:rgba(var(--warp-rgb),.075);
+  --corruption-paper:rgba(var(--corruption-rgb),.065);
+  --corruption-line:rgba(var(--corruption-rgb),.52);
+  --corruption-portrait:.93;--corruption-saturate:1.14;--corruption-contrast:1.05;
+}
+body[data-taint-level="5"]{
+  --corruption-edge:rgba(var(--corruption-rgb),.55);
+  --corruption-glow:rgba(var(--corruption-rgb),.36);
+  --corruption-warp:rgba(var(--warp-rgb),.11);
+  --corruption-paper:rgba(var(--corruption-rgb),.09);
+  --corruption-line:rgba(var(--corruption-rgb),.66);
+  --corruption-portrait:.9;--corruption-saturate:1.2;--corruption-contrast:1.075;
+}
+body[data-taint-level="6"]{
+  --corruption-edge:rgba(var(--corruption-rgb),.68);
+  --corruption-glow:rgba(var(--corruption-rgb),.46);
+  --corruption-warp:rgba(var(--warp-rgb),.15);
+  --corruption-paper:rgba(var(--corruption-rgb),.12);
+  --corruption-line:rgba(var(--corruption-rgb),.78);
+  --corruption-portrait:.87;--corruption-saturate:1.28;--corruption-contrast:1.1;
+}
+body[data-taint-level="7"]{
+  --corruption-edge:rgba(150,35,27,.82);
+  --corruption-glow:rgba(167,38,28,.58);
+  --corruption-warp:rgba(var(--warp-rgb),.21);
+  --corruption-paper:rgba(var(--corruption-rgb),.15);
+  --corruption-line:rgba(185,44,32,.9);
+  --corruption-portrait:.84;--corruption-saturate:1.38;--corruption-contrast:1.14;
+}
+body[data-taint-level="8"]{
+  --corruption-edge:rgba(190,43,31,.95);
+  --corruption-glow:rgba(207,48,34,.72);
+  --corruption-warp:rgba(116,35,113,.3);
+  --corruption-paper:rgba(118,19,15,.19);
+  --corruption-line:rgba(222,54,39,1);
+  --corruption-portrait:.8;--corruption-saturate:1.48;--corruption-contrast:1.18;
+}
+
+/* Тонкая виньетка и трещины появляются постепенно, не перекрывая управление. */
+body::after{
+  content:"";position:fixed;inset:0;z-index:39;pointer-events:none;opacity:0;
+  background:
+    linear-gradient(122deg,transparent 0 47.6%,var(--corruption-line) 48%,transparent 48.45%) top right/160px 126px no-repeat,
+    linear-gradient(58deg,transparent 0 48%,var(--corruption-line) 48.35%,transparent 48.8%) bottom left/150px 118px no-repeat,
+    radial-gradient(ellipse at center,transparent 55%,var(--corruption-warp) 78%,var(--corruption-glow) 100%);
+  box-shadow:inset 0 0 0 1px var(--corruption-edge),inset 0 0 42px var(--corruption-glow);
+  transition:opacity .35s ease,box-shadow .35s ease;
+}
+body:not([data-taint-level="0"])::after{opacity:1;}
+body[data-taint-level="1"]::after,body[data-taint-level="2"]::after{background:radial-gradient(ellipse at center,transparent 70%,var(--corruption-glow) 100%);}
+body[data-taint-level="3"]::after,body[data-taint-level="4"]::after{opacity:.72;}
+body[data-taint-level="5"]::after,body[data-taint-level="6"]::after{opacity:.88;}
+body[data-taint-level="7"]::after,body[data-taint-level="8"]::after{opacity:1;}
+
+/* Верхняя и нижняя панели заражаются первыми. */
+body:not([data-taint-level="0"]) .topbar,
+body:not([data-taint-level="0"]) .teambar{
+  box-shadow:0 0 0 1px var(--corruption-edge),0 0 18px var(--corruption-glow);
+  transition:background .35s ease,border-color .35s ease,box-shadow .35s ease;
+}
+body[data-taint-level="3"] .topbar,body[data-taint-level="4"] .topbar,
+body[data-taint-level="3"] .teambar,body[data-taint-level="4"] .teambar{
+  background:linear-gradient(90deg,#0d2b30 0%,#11282c 55%,#231719 100%);
+}
+body[data-taint-level="5"] .topbar,body[data-taint-level="6"] .topbar,
+body[data-taint-level="5"] .teambar,body[data-taint-level="6"] .teambar{
+  background:linear-gradient(90deg,#0a2226 0%,#171c20 45%,#301315 100%);
+  border-color:rgba(158,51,35,.7);
+}
+body[data-taint-level="7"] .topbar,body[data-taint-level="8"] .topbar,
+body[data-taint-level="7"] .teambar,body[data-taint-level="8"] .teambar{
+  background:
+    linear-gradient(115deg,transparent 0 47%,rgba(160,35,28,.14) 48%,transparent 49%) 0 0/74px 56px,
+    linear-gradient(90deg,#08191d 0%,#231116 48%,#3b0d12 100%);
+  border-color:var(--corruption-line);
+}
+body:not([data-taint-level="0"]) .tb-name i,
+body:not([data-taint-level="0"]) .tb-person small,
+body:not([data-taint-level="0"]) .tb-lab{color:color-mix(in srgb,var(--brass) 74%,#e45b4b 26%);}
+
+/* Главный лист: заражаются края и акцентные блоки, но светлая область остаётся читаемой. */
+body:not([data-taint-level="0"]) main{
+  background:
+    linear-gradient(90deg,var(--corruption-paper),transparent 11%,transparent 89%,var(--corruption-paper));
+}
+body:not([data-taint-level="0"]) .card.is-active{
+  filter:drop-shadow(0 0 8px var(--corruption-glow));
+  transition:filter .35s ease;
+}
+body:not([data-taint-level="0"]) .head{
+  box-shadow:inset 0 -1px 0 var(--corruption-edge);
+}
+body:not([data-taint-level="0"]) .head::before{
+  opacity:var(--corruption-portrait);
+  filter:saturate(var(--corruption-saturate)) contrast(var(--corruption-contrast));
+  transition:filter .35s ease,opacity .35s ease;
+}
+
+body[data-taint-level="1"] .head::before{filter:saturate(var(--corruption-saturate)) contrast(var(--corruption-contrast)) sepia(.02);}
+body[data-taint-level="2"] .head::before{filter:saturate(var(--corruption-saturate)) contrast(var(--corruption-contrast)) sepia(.04);}
+body[data-taint-level="3"] .head::before{filter:saturate(var(--corruption-saturate)) contrast(var(--corruption-contrast)) sepia(.06);}
+body[data-taint-level="4"] .head::before{filter:saturate(var(--corruption-saturate)) contrast(var(--corruption-contrast)) sepia(.08);}
+body[data-taint-level="5"] .head::before,body[data-taint-level="6"] .head::before{
+  filter:saturate(var(--corruption-saturate)) contrast(var(--corruption-contrast)) sepia(.12) hue-rotate(-8deg);
+}
+body[data-taint-level="7"] .head::before,body[data-taint-level="8"] .head::before{
+  filter:saturate(var(--corruption-saturate)) contrast(var(--corruption-contrast)) sepia(.18) hue-rotate(-15deg) brightness(.9);
+}
+body[data-taint-level="4"] .head h1,body[data-taint-level="5"] .head h1,
+body[data-taint-level="6"] .head h1{color:#153b40;text-shadow:0 0 10px var(--corruption-glow);}
+body[data-taint-level="7"] .head h1,body[data-taint-level="8"] .head h1{color:#4b1718;text-shadow:0 0 12px var(--corruption-glow);}
+
+body:not([data-taint-level="0"]) :is(.hpbox,.nums,.loadout-armor,.loadout-section,.pick,.ult,.hintdeck,.tips,.inventory-line){
+  transition:border-color .35s ease,box-shadow .35s ease,background-color .35s ease,color .35s ease;
+}
+body:not([data-taint-level="0"]) :is(.hpbox,.nums,.loadout-armor,.loadout-section,.pick,.ult,.hintdeck,.inventory-line){
+  border-color:color-mix(in srgb,var(--paper-edge) 72%,var(--corruption-line) 28%);
+}
+body[data-taint-level="3"] :is(.hpbox,.loadout-armor,.ult),
+body[data-taint-level="4"] :is(.hpbox,.loadout-armor,.ult){box-shadow:0 0 0 1px var(--corruption-edge),0 4px 14px var(--corruption-glow);}
+body[data-taint-level="5"] :is(.hpbox,.loadout-armor,.ult),
+body[data-taint-level="6"] :is(.hpbox,.loadout-armor,.ult){box-shadow:0 0 0 1px var(--corruption-edge),0 6px 18px var(--corruption-glow);}
+body[data-taint-level="7"] :is(.hpbox,.loadout-armor,.ult),
+body[data-taint-level="8"] :is(.hpbox,.loadout-armor,.ult){box-shadow:0 0 0 1px var(--corruption-line),0 8px 22px var(--corruption-glow);}
+body[data-taint-level="5"] :is(.pick,.loadout-section,.hintdeck,.inventory-line),
+body[data-taint-level="6"] :is(.pick,.loadout-section,.hintdeck,.inventory-line){background-color:rgba(125,31,22,.035);}
+body[data-taint-level="7"] :is(.pick,.loadout-section,.hintdeck,.inventory-line),
+body[data-taint-level="8"] :is(.pick,.loadout-section,.hintdeck,.inventory-line){background-color:rgba(125,31,22,.06);}
+body[data-taint-level="6"] :is(.snum h2,.pick h3,.abil h3),
+body[data-taint-level="7"] :is(.snum h2,.pick h3,.abil h3),
+body[data-taint-level="8"] :is(.snum h2,.pick h3,.abil h3){border-color:var(--corruption-edge);text-shadow:0 0 8px var(--corruption-glow);}
+
+/* Экран выбора получает тот же мотив, но остаётся спокойнее основного листа. */
+body:not([data-taint-level="0"]) .chooser{
+  background:
+    radial-gradient(circle at 88% 15%,var(--corruption-warp),transparent 32%),
+    radial-gradient(circle at 12% 88%,var(--corruption-glow),transparent 34%),
+    var(--teal-deep);
+}
+body:not([data-taint-level="0"]) .ch-btn{box-shadow:inset 0 0 0 1px var(--corruption-edge),0 0 12px var(--corruption-glow);}
+body[data-taint-level="5"] .ch-btn,body[data-taint-level="6"] .ch-btn{border-color:rgba(160,54,40,.7);}
+body[data-taint-level="7"] .ch-btn,body[data-taint-level="8"] .ch-btn{border-color:var(--corruption-line);}
+body[data-taint-level="7"] .ch-btn::before,body[data-taint-level="8"] .ch-btn::before{
+  filter:saturate(1.28) contrast(1.12) hue-rotate(-12deg) brightness(.86);
+}
+
+/* Меню и диалоги заражаются только по краям, чтобы формы оставались удобными. */
+body:not([data-taint-level="0"]) .sheetmenu-panel{
+  border-color:color-mix(in srgb,var(--paper-edge) 66%,var(--corruption-line) 34%);
+  box-shadow:0 0 0 1px var(--corruption-edge),0 18px 45px rgba(0,0,0,.42),0 0 20px var(--corruption-glow);
+}
+body[data-taint-level="7"] .sheetmenu-panel,body[data-taint-level="8"] .sheetmenu-panel{
+  background-image:linear-gradient(135deg,rgba(125,31,22,.05),transparent 34%,rgba(104,38,101,.055));
+}
+
+/* Индикатор Порчи становится визуальным ядром заражения. */
+body:not([data-taint-level="0"]) .taint-mark{filter:drop-shadow(0 0 8px var(--corruption-glow));}
+body[data-taint-level="4"] .taint-star,body[data-taint-level="5"] .taint-star{transform:scale(1.04);}
+body[data-taint-level="6"] .taint-star,body[data-taint-level="7"] .taint-star{transform:scale(1.08);}
+body[data-taint-level="8"] .taint-star{transform:scale(1.12);}
+body[data-taint-level="7"] .taint-track i.is-on,body[data-taint-level="8"] .taint-track i.is-on{
+  background:linear-gradient(90deg,#65120d,#b22a1f,#7a1a55);box-shadow:0 0 9px var(--corruption-glow);
+}
+
+@keyframes corruptionEdgeBreath{
+  0%,100%{box-shadow:0 0 0 1px var(--corruption-edge),0 0 13px var(--corruption-glow);}
+  50%{box-shadow:0 0 0 1px var(--corruption-line),0 0 25px var(--corruption-glow);}
+}
+body[data-taint-level="8"] .teambar{animation:corruptionEdgeBreath 2.4s ease-in-out infinite;}
+
+@media screen and (max-width:560px){
+  body::after{
+    background:
+      linear-gradient(122deg,transparent 0 48%,var(--corruption-line) 48.35%,transparent 48.7%) top right/94px 84px no-repeat,
+      linear-gradient(58deg,transparent 0 48%,var(--corruption-line) 48.35%,transparent 48.7%) bottom left/90px 80px no-repeat,
+      radial-gradient(ellipse at center,transparent 64%,var(--corruption-warp) 86%,var(--corruption-glow) 100%);
+    box-shadow:inset 0 0 0 1px var(--corruption-edge),inset 0 0 24px var(--corruption-glow);
+  }
+  body:not([data-taint-level="0"]) main{background:linear-gradient(90deg,var(--corruption-paper),transparent 8%,transparent 92%,var(--corruption-paper));}
+  body[data-taint-level="7"] .head h1,body[data-taint-level="8"] .head h1{color:#163d42;text-shadow:0 0 10px var(--corruption-glow);}
+  body[data-taint-level="8"] .teambar{animation-duration:2.8s;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  body[data-taint-level="8"] .teambar{animation:none;}
+  body,body::after,body *{transition-duration:0s!important;}
+}
+
+@media print{
+  body::after{display:none!important;}
+  body main{background:none!important;}
+  body .card.is-active{filter:none!important;}
+  body .head::before{filter:none!important;opacity:.96!important;}
+}

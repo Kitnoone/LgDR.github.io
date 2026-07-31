@@ -337,6 +337,12 @@ function toast(msg) {
   toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
 }
 
+function applyTaintTheme(level = Team.taint) {
+  const safeLevel = clampTaint(level);
+  document.body.dataset.taintLevel = String(safeLevel);
+  document.documentElement.style.setProperty('--taint-level', String(safeLevel));
+}
+
 function renderTaintInfo() {
   const level = Team.taint;
   const stage = TAINT_STAGES[level] || TAINT_STAGES[0];
@@ -721,6 +727,7 @@ function pickChar(id) {
 }
 
 function showChooser() {
+  applyTaintTheme();
   const input = $('#character-name-input');
   if (input) input.value = S.characterName || '';
   $('#chooser').hidden = false;
@@ -1152,12 +1159,13 @@ function removeDetailedItem() {
 /* ─────────────────────────── отрисовка ─────────────────────────── */
 
 function render() {
+  const taint = Team.taint;
+  applyTaintTheme(taint);
   const card = activeCard();
   $$('.card').forEach(c => c.classList.toggle('is-active', c === card));
   if (!card) return;
 
   const id = card.dataset.char;
-  const taint = Team.taint;
   const coins = Team.coins;
 
   $('#tb-title').textContent = classDisplayName(card);
@@ -1731,7 +1739,7 @@ function bindEventsOnce() {
   }));
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js?v=taint-mobile-fix-30', { updateViaCache: 'none' }).catch(err =>
+    navigator.serviceWorker.register('sw.js?v=slow-corruption-theme-32', { updateViaCache: 'none' }).catch(err =>
       console.warn('Service worker не зарегистрирован:', err));
   }
 }
@@ -1806,6 +1814,7 @@ function setCloudStatus(status, error) {
 }
 
 function stopForLogout() {
+  applyTaintTheme(0);
   activeUserId = null;
   cloudSaver = null;
   S = BLANK();
