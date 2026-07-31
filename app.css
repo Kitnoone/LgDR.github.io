@@ -1564,3 +1564,92 @@ body.has-partybar main{padding-top:calc(var(--topbar-h) + var(--partybar-h) + en
   .hintdeck.is-changing .hintdeck-title,.hintdeck.is-changing .hintdeck-text,.hintdeck.is-changing .hintdeck-kicker{animation:none;}
 }
 @media print{.hintdeck-auto,.hintdeck-actions{display:none!important;}}
+
+
+/* ═══════════════ v1.21 · мобильное кадрирование портретов ═══════════════ */
+/* На телефонах используются отдельные квадратные кадры. Они сохраняют лицо
+   и верхнюю часть фигуры, вместо того чтобы показывать край широкого арта. */
+@media (max-width:720px){
+  .card[data-char="guardsman"] .head::before,.ch-btn[data-pick="guardsman"]::before{background-image:url("assets/portraits/mobile/guardsman.webp")!important;--mobile-portrait-pos:50% 14%;}
+  .card[data-char="heretic"] .head::before,.ch-btn[data-pick="heretic"]::before{background-image:url("assets/portraits/mobile/heretic.webp")!important;--mobile-portrait-pos:50% 12%;}
+  .card[data-char="cultist"] .head::before,.ch-btn[data-pick="cultist"]::before{background-image:url("assets/portraits/mobile/cultist.webp")!important;--mobile-portrait-pos:50% 10%;}
+  .card[data-char="techpriest"] .head::before,.ch-btn[data-pick="techpriest"]::before{background-image:url("assets/portraits/mobile/techpriest.webp")!important;--mobile-portrait-pos:50% 10%;}
+  .card[data-char="priest"] .head::before,.ch-btn[data-pick="priest"]::before{background-image:url("assets/portraits/mobile/priest.webp")!important;--mobile-portrait-pos:50% 10%;}
+  .card[data-char="neophyte"] .head::before,.ch-btn[data-pick="neophyte"]::before{background-image:url("assets/portraits/mobile/neophyte.webp")!important;--mobile-portrait-pos:50% 8%;}
+  .card[data-char="psyker"] .head::before,.ch-btn[data-pick="psyker"]::before{background-image:url("assets/portraits/mobile/psyker.webp")!important;--mobile-portrait-pos:50% 8%;}
+  .card[data-char="sister"] .head::before,.ch-btn[data-pick="sister"]::before{background-image:url("assets/portraits/mobile/sister.webp")!important;--mobile-portrait-pos:50% 8%;}
+
+  /* Меню выбора: персонаж занимает правую часть баннера целиком. */
+  .ch-btn{
+    min-height:136px;
+    padding:17px 46% 17px 16px;
+  }
+  .ch-btn::before{
+    inset:0 0 0 auto;
+    width:64%;
+    background-size:cover!important;
+    background-position:var(--mobile-portrait-pos,50% 10%)!important;
+    -webkit-mask-image:linear-gradient(90deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.25) 14%,rgba(0,0,0,.78) 34%,rgba(0,0,0,1) 50%)!important;
+    mask-image:linear-gradient(90deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.25) 14%,rgba(0,0,0,.78) 34%,rgba(0,0,0,1) 50%)!important;
+  }
+  .ch-btn::after{
+    background:
+      linear-gradient(90deg,
+        rgba(13,43,48,.99) 0%,
+        rgba(13,43,48,.98) 34%,
+        rgba(13,43,48,.82) 48%,
+        rgba(13,43,48,.34) 64%,
+        rgba(13,43,48,.04) 82%),
+      linear-gradient(180deg,rgba(6,20,23,.12),rgba(6,20,23,0) 42%,rgba(6,20,23,.12) 100%)!important;
+  }
+  .ch-btn b{max-width:none;font-size:20px;line-height:1.04;}
+  .ch-btn span{max-width:none;font-size:13.5px;line-height:1.3;color:#d8d1c1;}
+
+  /* Лист персонажа: более крупный мобильный портрет с видимым лицом и торсом. */
+  .head{padding-top:0;margin-bottom:18px;}
+  .head::before{
+    top:0;right:0;left:auto;
+    width:70%;height:252px;
+    background-size:cover!important;
+    background-position:var(--mobile-portrait-pos,50% 10%)!important;
+    -webkit-mask-image:linear-gradient(90deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.32) 13%,rgba(0,0,0,.84) 31%,rgba(0,0,0,1) 46%)!important;
+    mask-image:linear-gradient(90deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.32) 13%,rgba(0,0,0,.84) 31%,rgba(0,0,0,1) 46%)!important;
+  }
+  .head::after{
+    height:256px;
+    background:
+      linear-gradient(90deg,
+        rgba(239,233,221,1) 0%,
+        rgba(239,233,221,.99) 35%,
+        rgba(239,233,221,.88) 46%,
+        rgba(239,233,221,.48) 58%,
+        rgba(239,233,221,.08) 74%,
+        rgba(239,233,221,0) 88%),
+      linear-gradient(180deg,rgba(239,233,221,.02),rgba(13,43,48,.06))!important;
+  }
+  .head .titles{
+    min-height:244px;
+    max-width:59%;
+    padding:18px 8px 0 0;
+  }
+  .head h1{font-size:34px;line-height:.97;max-width:9.8ch;}
+  .head .role{max-width:24ch;font-size:15.5px;line-height:1.36;margin-top:11px;}
+  .head .hpbox{margin-top:8px;}
+}
+
+@media (max-width:440px){
+  .ch-btn{min-height:142px;padding-right:45%;}
+  .ch-btn::before{width:66%;}
+  .ch-btn b{font-size:19px;}
+  .ch-btn span{font-size:13px;}
+
+  .head::before{width:73%;height:242px;}
+  .head::after{height:246px;}
+  .head .titles{min-height:234px;max-width:61%;padding-top:15px;}
+  .head h1{font-size:30px;}
+  .head .role{font-size:14.5px;line-height:1.34;max-width:22ch;}
+}
+
+@media print{
+  .head::before,.head::after,.ch-btn::before,.ch-btn::after{display:none!important;}
+}

@@ -1,6 +1,6 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v24-scroll-position-fix';
+const V = 'legendy-v25-mobile-portrait-fix';
 const ASSETS = [
   './',
   './index.html',
@@ -8,10 +8,10 @@ const ASSETS = [
   './master.css?v=gm-html-reader-1',
   './master-data.js?v=gm-html-reader-1',
   './master.js?v=gm-html-reader-1',
-  './app.css?v=scroll-fix-20',
-  './arsenal.js?v=scroll-fix-20',
-  './app.js?v=scroll-fix-20',
-  './auth.js?v=scroll-fix-20',
+  './app.css?v=mobile-portraits-21',
+  './arsenal.js?v=mobile-portraits-21',
+  './app.js?v=mobile-portraits-21',
+  './auth.js?v=mobile-portraits-21',
   './character-store.js?v=gm-html-reader-1',
   './lobby-store.js?v=gm-html-reader-1',
   './firebase-config.js?v=gm-html-reader-1',
@@ -27,6 +27,14 @@ const ASSETS = [
   './assets/portraits/neophyte.png',
   './assets/portraits/psyker.png',
   './assets/portraits/sister.png',
+  './assets/portraits/mobile/guardsman.webp',
+  './assets/portraits/mobile/heretic.webp',
+  './assets/portraits/mobile/cultist.webp',
+  './assets/portraits/mobile/techpriest.webp',
+  './assets/portraits/mobile/priest.webp',
+  './assets/portraits/mobile/neophyte.webp',
+  './assets/portraits/mobile/psyker.webp',
+  './assets/portraits/mobile/sister.webp',
   './assets/weapons/autogun.webp',
   './assets/weapons/bolt-pistol.webp',
   './assets/weapons/bolter.webp',
