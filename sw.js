@@ -1,6 +1,6 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v31-class-title-sync';
+const V = 'legendy-v32-class-name-spacing';
 const ASSETS = [
   './',
   './index.html',
@@ -8,10 +8,10 @@ const ASSETS = [
   './master.css?v=gm-html-reader-1',
   './master-data.js?v=gm-html-reader-1',
   './master.js?v=interface-fixes-25',
-  './app.css?v=class-title-sync-27',
-  './arsenal.js?v=class-title-sync-27',
-  './app.js?v=class-title-sync-27',
-  './auth.js?v=class-title-sync-27',
+  './app.css?v=class-name-spacing-28',
+  './arsenal.js?v=class-name-spacing-28',
+  './app.js?v=class-name-spacing-28',
+  './auth.js?v=class-name-spacing-28',
   './character-store.js?v=gm-html-reader-1',
   './lobby-store.js?v=gm-html-reader-1',
   './firebase-config.js?v=gm-html-reader-1',

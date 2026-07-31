@@ -1700,3 +1700,12 @@ body.has-partybar main{padding-top:calc(var(--topbar-h) + var(--partybar-h) + en
 
 /* ═══════════════ v1.27 · единые названия архетипов ═══════════════ */
 .card .head .eyebrow{display:none!important;}
+
+
+/* ═══════════════ v1.28 · пробелы в названиях классов ═══════════════ */
+.ch-btn b{
+  white-space:normal;
+  word-break:normal;
+  overflow-wrap:normal;
+  word-spacing:.10em;
+}

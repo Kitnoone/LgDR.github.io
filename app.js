@@ -545,8 +545,16 @@ function startTipAutoRotation() {
 /* ─────────────────────── выбор персонажа ─────────────────────── */
 
 function classDisplayName(card) {
+  const classId = card?.dataset?.char || '';
+  if (classId && CLASS_HINT_LABELS[classId]) return CLASS_HINT_LABELS[classId];
+
+  /* В HTML названия на листе разбиты тегами <br>. textContent не добавляет
+     пробел вместо <br>, поэтому без этой обработки слова склеивались. */
   const heading = card ? $('h1', card) : null;
-  return heading ? heading.textContent.replace(/\s+/g, ' ').trim() : '';
+  if (!heading) return '';
+  const copy = heading.cloneNode(true);
+  copy.querySelectorAll('br').forEach(br => br.replaceWith(document.createTextNode(' ')));
+  return copy.textContent.replace(/\s+/g, ' ').trim();
 }
 
 function buildChooser() {
@@ -563,7 +571,11 @@ function buildChooser() {
     const portrait = PORTRAITS[card.dataset.char];
     if (portrait) b.style.setProperty('--chooser-portrait', `url("${portrait}")`);
     const name = classDisplayName(card);
-    b.innerHTML = `<b>${name}</b><span>${$('.role', card).textContent}</span>`;
+    const title = document.createElement('b');
+    const description = document.createElement('span');
+    title.textContent = name;
+    description.textContent = $('.role', card)?.textContent || '';
+    b.append(title, description);
     b.addEventListener('click', () => pickChar(card.dataset.char));
     grid.appendChild(b);
   });
