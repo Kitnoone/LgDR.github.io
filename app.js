@@ -544,6 +544,11 @@ function startTipAutoRotation() {
 
 /* ─────────────────────── выбор персонажа ─────────────────────── */
 
+function classDisplayName(card) {
+  const heading = card ? $('h1', card) : null;
+  return heading ? heading.textContent.replace(/\s+/g, ' ').trim() : '';
+}
+
 function buildChooser() {
   const grid = $('#chooser-grid');
   const nameInput = $('#character-name-input');
@@ -557,7 +562,7 @@ function buildChooser() {
     b.dataset.pick = card.dataset.char;
     const portrait = PORTRAITS[card.dataset.char];
     if (portrait) b.style.setProperty('--chooser-portrait', `url("${portrait}")`);
-    const name = $('h1', card).innerHTML.replace(/<br\s*\/?>/gi, ' ');
+    const name = classDisplayName(card);
     b.innerHTML = `<b>${name}</b><span>${$('.role', card).textContent}</span>`;
     b.addEventListener('click', () => pickChar(card.dataset.char));
     grid.appendChild(b);
@@ -1050,7 +1055,7 @@ function render() {
   const taint = Team.taint;
   const coins = Team.coins;
 
-  $('#tb-title').textContent = $('.head .eyebrow', card).textContent;
+  $('#tb-title').textContent = classDisplayName(card);
   $('#tb-character-name').textContent = S.characterName || 'Без имени';
 
   /* здоровье */
@@ -1614,7 +1619,7 @@ function bindEventsOnce() {
   }));
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js?v=interface-fixes-25', { updateViaCache: 'none' }).catch(err =>
+    navigator.serviceWorker.register('sw.js?v=class-title-sync-27', { updateViaCache: 'none' }).catch(err =>
       console.warn('Service worker не зарегистрирован:', err));
   }
 }

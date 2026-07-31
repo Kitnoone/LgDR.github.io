@@ -36,7 +36,7 @@ CHARS = [{'id': 'guardsman',
   'num': 'I',
   'eyebrow': 'Гвардеец',
   'title': 'Имперский<br>гвардеец',
-  'short': 'Гвардеец',
+  'short': 'Имперский гвардеец',
   'role': 'Солдат. Стреляет из чего угодно и раздаёт союзникам лишние действия.',
   'hp': 20,
   'armor': 'Флак на старте',
@@ -97,7 +97,7 @@ CHARS = [{'id': 'guardsman',
   'num': 'II',
   'eyebrow': 'Еретик',
   'title': 'Кающийся<br>еретик',
-  'short': 'Еретик',
+  'short': 'Кающийся еретик',
   'role': 'Самый живучий в отряде. Копит порчу команды и растёт вместе с ней.',
   'hp': 40,
   'armor': 'Робы',
@@ -684,7 +684,6 @@ def render_card(ch):
 
   <div class="head">
     <div class="titles">
-      <span class="eyebrow">{ch['eyebrow']}</span>
       <h1>{ch['title']}</h1>
       <p class="role">{ch['role']}</p>
     </div>
@@ -776,7 +775,7 @@ HEAD = '''<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=PT+Sans+Narrow:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.css?v=starting-loadout-23">
+<link rel="stylesheet" href="app.css?v=class-title-sync-27">
 </head>
 <body>
 
@@ -1023,9 +1022,9 @@ FOOT = '''
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="arsenal.js?v=starting-loadout-23"></script>
-<script src="app.js?v=starting-loadout-23"></script>
-<script type="module" src="auth.js?v=starting-loadout-23"></script>
+<script src="arsenal.js?v=class-title-sync-27"></script>
+<script src="app.js?v=class-title-sync-27"></script>
+<script type="module" src="auth.js?v=class-title-sync-27"></script>
 </body>
 </html>
 '''

@@ -1696,3 +1696,7 @@ body.has-partybar main{padding-top:calc(var(--topbar-h) + var(--partybar-h) + en
   .ability-use-panel{display:none!important;}
   .abil[data-uses]::after{display:none!important;}
 }
+
+
+/* ═══════════════ v1.27 · единые названия архетипов ═══════════════ */
+.card .head .eyebrow{display:none!important;}
