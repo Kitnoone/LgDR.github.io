@@ -32,12 +32,15 @@ async function writeNow(state) {
   const clean = cloneState(state);
   lastSerialized = serialize(clean);
   statusHandler('saving');
+  /* Записываем полное состояние персонажа целиком. При merge:true Firestore
+     сохранял отсутствующие вложенные ключи в state, из-за чего снятый
+     последний заряд мог вернуться из предыдущей облачной версии. */
   await setDoc(activeRef, {
     ownerId: activeUid,
     schemaVersion: 2,
     state: clean,
     updatedAt: serverTimestamp(),
-  }, { merge: true });
+  });
   statusHandler('synced');
 }
 

@@ -1,6 +1,6 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v29-interface-fixes';
+const V = 'legendy-v30-ability-charge-fix';
 const ASSETS = [
   './',
   './index.html',
@@ -8,10 +8,10 @@ const ASSETS = [
   './master.css?v=gm-html-reader-1',
   './master-data.js?v=gm-html-reader-1',
   './master.js?v=interface-fixes-25',
-  './app.css?v=interface-fixes-25',
-  './arsenal.js?v=interface-fixes-25',
-  './app.js?v=interface-fixes-25',
-  './auth.js?v=interface-fixes-25',
+  './app.css?v=ability-charge-fix-26',
+  './arsenal.js?v=ability-charge-fix-26',
+  './app.js?v=ability-charge-fix-26',
+  './auth.js?v=ability-charge-fix-26',
   './character-store.js?v=gm-html-reader-1',
   './lobby-store.js?v=gm-html-reader-1',
   './firebase-config.js?v=gm-html-reader-1',

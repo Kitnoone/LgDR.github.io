@@ -1407,9 +1407,11 @@ function changeAbilityUse(delta) {
   const current = Math.max(0, Math.min(total, Number(S.spent[key] || 0)));
   const next = Math.max(0, Math.min(total, current + delta));
   if (next === current) return;
-  if (next > 0) S.spent[key] = next;
-  else delete S.spent[key];
-  save();
+  /* Нулевое значение сохраняем явно. Firestore при merge-сохранении
+     не удаляет отсутствующее вложенное поле, поэтому delete приводил к
+     возврату последнего заряда из облака через секунду. */
+  S.spent[key] = next;
+  save(true);
   render();
   closeAbilityUseDialog();
   toast(delta > 0 ? `«${name}»: использование добавлено` : `«${name}»: использование убрано`);
