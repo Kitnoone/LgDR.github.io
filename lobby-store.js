@@ -22,6 +22,7 @@ const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selec
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const MIN_MEMBERS = 3;
 const MAX_MEMBERS = 8;
+const MAX_TAINT = 8;
 const MAX_EVENTS = 12;
 
 let activeUid = null;
@@ -516,7 +517,8 @@ async function mutateResources(options = {}) {
     if (!(data.memberIds || []).includes(activeUid)) throw new Error('NOT_MEMBER');
     if (Number(data.memberCount || 0) < MIN_MEMBERS) throw new Error('TEAM_NOT_READY');
 
-    let taint = Math.max(0, Number(data.taint || 0));
+    const taintBefore = Math.min(MAX_TAINT, Math.max(0, Number(data.taint || 0)));
+    let taint = taintBefore;
     let coins = Math.max(0, Number(data.coins || 0));
     let actualTaintDelta = Number(options.taintDelta || 0);
     const coinDelta = Number(options.coinDelta || 0);
@@ -531,19 +533,21 @@ async function mutateResources(options = {}) {
     }
 
     if (options.clearTaint) taint = 0;
-    else taint = Math.max(0, taint + actualTaintDelta);
+    else taint = Math.min(MAX_TAINT, Math.max(0, taint + actualTaintDelta));
+    const appliedTaintDelta = taint - taintBefore;
     coins = Math.max(0, coins + coinDelta - coinCost);
 
     const actor = data.members?.[activeUid]?.name || ownSummary().name;
     const defaultText = options.clearTaint
       ? `${actor} сбрасывает порчу команды.`
-      : actualTaintDelta !== 0
-        ? `${actor} изменяет порчу на ${actualTaintDelta > 0 ? '+' : ''}${actualTaintDelta}.`
+      : appliedTaintDelta !== 0
+        ? `${actor} изменяет порчу на ${appliedTaintDelta > 0 ? '+' : ''}${appliedTaintDelta}.`
         : coinCost > 0
           ? `${actor} тратит ${coinCost} монет.`
           : `${actor} изменяет монеты на ${coinDelta > 0 ? '+' : ''}${coinDelta}.`;
     let text = cleanText(options.text || defaultText, 180);
-    if (cursedBonus) text += ' Проклятое основание добавляет ещё 1 порчу (не складывается).';
+    if (cursedBonus && taint < MAX_TAINT) text += ' Проклятое основание добавляет ещё 1 порчу (не складывается).';
+    else if (cursedBonus && taint >= MAX_TAINT) text += ` Достигнут предел Порчи: ${MAX_TAINT}.`;
 
     const event = appendEvent(data, text, options.type || 'resource');
     transaction.update(ref, {
@@ -560,7 +564,7 @@ async function mutateResources(options = {}) {
 }
 
 const teamAdapter = {
-  get taint() { return Math.max(0, Number(teamData?.taint || 0)); },
+  get taint() { return Math.min(MAX_TAINT, Math.max(0, Number(teamData?.taint || 0))); },
   get coins() { return Math.max(0, Number(teamData?.coins || 0)); },
   get shared() { return !!teamData; },
   get ready() { return Number(teamData?.memberCount || 0) >= MIN_MEMBERS; },

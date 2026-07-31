@@ -16,6 +16,48 @@ const stateListeners = new Set();
 const Arsenal = window.LegendyArsenal;
 if (!Arsenal) throw new Error('arsenal.js не загружен');
 
+const MAX_TAINT = 8;
+const clampTaint = value => Math.min(MAX_TAINT, Math.max(0, Number.parseInt(value, 10) || 0));
+
+const TAINT_STAGES = Object.freeze([
+  {
+    title: 'Чисты перед Троном',
+    text: 'В вашем облике нет ничего противоестественного. Вы выглядите усталыми, потрёпанными и вооружёнными людьми Империума.',
+  },
+  {
+    title: 'Пепельный след',
+    text: 'Рядом с вами ощущается едва заметный запах пепла, старой крови и влажной земли. Металл оружия быстро покрывается тусклой патиной, а из остывших стволов иногда поднимается дым, хотя вы давно не стреляли. Стоящие поблизости люди могут услышать тихий шёпот, но не способны разобрать ни единого слова.',
+  },
+  {
+    title: 'Зверь под кожей',
+    text: 'Под кожей проступают тонкие тёмные вены, особенно вокруг глаз, шеи и ладоней. Радужки становятся слишком яркими, а зрачки временами сужаются, словно у хищника. Зубы кажутся чуть более острыми, ногти — крепкими и тёмными. Рукояти оружия приобретают странные изгибы, напоминающие суставы или клыки.',
+  },
+  {
+    title: 'Отражение лжёт',
+    text: 'Ваши голоса временами сопровождаются тихим вторым голосом, повторяющим слова с едва заметной задержкой. В зеркалах и полированном металле ваши отражения выглядят более худыми, высокими и нечеловеческими. Тени иногда продолжают двигаться после того, как вы остановились, или поворачивают головы в другую сторону.',
+  },
+  {
+    title: 'Плоть помнит Хаос',
+    text: 'Кожа становится холодной и сухой, а старые шрамы темнеют и словно начинают складываться в неизвестные знаки. Вокруг вас гаснут слабые источники света, а насекомые собираются там, где вы недавно стояли. Оружие приобретает почти органические черты: вентиляционные отверстия напоминают ноздри, кабели — жилы, а лезвия словно медленно дышат.',
+  },
+  {
+    title: 'Печать мутации',
+    text: 'Изменения уже невозможно полностью скрыть. У кого-то появляются костяные наросты, чрезмерно длинные пальцы, раздвоенный язык или небольшие дополнительные зубы. Глаза могут светиться в темноте, а кровь становится слишком густой и почти чёрной. Незнакомцы инстинктивно отступают от вас, даже если ещё не понимают причину своего страха.',
+  },
+  {
+    title: 'Пространство отступает',
+    text: 'Рядом с вами искажается сама реальность. Прямые линии кажутся кривыми, расстояния — неправильными, а звук шагов доносится раньше, чем вы ступаете. На коже открываются дополнительные глаза, которые медленно следят за окружающими. Ваши тени больше не принадлежат только вам: иногда в них видны рога, крылья, щупальца или силуэты существ, стоящих за вашей спиной.',
+  },
+  {
+    title: 'Почти не люди',
+    text: 'Ваш человеческий облик сохраняется лишь частично. Челюсти становятся шире, суставы изгибаются под неправильными углами, из кожи выступают рога, шипы или костяные пластины. Голоса сливаются в хор из нескольких существ, произносящих слова одновременно. Животные впадают в панику, сервиторы дают сбои, а набожные люди рядом начинают молиться или тянуться к оружию.',
+  },
+  {
+    title: 'На грани апофеоза',
+    text: 'Вы выглядите как существа, которых реальность больше не способна полностью удерживать. Плоть меняется прямо на глазах: дополнительные глаза раскрываются и исчезают, зубы растут новыми рядами, конечности на мгновение принимают нечеловеческую форму. За каждым из вас проступает призрачный демонический силуэт, повторяющий движения с собственной волей. Ваше оружие кажется живым, шепчет имена окружающих и сочится дымом, кровью или чёрным маслом. Тени растекаются по стенам независимо от света. Люди рядом понимают без всяких проверок: перед ними стоят не просто осквернённые слуги Империума, а врата, через которые Хаос уже смотрит в материальный мир.',
+  },
+]);
+
 const BLANK = () => ({
   char: null,
   characterName: '',
@@ -103,6 +145,8 @@ function normalizeState(raw) {
   next.flags = Object.assign({ sisterFallReward: false }, raw?.flags || {});
   next.teamCode = String(raw?.teamCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
   next.team = Object.assign({ taint: 0, coins: 0 }, raw?.team || {});
+  next.team.taint = clampTaint(next.team.taint);
+  next.team.coins = Math.max(0, Number.parseInt(next.team.coins, 10) || 0);
   next.inventory = Object.assign(blankInventory(), raw?.inventory || {});
   if (!Array.isArray(next.inventory.weaponIds)) next.inventory.weaponIds = [];
   if (!Array.isArray(next.inventory.gearIds)) next.inventory.gearIds = [];
@@ -220,14 +264,14 @@ function save(immediate = false) {
    командной записью Firestore.                                      */
 
 const Team = {
-  get taint() { return teamAdapter ? teamAdapter.taint : S.team.taint; },
+  get taint() { return clampTaint(teamAdapter ? teamAdapter.taint : S.team.taint); },
   get coins() { return teamAdapter ? teamAdapter.coins : S.team.coins; },
   get shared() { return !!teamAdapter?.shared; },
   get ready() { return !teamAdapter || !!teamAdapter.ready; },
   get memberCount() { return teamAdapter?.memberCount || 0; },
 
   async setTaint(v, meta = {}) {
-    const target = Math.max(0, v | 0);
+    const target = clampTaint(v);
     if (teamAdapter) {
       const delta = target - this.taint;
       if (delta === 0) return true;
@@ -246,10 +290,20 @@ const Team = {
     S.team.coins = target; save(); render(); return true;
   },
   async addTaint(d, meta = {}) {
-    if (teamAdapter) {
-      try { await teamAdapter.addTaint(d, meta); return true; } catch { return false; }
+    const delta = Number.parseInt(d, 10) || 0;
+    if (!delta) return true;
+    const current = this.taint;
+    if (delta > 0 && current >= MAX_TAINT) {
+      toast(`Достигнут предел Порчи: ${MAX_TAINT}`);
+      return true;
     }
-    return this.setTaint(this.taint + d, meta);
+    const target = clampTaint(current + delta);
+    const actualDelta = target - current;
+    if (!actualDelta) return true;
+    if (teamAdapter) {
+      try { await teamAdapter.addTaint(actualDelta, meta); return true; } catch { return false; }
+    }
+    return this.setTaint(target, meta);
   },
   async addCoins(d, meta = {}) {
     if (teamAdapter) {
@@ -281,6 +335,42 @@ function toast(msg) {
   el.hidden = false;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
+}
+
+function renderTaintInfo() {
+  const level = Team.taint;
+  const stage = TAINT_STAGES[level] || TAINT_STAGES[0];
+  const dialog = $('#taintdlg');
+  const mark = $('#taint-mark');
+
+  if (mark) {
+    mark.dataset.level = String(level);
+    mark.style.setProperty('--taint-level', String(level));
+    mark.setAttribute('aria-label', `Порча команды ${level} из ${MAX_TAINT}. Открыть описание искажения.`);
+  }
+
+  if (!dialog) return;
+  dialog.dataset.level = String(level);
+  const levelEl = $('#taint-stage-level', dialog);
+  const titleEl = $('#taint-stage-title', dialog);
+  const textEl = $('#taint-stage-text', dialog);
+  if (levelEl) levelEl.textContent = `${level} из ${MAX_TAINT}`;
+  if (titleEl) titleEl.textContent = stage.title;
+  if (textEl) textEl.textContent = stage.text;
+  $$('.taint-track i', dialog).forEach((segment, index) => {
+    segment.classList.toggle('is-on', index < level);
+  });
+}
+
+function openTaintInfo() {
+  renderTaintInfo();
+  const dialog = $('#taintdlg');
+  if (dialog) dialog.hidden = false;
+}
+
+function closeTaintInfo() {
+  const dialog = $('#taintdlg');
+  if (dialog) dialog.hidden = true;
 }
 
 function activeCard() {
@@ -1149,7 +1239,16 @@ function render() {
   $('#teambar').classList.toggle('is-taint', taint > 0);
   $('#teambar').classList.toggle('is-shared', Team.shared);
   $('#teambar').classList.toggle('is-forming', Team.shared && !Team.ready);
-  $$('.tb-cell--team button').forEach(button => { button.disabled = Team.shared && !Team.ready; });
+  $('#teambar').classList.toggle('is-taint-cap', taint >= MAX_TAINT);
+  const resourcesLocked = Team.shared && !Team.ready;
+  $$('#teambar [data-act="taint-minus"], #teambar [data-act="taint-plus"], #teambar [data-act="coins-minus"], #teambar [data-act="coins-plus"]')
+    .forEach(button => { button.disabled = resourcesLocked; });
+  const taintPlus = $('#teambar [data-act="taint-plus"]');
+  if (taintPlus) {
+    taintPlus.classList.toggle('is-cap', taint >= MAX_TAINT);
+    taintPlus.setAttribute('aria-label', taint >= MAX_TAINT ? 'Достигнут предел Порчи' : 'Добавить Порчу');
+  }
+  renderTaintInfo();
   const mode = $('#team-resource-mode');
   if (mode) mode.textContent = Team.shared
     ? (Team.ready ? `лобби · ${Team.memberCount}/8` : `ждём 3 игроков · ${Team.memberCount}/3`)
@@ -1534,6 +1633,8 @@ async function onClick(e) {
     case 'prev-tip':    if (card) moveHint(-1); break;
     case 'next-tip':    if (card) moveHint(1); break;
     case 'hp':          openHp(); break;
+    case 'taint-info':  openTaintInfo(); break;
+    case 'close-taint': closeTaintInfo(); break;
     case 'close-hp':    $('#hpdlg').hidden = true; break;
     case 'damage': {
       const n = readAmount();
@@ -1631,7 +1732,7 @@ function bindEventsOnce() {
   }));
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js?v=class-title-sync-27', { updateViaCache: 'none' }).catch(err =>
+    navigator.serviceWorker.register('sw.js?v=taint-distortion-29', { updateViaCache: 'none' }).catch(err =>
       console.warn('Service worker не зарегистрирован:', err));
   }
 }
@@ -1709,7 +1810,7 @@ function stopForLogout() {
   activeUserId = null;
   cloudSaver = null;
   S = BLANK();
-  ['#chooser', '#topbar', '#partybar', '#teambar', '#app', '#menu', '#hpdlg', '#profiledlg', '#arsenaldlg', '#itemdetaildlg', '#lobbydlg', '#memberdlg'].forEach(sel => {
+  ['#chooser', '#topbar', '#partybar', '#teambar', '#app', '#menu', '#hpdlg', '#profiledlg', '#arsenaldlg', '#itemdetaildlg', '#lobbydlg', '#memberdlg', '#taintdlg'].forEach(sel => {
     const el = $(sel);
     if (el) el.hidden = true;
   });

@@ -81,6 +81,7 @@ service cloud.firestore {
           && request.resource.data.taint is int
           && request.resource.data.coins is int
           && request.resource.data.taint >= 0
+          && request.resource.data.taint <= 8
           && request.resource.data.coins >= 0;
       }
 

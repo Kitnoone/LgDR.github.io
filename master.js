@@ -53,6 +53,7 @@ let toastTimer = null;
 function setMessage(el, text='', kind='') { el.textContent = text; el.className = 'gm-message' + (kind ? ` is-${kind}` : ''); }
 function escapeHtml(v='') { return String(v).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch])); }
 function cleanText(v, max=100) { return String(v || '').trim().replace(/\s+/g,' ').slice(0,max); }
+function taintValue(v) { return Math.min(8, Math.max(0, Number(v || 0))); }
 function toast(text) { clearTimeout(toastTimer); ui.toast.textContent = text; ui.toast.hidden = false; toastTimer=setTimeout(()=>{ui.toast.hidden=true;},2600); }
 function formatDate(value) { try { const d=value?.toDate ? value.toDate() : new Date(value); return Number.isNaN(d.getTime()) ? '—' : new Intl.DateTimeFormat('ru-RU',{dateStyle:'short',timeStyle:'short'}).format(d); } catch { return '—'; } }
 function humanError(error) { const code=error?.code||''; const known={'permission-denied':'Недостаточно прав. Проверьте роль мастера и Firestore Rules.','auth/invalid-credential':'Неверная почта или пароль.','auth/network-request-failed':'Нет связи с Firebase.'}; return known[code] || `Ошибка: ${code || error?.message || 'неизвестная'}`; }
@@ -120,7 +121,7 @@ function renderLobbies() {
   if (!teams.length) { ui.lobbyList.innerHTML='<div class="gm-empty">Пока нет созданных лобби.</div>'; return; }
   ui.lobbyList.innerHTML=teams.map(team=>{
     const count=Number(team.memberCount ?? team.memberIds?.length ?? 0);
-    return `<article class="gm-lobby-card"><div><span class="gm-kicker">Код ${escapeHtml(team.code||team.id)}</span><h3>${escapeHtml(team.name||'Без названия')}</h3><div class="gm-lobby-meta"><span>Игроков: <b>${count}/8</b></span><span>Обновлено: ${escapeHtml(formatDate(team.updatedAt))}</span></div></div><div class="gm-card-actions"><div class="gm-lobby-resources"><span>Порча<b>${Number(team.taint||0)}</b></span><span>Монеты<b>${Number(team.coins||0)}</b></span></div><button class="gm-card-button" type="button" data-open-team="${escapeHtml(team.id)}">Открыть</button></div></article>`;
+    return `<article class="gm-lobby-card"><div><span class="gm-kicker">Код ${escapeHtml(team.code||team.id)}</span><h3>${escapeHtml(team.name||'Без названия')}</h3><div class="gm-lobby-meta"><span>Игроков: <b>${count}/8</b></span><span>Обновлено: ${escapeHtml(formatDate(team.updatedAt))}</span></div></div><div class="gm-card-actions"><div class="gm-lobby-resources"><span>Порча<b>${taintValue(team.taint)}</b></span><span>Монеты<b>${Number(team.coins||0)}</b></span></div><button class="gm-card-button" type="button" data-open-team="${escapeHtml(team.id)}">Открыть</button></div></article>`;
   }).join('');
 }
 
@@ -128,7 +129,7 @@ function statValue(state, team, stat) {
   const charId=state?.char; const data=MasterData.characters[charId];
   let value=Number(data?.stats?.[stat] || 0);
   if (charId==='heretic') {
-    value += Math.max(0,Number(team?.taint||0));
+    value += taintValue(team?.taint);
     const raw=String(state?.choice?.['heretic:pact']||'').toLowerCase();
     const pact=raw.includes('гордын')||raw==='pride' ? 'pride' : raw.includes('сил')||raw==='strength'||raw==='power'||raw==='pact-strength' ? 'strength' : raw;
     if (pact==='pride') value+=1;
@@ -194,7 +195,7 @@ function closeTeam() {
 function renderOpenTeam() {
   const team=openTeamData; if (!team) return;
   ui.teamCode.textContent=team.code||team.id; ui.teamName.textContent=team.name||'Без названия';
-  ui.teamMembers.textContent=`${Number(team.memberCount||team.memberIds?.length||0)} / 8`; ui.teamTaint.textContent=Number(team.taint||0); ui.teamCoins.textContent=Number(team.coins||0);
+  ui.teamMembers.textContent=`${Number(team.memberCount||team.memberIds?.length||0)} / 8`; ui.teamTaint.textContent=taintValue(team.taint); ui.teamCoins.textContent=Number(team.coins||0);
   const players=(team.memberIds||[]).map(uid=>playerSnapshot(uid,team.members?.[uid]||{}));
   ui.playerList.innerHTML=players.map(p=>{
     const weapons=p.weapons.length?p.weapons.map(w=>`<div class="gm-weapon-row"><img src="${escapeHtml(Arsenal.iconFor(w))}" alt=""><div><b>${escapeHtml(w.name)}</b><div class="gm-damage">${escapeHtml(damageText(w,p.state,team))}</div><div>${Number(w.hands||0)} ${Number(w.hands||0)===1?'рука':'руки'}</div><p class="gm-rule">${escapeHtml(Arsenal.fullRule(w)||'Особых правил нет.')}</p></div></div>`).join(''):'<div class="gm-empty">Оружие не выбрано.</div>';
@@ -310,7 +311,7 @@ function renderReaderLobbies() {
   if (!teams.length) { ui.readerLobbyList.innerHTML='<div class="gm-empty">Нет активных лобби.</div>'; return; }
   ui.readerLobbyList.innerHTML=teams.map(team=>{
     const count=Number(team.memberCount ?? team.memberIds?.length ?? 0);
-    return `<article class="gm-reader-lobby-card"><div><span class="gm-kicker">Код ${escapeHtml(team.code||team.id)}</span><h4>${escapeHtml(team.name||'Без названия')}</h4><div class="gm-reader-lobby-stats"><span>Игроки <b>${count}/8</b></span><span>Порча <b>${Number(team.taint||0)}</b></span><span>Монеты <b>${Number(team.coins||0)}</b></span></div></div><button class="gm-card-button" type="button" data-open-team="${escapeHtml(team.id)}">Состав и снаряжение</button></article>`;
+    return `<article class="gm-reader-lobby-card"><div><span class="gm-kicker">Код ${escapeHtml(team.code||team.id)}</span><h4>${escapeHtml(team.name||'Без названия')}</h4><div class="gm-reader-lobby-stats"><span>Игроки <b>${count}/8</b></span><span>Порча <b>${taintValue(team.taint)}</b></span><span>Монеты <b>${Number(team.coins||0)}</b></span></div></div><button class="gm-card-button" type="button" data-open-team="${escapeHtml(team.id)}">Состав и снаряжение</button></article>`;
   }).join('');
 }
 

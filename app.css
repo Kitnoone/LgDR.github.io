@@ -1709,3 +1709,66 @@ body.has-partybar main{padding-top:calc(var(--topbar-h) + var(--partybar-h) + en
   overflow-wrap:normal;
   word-spacing:.10em;
 }
+
+
+/* ═══════════════ v1.29 · шкала Порчи и искажение команды ═══════════════ */
+.tb-step .taint-mark{
+  position:relative;width:46px;height:46px;display:grid;place-items:center;
+  padding:0;border:0;background:transparent;isolation:isolate;overflow:visible;
+}
+.tb-step .taint-mark:active{background:transparent;transform:scale(.96);}
+.taint-star,.taint-dialog-sigil{
+  display:block;position:absolute;inset:2px;z-index:0;
+  background:#7d1f16;
+  clip-path:polygon(50% 0%,59% 35%,85% 15%,65% 41%,100% 50%,65% 59%,85% 85%,59% 65%,50% 100%,41% 65%,15% 85%,35% 59%,0% 50%,35% 41%,15% 15%,41% 35%);
+  opacity:.24;filter:saturate(.45) brightness(.72);
+  transition:opacity .22s ease,filter .22s ease,transform .22s ease;
+}
+.taint-star::after,.taint-dialog-sigil::after{
+  content:"";position:absolute;inset:36%;border-radius:50%;background:var(--teal-deep);
+  box-shadow:0 0 0 1px rgba(255,255,255,.1);
+}
+.taint-mark b{
+  position:relative;z-index:1;min-width:0!important;color:#fff!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.9);font-size:25px!important;
+}
+.taint-mark[data-level="1"] .taint-star,.taint-mark[data-level="2"] .taint-star{opacity:.55;filter:saturate(.8) brightness(.85);}
+.taint-mark[data-level="3"] .taint-star,.taint-mark[data-level="4"] .taint-star{opacity:.72;filter:saturate(1) brightness(.95);}
+.taint-mark[data-level="5"] .taint-star,.taint-mark[data-level="6"] .taint-star{opacity:.88;filter:saturate(1.25) brightness(1.03);}
+.taint-mark[data-level="7"] .taint-star,.taint-mark[data-level="8"] .taint-star{opacity:1;filter:saturate(1.45) brightness(1.12);}
+.teambar.is-taint .taint-mark{filter:drop-shadow(0 0 5px rgba(167,38,28,.5));}
+.teambar.is-taint-cap .taint-mark{filter:drop-shadow(0 0 9px rgba(215,52,38,.9));}
+.teambar.is-taint-cap .taint-star{animation:taintPulse 1.7s ease-in-out infinite;}
+.tb-step button.is-cap{color:#7f7770;border-color:rgba(176,138,62,.28);}
+@keyframes taintPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+
+.taint-panel{position:relative;overflow:hidden;}
+.taint-panel::before{
+  content:"";position:absolute;right:-90px;top:-100px;width:260px;height:260px;
+  background:radial-gradient(circle,rgba(125,31,22,.22),rgba(125,31,22,0) 68%);pointer-events:none;
+}
+.taint-dialog-head{display:flex;align-items:center;gap:14px;margin-bottom:14px;position:relative;z-index:1;}
+.taint-dialog-sigil{position:relative;inset:auto;flex:0 0 54px;width:54px;height:54px;opacity:.92;filter:saturate(1.2);}
+.taint-dialog-sigil::after{background:var(--paper);}
+.taint-dialog-kicker{display:block;font:700 10px var(--util);text-transform:uppercase;letter-spacing:.16em;color:var(--blood);margin-bottom:3px;}
+.taint-dialog-head h2{margin:0;}
+.taint-stage-meta{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:10px 0 7px;border-top:1px solid var(--paper-edge);}
+.taint-stage-meta span{font:700 11px var(--util);text-transform:uppercase;letter-spacing:.11em;color:var(--brass-deep);}
+.taint-stage-meta b{font:700 22px var(--display);text-transform:uppercase;color:var(--blood);}
+.taint-track{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin:0 0 18px;}
+.taint-track i{display:block;height:7px;background:#d4cabc;border:1px solid rgba(23,69,74,.12);}
+.taint-track i.is-on{background:var(--blood);border-color:#58130d;box-shadow:0 0 6px rgba(125,31,22,.3);}
+.taint-panel h3{margin:0 0 8px;font:700 24px/1.05 var(--display);text-transform:uppercase;color:var(--teal);}
+.taint-panel #taint-stage-text{margin:0;font-size:16px;line-height:1.48;color:var(--ink);}
+.taint-stage-note{margin:15px 0 0;padding:10px 11px;border-left:3px solid var(--blood);background:rgba(125,31,22,.07);font:13px/1.35 var(--util);color:var(--ink-soft);}
+.taint-dialog[data-level="0"] .taint-dialog-sigil{opacity:.3;filter:saturate(.4);}
+.taint-dialog[data-level="5"] .taint-dialog-sigil,.taint-dialog[data-level="6"] .taint-dialog-sigil{filter:saturate(1.35) drop-shadow(0 0 6px rgba(125,31,22,.45));}
+.taint-dialog[data-level="7"] .taint-dialog-sigil,.taint-dialog[data-level="8"] .taint-dialog-sigil{filter:saturate(1.6) drop-shadow(0 0 9px rgba(125,31,22,.7));}
+
+@media (prefers-reduced-motion:reduce){.teambar.is-taint-cap .taint-star{animation:none;}}
+@media screen and (max-width:380px){
+  .tb-step{gap:7px;}
+  .tb-step .taint-mark{width:42px;height:42px;}
+  .tb-step button:not(.taint-mark){width:30px;height:32px;}
+  .taint-panel #taint-stage-text{font-size:15px;}
+}

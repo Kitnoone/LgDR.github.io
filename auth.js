@@ -5,7 +5,7 @@
 
 import { auth, db } from './firebase-config.js?v=gm-html-reader-1';
 import { connectCharacterStore, queueCharacterSave, stopCharacterStore } from './character-store.js?v=gm-html-reader-1';
-import { startLobbySession, stopLobbySession } from './lobby-store.js?v=gm-html-reader-1';
+import { startLobbySession, stopLobbySession } from './lobby-store.js?v=taint-distortion-29';
 import {
   browserLocalPersistence,
   createUserWithEmailAndPassword,

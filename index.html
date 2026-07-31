@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=PT+Sans+Narrow:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.css?v=class-name-spacing-28">
+<link rel="stylesheet" href="app.css?v=taint-distortion-29">
 </head>
 <body>
 
@@ -112,6 +112,29 @@
     </div>
     <p class="hpdlg-note" id="hpdlg-note"></p>
     <button class="menu-close" data-act="close-hp">Закрыть</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════ описание порчи команды ═══════════════ -->
+<div class="sheetmenu taint-dialog" id="taintdlg" data-level="0" hidden>
+  <div class="sheetmenu-panel taint-panel" role="dialog" aria-modal="true" aria-labelledby="taint-dialog-title">
+    <div class="taint-dialog-head">
+      <span class="taint-dialog-sigil" aria-hidden="true"></span>
+      <div>
+        <span class="taint-dialog-kicker">Воздействие Хаоса</span>
+        <h2 id="taint-dialog-title">Искажение команды</h2>
+      </div>
+    </div>
+    <div class="taint-stage-meta">
+      <span>Порча команды</span>
+      <b id="taint-stage-level">0 из 8</b>
+    </div>
+    <div class="taint-track" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <h3 id="taint-stage-title">Чисты перед Троном</h3>
+    <p id="taint-stage-text">В вашем облике нет ничего противоестественного. Вы выглядите усталыми, потрёпанными и вооружёнными людьми Империума.</p>
+    <p class="taint-stage-note">Проявления зависят от текущего значения Порчи и отступают, когда команда очищается.</p>
+    <button class="menu-close" type="button" data-act="close-taint">Закрыть</button>
   </div>
 </div>
 
@@ -1346,12 +1369,16 @@
     <span class="tb-lab">Здоровье</span>
     <button class="tb-val tb-hp" data-act="hp"><b data-hp-mirror>—</b></button>
   </div>
-  <div class="tb-cell tb-cell--team">
+  <div class="tb-cell tb-cell--team tb-cell--taint">
     <span class="tb-lab">Порча команды</span>
     <div class="tb-step">
-      <button data-act="taint-minus">−</button>
-      <b id="taint-val">0</b>
-      <button data-act="taint-plus">+</button>
+      <button type="button" data-act="taint-minus" aria-label="Снять Порчу">−</button>
+      <button type="button" class="taint-mark" id="taint-mark" data-act="taint-info" data-level="0"
+              aria-label="Порча команды 0 из 8. Открыть описание искажения.">
+        <span class="taint-star" aria-hidden="true"></span>
+        <b id="taint-val">0</b>
+      </button>
+      <button type="button" data-act="taint-plus" aria-label="Добавить Порчу">+</button>
     </div>
   </div>
   <div class="tb-cell tb-cell--team">
@@ -1366,8 +1393,8 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="arsenal.js?v=class-name-spacing-28"></script>
-<script src="app.js?v=class-name-spacing-28"></script>
-<script type="module" src="auth.js?v=class-name-spacing-28"></script>
+<script src="arsenal.js?v=taint-distortion-29"></script>
+<script src="app.js?v=taint-distortion-29"></script>
+<script type="module" src="auth.js?v=taint-distortion-29"></script>
 </body>
 </html>

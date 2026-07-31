@@ -1,19 +1,19 @@
 /* Кэш приложения: работает без сети после первого открытия.
    Firebase Authentication и внешние CDN service worker не перехватывает. */
-const V = 'legendy-v32-class-name-spacing';
+const V = 'legendy-v33-taint-distortion';
 const ASSETS = [
   './',
   './index.html',
   './master.html',
   './master.css?v=gm-html-reader-1',
   './master-data.js?v=gm-html-reader-1',
-  './master.js?v=interface-fixes-25',
-  './app.css?v=class-name-spacing-28',
-  './arsenal.js?v=class-name-spacing-28',
-  './app.js?v=class-name-spacing-28',
-  './auth.js?v=class-name-spacing-28',
+  './master.js?v=taint-distortion-29',
+  './app.css?v=taint-distortion-29',
+  './arsenal.js?v=taint-distortion-29',
+  './app.js?v=taint-distortion-29',
+  './auth.js?v=taint-distortion-29',
   './character-store.js?v=gm-html-reader-1',
-  './lobby-store.js?v=gm-html-reader-1',
+  './lobby-store.js?v=taint-distortion-29',
   './firebase-config.js?v=gm-html-reader-1',
   './manifest.webmanifest',
   './icon-192.png',
